@@ -1,0 +1,662 @@
+<project_specification>
+  <project_name>Tap In V1</project_name>
+
+  <overview>
+    Tap In V1 es una plataforma web de gestión financiera diseñada específicamente para Centros de Padres y Apoderados (CPPs) de colegios chilenos. Reemplaza el uso de planillas Excel y WhatsApp con un sistema de roles diferenciados, un workflow de aprobación de pagos trazable con auditoría inmutable, y continuidad de datos entre directivas. El objetivo es reducir conflictos financieros y aumentar la confianza entre apoderados mediante transparencia total: información abierta, acciones restringidas.
+  </overview>
+
+  <language>es</language>
+  <locale>es-CL</locale>
+  <currency>CLP</currency>
+
+  <technology_stack>
+    <frontend>
+      <framework>React + Vite</framework>
+      <styling>Tailwind CSS v4</styling>
+      <typography>DM Sans (Google Fonts)</typography>
+      <animations>CSS transitions + JavaScript (sin dependencias externas de animación)</animations>
+      <charts>Recharts o Chart.js (para gráficos del dashboard)</charts>
+      <export>xlsx (librería para exportar a Excel)</export>
+    </frontend>
+    <backend>
+      <runtime>Node.js + Express</runtime>
+      <database>SQLite (con preparación para migración futura a PostgreSQL/Supabase)</database>
+      <orm>better-sqlite3 o similar</orm>
+      <authentication>JWT (email + password)</authentication>
+      <file_storage>Sistema de archivos local (comprobantes y documentos adjuntos)</file_storage>
+    </backend>
+    <communication>
+      <api>REST API</api>
+      <format>JSON</format>
+    </communication>
+  </technology_stack>
+
+  <prerequisites>
+    <environment_setup>
+      Node.js 18+ instalado. npm como gestor de paquetes. No requiere servicios externos ni bases de datos externas.
+    </environment_setup>
+  </prerequisites>
+
+  <feature_count>265</feature_count>
+
+  <design_principles>
+    <reference>Linear y Notion — rápido, limpio, sin sobrecarga visual</reference>
+    <speed>Cada interacción responde en menos de 100ms. Un botón rápido supera a una animación lenta.</speed>
+    <clarity>El usuario nunca se pregunta "¿y ahora qué hago?". Cada pantalla tiene una acción primaria clara.</clarity>
+    <feedback>Confirmaciones inline con microanimación CSS, no alerts del navegador.</feedback>
+    <empty_states>Cuando no hay datos, el sistema guía al usuario a la primera acción.</empty_states>
+    <responsive>No solo que se vea bien en móvil, sino que la experiencia esté pensada para cada contexto.</responsive>
+    <polish>Interfaz pulida, fluida, profesional. Espaciado generoso. Nada se siente apretado.</polish>
+  </design_principles>
+
+  <security_and_access_control>
+    <principle>Información abierta, acciones restringidas. Todos los roles ven el pipeline completo de solicitudes con total transparencia. Lo que cambia por rol es exclusivamente qué acciones puede ejecutar cada uno.</principle>
+
+    <user_roles>
+      <role name="delegado">
+        <description>Representante de curso. Canaliza las necesidades y solicitudes de gasto de su grupo hacia la directiva del CPP.</description>
+        <permissions>
+          - Ver pipeline completo de solicitudes (todos los estados)
+          - Ver dashboard completo
+          - Crear solicitudes de pago (egresos)
+          - Editar sus propios borradores (antes de enviar)
+          - Adjuntar documentos de respaldo a sus solicitudes
+          - Registrar ingresos
+          - Exportar reportes a Excel
+        </permissions>
+        <restrictions>
+          - No puede aprobar, rechazar ni ejecutar solicitudes
+          - No puede editar solicitudes de otros delegados
+          - No puede gestionar categorías ni usuarios
+        </restrictions>
+      </role>
+
+      <role name="presidente">
+        <description>Directiva del CPP. Responsable de la aprobación financiera de los gastos. También referido como Tesorero.</description>
+        <permissions>
+          - Todo lo del Delegado
+          - Aprobar solicitudes pendientes (sin comentario obligatorio)
+          - Rechazar solicitudes pendientes (con comentario obligatorio)
+          - Crear solicitudes propias de pago
+          - Ver reportes financieros detallados
+          - Gestionar categorías de ingreso y egreso (crear, editar, eliminar)
+          - Invitar y gestionar usuarios del CPP (asignar roles, desactivar)
+          - Registrar ingresos
+          - Exportar reportes a Excel
+        </permissions>
+        <restrictions>
+          - No puede ejecutar pagos (separación de funciones aprobación/ejecución)
+        </restrictions>
+      </role>
+
+      <role name="secretaria">
+        <description>Rol ejecutor. Responsable de materializar los pagos aprobados por la directiva.</description>
+        <permissions>
+          - Ver pipeline completo incluyendo todos los estados
+          - Ver dashboard completo
+          - Marcar solicitudes aprobadas como ejecutadas
+          - Adjuntar comprobante de transferencia bancaria al ejecutar
+          - Registrar ingresos
+          - Exportar reportes a Excel
+        </permissions>
+        <restrictions>
+          - No puede aprobar ni rechazar solicitudes
+          - No puede ejecutar una solicitud que no haya sido aprobada
+          - No puede crear solicitudes de pago
+          - No puede gestionar categorías ni usuarios
+        </restrictions>
+      </role>
+    </user_roles>
+
+    <permissions_matrix>
+      | Acción                          | Delegado | Presidente | Secretaria |
+      |---------------------------------|----------|------------|------------|
+      | Ver pipeline completo           | ✅       | ✅         | ✅         |
+      | Ver dashboard                   | ✅       | ✅         | ✅         |
+      | Crear solicitud de pago         | ✅       | ✅         | ❌         |
+      | Editar borrador propio          | ✅       | ✅         | ❌         |
+      | Aprobar / Rechazar              | ❌       | ✅         | ❌         |
+      | Ejecutar pago aprobado          | ❌       | ❌         | ✅         |
+      | Adjuntar comprobante ejecución  | ❌       | ❌         | ✅         |
+      | Registrar ingreso               | ✅       | ✅         | ✅         |
+      | Gestionar categorías            | ❌       | ✅         | ❌         |
+      | Gestionar usuarios              | ❌       | ✅         | ❌         |
+      | Exportar reportes               | ✅       | ✅         | ✅         |
+    </permissions_matrix>
+
+    <authentication>
+      <method>email + password con JWT</method>
+      <session_management>Token JWT con expiración</session_management>
+      <note>No hay registro público. Las organizaciones y el primer usuario se crean directamente en la base de datos por el administrador del sistema. El Presidente puede invitar usuarios adicionales dentro de su CPP.</note>
+    </authentication>
+
+    <data_isolation>
+      Los datos de cada CPP (organización) están completamente aislados. Un usuario del CPP A nunca puede ver ni acceder a datos del CPP B, ni a través de la UI ni manipulando la API directamente. El aislamiento se valida tanto en frontend como en backend.
+    </data_isolation>
+  </security_and_access_control>
+
+  <core_features>
+    <authentication>
+      - Login con email y password
+      - Logout
+      - Sesión persistente con JWT
+      - Protección de rutas por autenticación
+      - Protección de acciones por rol
+      - Redirección a login si no autenticado
+    </authentication>
+
+    <user_management>
+      - Presidente puede invitar usuarios al CPP (por email, asignando rol)
+      - Presidente puede ver lista de usuarios del CPP
+      - Presidente puede cambiar rol de un usuario
+      - Presidente puede desactivar un usuario (pierde acceso de escritura, mantiene lectura)
+      - Validación de permisos en cada endpoint del backend
+      - Aislamiento de datos entre organizaciones
+      - Cada usuario pertenece a exactamente una organización
+    </user_management>
+
+    <categories>
+      - Listas separadas de categorías para ingresos y para egresos
+      - Categorías por defecto al crear CPP:
+        - Ingresos: Cuota Mensual, Evento, Taller, Donación, Otro
+        - Egresos: Materiales, Servicios, Eventos, Infraestructura, Otro
+      - Presidente puede crear nuevas categorías
+      - Presidente puede editar categorías existentes
+      - Presidente puede eliminar categorías (si no tienen transacciones asociadas)
+      - Categorías son por organización (cada CPP tiene las suyas)
+    </categories>
+
+    <income_module>
+      - Registrar ingreso con campos: monto (CLP, requerido), fecha (requerido, default hoy), categoría de ingreso (select, requerido), descripción (opcional), pagador (opcional), RUT pagador (opcional), comprobante adjunto (archivo, opcional)
+      - Campos automáticos: source ("manual" en V1), external_id (null en V1), raw_metadata (null en V1)
+      - Listar ingresos con tabla ordenable y filtrable
+      - Editar ingreso existente (queda marca de edición con timestamp y usuario)
+      - Eliminar ingreso (queda registro en auditoría)
+      - Filtros: por fecha (rango), categoría, monto (rango), texto libre
+      - Ordenamiento por columna (click en header)
+      - Delegado, Presidente y Secretaria pueden registrar ingresos
+    </income_module>
+
+    <expense_workflow_module>
+      <description>Módulo central del producto. Implementa pipeline de aprobación con máquina de estados.</description>
+
+      <states>
+        - Borrador: solicitud creada pero no enviada. Solo visible para su creador. Editable.
+        - Pendiente de Aprobación: solicitud enviada formalmente. Visible para todos. Esperando decisión del Presidente.
+        - Aprobado: Presidente autorizó el gasto. Disponible para ejecución por Secretaria.
+        - Rechazado: Presidente negó el gasto con justificación obligatoria. Estado terminal.
+        - Ejecutado: Secretaria confirmó el pago y adjuntó comprobante. Estado terminal en V1.
+      </states>
+
+      <transitions>
+        - Borrador → Pendiente de Aprobación (acción: Delegado o Presidente envía para aprobación)
+        - Pendiente de Aprobación → Aprobado (acción: Presidente aprueba)
+        - Pendiente de Aprobación → Rechazado (acción: Presidente rechaza con comentario obligatorio)
+        - Aprobado → Ejecutado (acción: Secretaria marca como ejecutado y adjunta comprobante)
+      </transitions>
+
+      <fields>
+        - Monto (CLP, requerido)
+        - Categoría de egreso (select, requerido)
+        - Descripción (texto, requerido — qué se está pagando y por qué)
+        - Beneficiario (texto, requerido — a quién se paga)
+        - Documento de respaldo (archivo, opcional — cotización, factura, etc.)
+        - Comprobante de pago (archivo, post-ejecución — lo adjunta la Secretaria)
+        - Estado (automático — máquina de estados)
+        - Campos automáticos: source ("manual"), external_id (null), raw_metadata (null)
+      </fields>
+
+      <pipeline_views>
+        - Vista Kanban: columnas por estado, las solicitudes se mueven visualmente con transición animada CSS al cambiar de estado
+        - Vista Tabla: lista con filtros y ordenamiento
+        - Toggle para cambiar entre ambas vistas
+        - Filtros: por estado, categoría, fecha, monto, creador, beneficiario
+        - Ordenamiento por columna
+      </pipeline_views>
+
+      <workflow_details>
+        - Paso 1 (Creación): Delegado o Presidente crea solicitud como Borrador. Puede editar hasta enviar. Al enviar, cambia a Pendiente y se vuelve inmutable. Se notifica al Presidente.
+        - Paso 2 (Aprobación): Presidente ve solicitudes pendientes. Aprueba (click, sin comentario obligatorio) o rechaza (comentario obligatorio). Se notifica a Secretaria (aprobado) o Delegado (rechazado). Decisión inmutable con timestamp.
+        - Paso 3 (Ejecución): Secretaria ve solicitudes aprobadas. Marca como ejecutado y adjunta comprobante (drag-and-drop o click). Progress bar durante upload. Se notifica a Delegado y Presidente.
+      </workflow_details>
+    </expense_workflow_module>
+
+    <audit_trail>
+      - Tabla payment_events como log append-only (nunca se edita ni elimina)
+      - Cada cambio de estado registra: ID solicitud, estado anterior, estado nuevo, usuario, timestamp, comentario (obligatorio en rechazos), IP y user-agent
+      - Historial de cambios visible por solicitud (timeline de eventos)
+      - Ingresos editados o eliminados también quedan en auditoría con marca de quién y cuándo
+    </audit_trail>
+
+    <dashboard>
+      - Saldo actual: total ingresos menos total egresos ejecutados
+      - Flujo del mes actual: ingresos y egresos del mes con comparación vs mes anterior (delta porcentual)
+      - Contador de solicitudes pendientes de aprobación (con lista resumida)
+      - Contador de solicitudes aprobadas pendientes de ejecución (con lista resumida)
+      - Gráfico de barras: ingresos vs egresos de los últimos 6 meses
+      - Gráfico de distribución: porcentaje del gasto por categoría (donut o pie chart)
+      - Animación de conteo al cargar números principales (CSS animation)
+      - Loading skeletons durante carga (no spinners)
+      - Carga en menos de 1 segundo
+      - Disponible para todos los roles
+      - Datos adicionales sugeridos: top 5 categorías de gasto, tendencia de saldo mensual
+    </dashboard>
+
+    <notifications>
+      - Notificación in-app cuando se crea una solicitud (al Presidente)
+      - Notificación cuando solicitud es aprobada (a Secretaria y Delegado creador)
+      - Notificación cuando solicitud es rechazada (a Delegado con comentario de rechazo)
+      - Notificación cuando solicitud es ejecutada (a Delegado y Presidente)
+      - Recordatorio automático si solicitud lleva más de 3 días sin acción (configurable)
+      - Centro de notificaciones (ícono con badge de no leídas)
+      - Marcar notificación como leída (individual y todas)
+      - Solo notificaciones in-app en V1 (no push ni email)
+    </notifications>
+
+    <export>
+      - Exportar ingresos a Excel (.xlsx)
+      - Exportar egresos a Excel (.xlsx)
+      - Exportar todo (ingresos + egresos) a Excel
+      - Filtro de fechas en exportación (rango de fechas)
+      - Exportación respeta filtros activos en la vista
+      - Disponible para todos los roles
+    </export>
+
+    <ui_layout>
+      <desktop>
+        - Sidebar colapsable a la izquierda con navegación principal
+        - Contenido en el centro
+        - Sidebar recuerda su estado (abierta/cerrada) entre sesiones (localStorage)
+        - Ítems de navegación: Dashboard, Ingresos, Egresos (Pipeline), Reportes, Notificaciones, Configuración (solo Presidente)
+      </desktop>
+      <mobile>
+        - Bottom navigation con los mismos ítems principales
+        - Contenido ocupa 100% del ancho
+        - Transición automática entre layouts según breakpoint, sin recarga
+      </mobile>
+    </ui_layout>
+
+    <theme>
+      - Dark mode y Light mode
+      - Toggle de tema accesible desde la UI
+      - Preferencia de tema persistente (localStorage)
+      - Default: tema del sistema operativo
+    </theme>
+  </core_features>
+
+  <database_schema>
+    <tables>
+      <organizations>
+        - id (INTEGER PRIMARY KEY)
+        - name (TEXT NOT NULL) — nombre del CPP
+        - school_name (TEXT) — nombre del colegio
+        - created_at (DATETIME)
+        - updated_at (DATETIME)
+      </organizations>
+
+      <users>
+        - id (INTEGER PRIMARY KEY)
+        - organization_id (INTEGER FK → organizations.id)
+        - email (TEXT UNIQUE NOT NULL)
+        - password_hash (TEXT NOT NULL)
+        - name (TEXT NOT NULL)
+        - role (TEXT NOT NULL — 'delegado' | 'presidente' | 'secretaria')
+        - is_active (BOOLEAN DEFAULT true)
+        - created_at (DATETIME)
+        - updated_at (DATETIME)
+      </users>
+
+      <categories>
+        - id (INTEGER PRIMARY KEY)
+        - organization_id (INTEGER FK → organizations.id)
+        - name (TEXT NOT NULL)
+        - type (TEXT NOT NULL — 'ingreso' | 'egreso')
+        - is_default (BOOLEAN DEFAULT false)
+        - created_at (DATETIME)
+        - updated_at (DATETIME)
+      </categories>
+
+      <transactions>
+        - id (INTEGER PRIMARY KEY)
+        - organization_id (INTEGER FK → organizations.id)
+        - type (TEXT NOT NULL — 'ingreso' | 'egreso')
+        - amount (INTEGER NOT NULL — monto en CLP, sin decimales)
+        - category_id (INTEGER FK → categories.id)
+        - description (TEXT)
+        - date (DATE NOT NULL)
+        - payer_name (TEXT — solo para ingresos)
+        - payer_rut (TEXT — solo para ingresos)
+        - beneficiary (TEXT — solo para egresos)
+        - source (TEXT DEFAULT 'manual' — 'manual' | 'fintoc' | 'api_banco' | 'sfa' | 'wallet_tapin')
+        - external_id (TEXT — null en V1)
+        - raw_metadata (TEXT — JSON, null en V1)
+        - created_by (INTEGER FK → users.id)
+        - edited_by (INTEGER FK → users.id — null si no ha sido editado)
+        - edited_at (DATETIME — null si no ha sido editado)
+        - created_at (DATETIME)
+        - updated_at (DATETIME)
+        - deleted_at (DATETIME — soft delete)
+        - deleted_by (INTEGER FK → users.id — quien eliminó)
+        - period_year (INTEGER — año del período, ej: 2026)
+      </transactions>
+
+      <payment_requests>
+        - id (INTEGER PRIMARY KEY)
+        - organization_id (INTEGER FK → organizations.id)
+        - transaction_id (INTEGER FK → transactions.id — se crea la transacción cuando se ejecuta)
+        - amount (INTEGER NOT NULL — monto en CLP)
+        - category_id (INTEGER FK → categories.id)
+        - description (TEXT NOT NULL)
+        - beneficiary (TEXT NOT NULL)
+        - status (TEXT NOT NULL — 'borrador' | 'pendiente' | 'aprobado' | 'rechazado' | 'ejecutado')
+        - created_by (INTEGER FK → users.id — delegado o presidente que creó)
+        - approved_by (INTEGER FK → users.id — presidente que aprobó)
+        - approved_at (DATETIME)
+        - rejected_by (INTEGER FK → users.id — presidente que rechazó)
+        - rejected_at (DATETIME)
+        - rejection_comment (TEXT — obligatorio al rechazar)
+        - executed_by (INTEGER FK → users.id — secretaria que ejecutó)
+        - executed_at (DATETIME)
+        - source (TEXT DEFAULT 'manual')
+        - external_id (TEXT — null en V1)
+        - raw_metadata (TEXT — JSON, null en V1)
+        - created_at (DATETIME)
+        - updated_at (DATETIME)
+        - period_year (INTEGER)
+      </payment_requests>
+
+      <payment_events>
+        - id (INTEGER PRIMARY KEY)
+        - payment_request_id (INTEGER FK → payment_requests.id)
+        - previous_status (TEXT)
+        - new_status (TEXT NOT NULL)
+        - user_id (INTEGER FK → users.id)
+        - comment (TEXT — obligatorio en rechazos)
+        - ip_address (TEXT)
+        - user_agent (TEXT)
+        - created_at (DATETIME — inmutable, append-only)
+      </payment_events>
+
+      <attachments>
+        - id (INTEGER PRIMARY KEY)
+        - organization_id (INTEGER FK → organizations.id)
+        - entity_type (TEXT NOT NULL — 'transaction' | 'payment_request')
+        - entity_id (INTEGER NOT NULL)
+        - file_name (TEXT NOT NULL)
+        - file_path (TEXT NOT NULL)
+        - file_type (TEXT — MIME type)
+        - file_size (INTEGER — bytes)
+        - attachment_type (TEXT — 'respaldo' | 'comprobante')
+        - uploaded_by (INTEGER FK → users.id)
+        - created_at (DATETIME)
+      </attachments>
+
+      <notifications>
+        - id (INTEGER PRIMARY KEY)
+        - organization_id (INTEGER FK → organizations.id)
+        - user_id (INTEGER FK → users.id — destinatario)
+        - type (TEXT NOT NULL — 'solicitud_creada' | 'solicitud_aprobada' | 'solicitud_rechazada' | 'solicitud_ejecutada' | 'recordatorio')
+        - title (TEXT NOT NULL)
+        - message (TEXT NOT NULL)
+        - reference_type (TEXT — 'payment_request' | 'transaction')
+        - reference_id (INTEGER)
+        - is_read (BOOLEAN DEFAULT false)
+        - created_at (DATETIME)
+      </notifications>
+
+      <transaction_audit_log>
+        - id (INTEGER PRIMARY KEY)
+        - transaction_id (INTEGER FK → transactions.id)
+        - action (TEXT NOT NULL — 'created' | 'edited' | 'deleted')
+        - user_id (INTEGER FK → users.id)
+        - changes (TEXT — JSON con campos anteriores y nuevos)
+        - ip_address (TEXT)
+        - user_agent (TEXT)
+        - created_at (DATETIME)
+      </transaction_audit_log>
+    </tables>
+  </database_schema>
+
+  <api_endpoints_summary>
+    <auth>
+      - POST /api/auth/login
+      - POST /api/auth/logout
+      - GET /api/auth/me (usuario actual)
+      - POST /api/auth/refresh (refrescar token)
+    </auth>
+
+    <users>
+      - GET /api/users (listar usuarios del CPP — solo Presidente)
+      - POST /api/users/invite (invitar usuario — solo Presidente)
+      - PUT /api/users/:id/role (cambiar rol — solo Presidente)
+      - PUT /api/users/:id/deactivate (desactivar usuario — solo Presidente)
+      - PUT /api/users/:id/activate (reactivar usuario — solo Presidente)
+    </users>
+
+    <categories>
+      - GET /api/categories?type=ingreso|egreso (listar por tipo)
+      - POST /api/categories (crear — solo Presidente)
+      - PUT /api/categories/:id (editar — solo Presidente)
+      - DELETE /api/categories/:id (eliminar — solo Presidente)
+    </categories>
+
+    <transactions>
+      - GET /api/transactions?type=ingreso (listar ingresos con filtros)
+      - POST /api/transactions (crear ingreso)
+      - PUT /api/transactions/:id (editar ingreso)
+      - DELETE /api/transactions/:id (soft delete ingreso)
+      - GET /api/transactions/:id/audit (historial de auditoría)
+    </transactions>
+
+    <payment_requests>
+      - GET /api/payment-requests (listar con filtros y estado)
+      - GET /api/payment-requests/:id (detalle con historial de eventos)
+      - POST /api/payment-requests (crear borrador)
+      - PUT /api/payment-requests/:id (editar borrador propio)
+      - POST /api/payment-requests/:id/submit (enviar a aprobación)
+      - POST /api/payment-requests/:id/approve (aprobar — solo Presidente)
+      - POST /api/payment-requests/:id/reject (rechazar con comentario — solo Presidente)
+      - POST /api/payment-requests/:id/execute (ejecutar — solo Secretaria)
+    </payment_requests>
+
+    <attachments>
+      - POST /api/attachments (upload archivo)
+      - GET /api/attachments/:id (descargar archivo)
+      - DELETE /api/attachments/:id (eliminar archivo)
+    </attachments>
+
+    <notifications>
+      - GET /api/notifications (listar notificaciones del usuario)
+      - PUT /api/notifications/:id/read (marcar como leída)
+      - PUT /api/notifications/read-all (marcar todas como leídas)
+      - GET /api/notifications/unread-count (contador de no leídas)
+    </notifications>
+
+    <dashboard>
+      - GET /api/dashboard/summary (saldo, flujo del mes, contadores)
+      - GET /api/dashboard/chart (datos de gráfico 6 meses)
+      - GET /api/dashboard/categories (distribución por categoría)
+    </dashboard>
+
+    <export>
+      - GET /api/export/transactions?type=ingreso|egreso|all&from=&to= (exportar a Excel)
+    </export>
+
+    <health>
+      - GET /api/health (estado del servidor y BD)
+    </health>
+  </api_endpoints_summary>
+
+  <ui_layout>
+    <main_structure>
+      Aplicación de página única (SPA) con sidebar de navegación en desktop y bottom navigation en mobile. Login como pantalla separada sin sidebar. Después de login, todas las vistas comparten el mismo layout con sidebar/bottom nav.
+    </main_structure>
+
+    <pages>
+      - Login: pantalla limpia con formulario centrado, logo Tap In, paleta violeta
+      - Dashboard: vista principal post-login, cards con métricas, gráficos, listas resumidas
+      - Ingresos: tabla con filtros, botón crear ingreso, modal o drawer para formulario
+      - Egresos (Pipeline): vista dual Kanban/Tabla con toggle, columnas por estado en Kanban
+      - Detalle de Solicitud: vista completa con campos, documentos, timeline de eventos
+      - Notificaciones: centro de notificaciones, lista con badge de no leídas
+      - Configuración (solo Presidente): gestión de usuarios, categorías de ingreso y egreso
+    </pages>
+  </ui_layout>
+
+  <design_system>
+    <color_palette>
+      <primary>Violeta (paleta Tap In existente)</primary>
+      <accent>Mint (verde menta como color de acento)</accent>
+      <background_light>Blanco/gris muy claro</background_light>
+      <background_dark>Gris oscuro/casi negro</background_dark>
+      <success>Verde</success>
+      <warning>Amarillo/naranja</warning>
+      <error>Rojo</error>
+      <text_primary>Gris oscuro (light mode) / Blanco (dark mode)</text_primary>
+    </color_palette>
+    <typography>
+      <font_family>DM Sans (Google Fonts)</font_family>
+      <headings>DM Sans Bold</headings>
+      <body>DM Sans Regular</body>
+      <principle>Legibilidad ante todo. Espaciado generoso.</principle>
+    </typography>
+    <visual_style>
+      <principle>Limpio, moderno, profesional. Referencia: Linear, Notion.</principle>
+      <spacing>Generoso — nada se siente apretado</spacing>
+      <tables>Con sorting por click en header, barra de búsqueda arriba, filtros instantáneos</tables>
+      <transitions>CSS transitions suaves para cambios de estado, aparición de elementos, hover effects</transitions>
+      <loading>Skeletons en vez de spinners</loading>
+      <confirmations>Inline con microanimación CSS, nunca alerts del navegador</confirmations>
+      <empty_states>Con ilustración simple o ícono, texto guía, y CTA a la primera acción</empty_states>
+    </visual_style>
+  </design_system>
+
+  <implementation_steps>
+    <step number="1">
+      <title>Infraestructura y Setup</title>
+      <tasks>
+        - Configurar proyecto React + Vite (frontend) y Node.js + Express (backend)
+        - Configurar SQLite con esquema completo
+        - Implementar health endpoint
+        - Verificar persistencia de datos
+        - Configurar Tailwind CSS v4, DM Sans
+      </tasks>
+    </step>
+    <step number="2">
+      <title>Autenticación y Usuarios</title>
+      <tasks>
+        - Implementar login/logout con JWT
+        - Middleware de autenticación y autorización por rol
+        - Protección de rutas frontend y backend
+        - CRUD de usuarios (invitar, listar, cambiar rol, desactivar)
+        - Aislamiento de datos por organización
+      </tasks>
+    </step>
+    <step number="3">
+      <title>Categorías</title>
+      <tasks>
+        - CRUD de categorías separadas por tipo (ingreso/egreso)
+        - Categorías por defecto al crear organización
+        - Validación de eliminación (no eliminar si tiene transacciones)
+      </tasks>
+    </step>
+    <step number="4">
+      <title>Módulo de Ingresos</title>
+      <tasks>
+        - CRUD de ingresos con todos los campos
+        - Tabla con filtros y ordenamiento
+        - Marca de edición (editado por, cuándo)
+        - Soft delete con auditoría
+        - Upload de comprobantes
+      </tasks>
+    </step>
+    <step number="5">
+      <title>Módulo de Egresos — Workflow de Aprobación</title>
+      <tasks>
+        - Crear solicitud como borrador
+        - Editar borrador propio
+        - Enviar a aprobación (inmutable después)
+        - Aprobar / Rechazar (con comentario obligatorio en rechazo)
+        - Ejecutar pago con comprobante
+        - Máquina de estados con validaciones
+        - Pipeline Kanban con transiciones CSS animadas
+        - Pipeline Tabla con filtros
+        - Toggle entre vistas
+        - Audit trail (payment_events append-only)
+      </tasks>
+    </step>
+    <step number="6">
+      <title>Dashboard</title>
+      <tasks>
+        - Saldo actual, flujo mensual con comparación
+        - Contadores de pendientes
+        - Gráfico de barras 6 meses
+        - Gráfico distribución por categoría
+        - Loading skeletons, animación de conteo
+      </tasks>
+    </step>
+    <step number="7">
+      <title>Notificaciones</title>
+      <tasks>
+        - Crear notificaciones automáticas en cada transición de estado
+        - Centro de notificaciones con badge
+        - Marcar como leída
+        - Recordatorio automático a los 3 días
+      </tasks>
+    </step>
+    <step number="8">
+      <title>Exportación</title>
+      <tasks>
+        - Exportar ingresos, egresos, o todo a Excel (.xlsx)
+        - Filtro de fechas en exportación
+        - Respetar filtros activos
+      </tasks>
+    </step>
+    <step number="9">
+      <title>UI/UX Polish</title>
+      <tasks>
+        - Dark mode / Light mode con toggle
+        - Sidebar colapsable con persistencia
+        - Bottom navigation mobile
+        - Responsive completo
+        - Empty states con guía al usuario
+        - Transiciones y microanimaciones CSS
+        - Tipografía DM Sans, paleta violeta/mint
+      </tasks>
+    </step>
+  </implementation_steps>
+
+  <success_criteria>
+    <functionality>
+      - Login funcional con roles diferenciados
+      - Pipeline de egresos completo: borrador → pendiente → aprobado/rechazado → ejecutado
+      - Módulo de ingresos con CRUD completo y auditoría
+      - Dashboard con métricas reales desde la base de datos
+      - Notificaciones automáticas en cada transición
+      - Exportación a Excel funcional
+      - Permisos correctamente aplicados en frontend y backend
+    </functionality>
+    <user_experience>
+      - Interfaz limpia, rápida, fluida — estándar Linear/Notion
+      - Interacciones en menos de 100ms
+      - Empty states útiles que guían al usuario
+      - Feedback inline, nunca alerts del navegador
+      - Responsive real: desktop y mobile pensados
+    </user_experience>
+    <technical_quality>
+      - Base de datos real con persistencia verificada
+      - Audit trail inmutable
+      - Aislamiento de datos entre organizaciones
+      - Validación de permisos en backend (no solo frontend)
+      - Sin mock data ni datos hardcodeados
+    </technical_quality>
+    <design_polish>
+      - Tipografía DM Sans consistente
+      - Paleta violeta/mint coherente
+      - Dark mode y Light mode completos
+      - Transiciones CSS suaves
+      - Loading skeletons en vez de spinners
+      - Espaciado generoso, nada apretado
+    </design_polish>
+  </success_criteria>
+</project_specification>
