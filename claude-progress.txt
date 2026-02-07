@@ -1,0 +1,41 @@
+=== Tap In V1 - Development Progress ===
+
+## Session 1 - 2026-02-07
+
+### Completed Features:
+- Feature #1: Database connection established ✅
+- Feature #2: Database schema applied correctly ✅
+- Feature #3: Data persists across server restart ✅
+
+### What was built:
+- Backend Express server (Node.js) at port 3001
+- SQLite database using sql.js with file-based persistence (backend/data/tapin.db)
+- Full database schema with 9 tables matching app_spec.txt:
+  - organizations, users, categories, transactions, payment_requests
+  - payment_events, attachments, notifications, transaction_audit_log
+- All tables have proper foreign keys, NOT NULL constraints, CHECK constraints, and DEFAULT values
+- Health endpoint (GET /api/health) with database status
+- Auth routes (POST /api/auth/login, GET /api/auth/me, POST /api/auth/refresh)
+- Transactions CRUD routes (GET, POST, PUT, DELETE /api/transactions)
+- JWT authentication middleware
+- Debug schema endpoint (GET /api/debug/schema) for verification
+- Default seed data: 1 organization, 10 categories (5 ingreso + 5 egreso), 3 test users
+- init.sh startup script
+
+### Test Users:
+- presidente@tapin.cl / password123 (Presidente)
+- secretaria@tapin.cl / password123 (Secretaria)
+- delegado@tapin.cl / password123 (Delegado)
+
+### Technical Notes:
+- Database uses sql.js (not better-sqlite3) due to platform compatibility
+- sql.js requires async initialization → index.js uses async startServer()
+- Database auto-saves to disk every 5 seconds and on every write operation
+- The getDb() function returns a compatibility wrapper that mimics better-sqlite3 API
+
+### Current Status: 3/265 features passing (1.1%)
+
+### What should be worked on next:
+- More infrastructure features (if assigned)
+- Authentication features (login UI, JWT sessions, etc.)
+- Frontend setup with React + Vite + Tailwind CSS
