@@ -279,3 +279,58 @@
 - More payment request workflow features
 - Income recording functionality (Ingresos page enhancement)
 - Reporting and export features
+
+## Session 7 - 2026-02-08
+
+### Completed Features:
+- Feature #10: User can login with valid credentials ✅
+- Feature #13: Unauthenticated user is redirected to login ✅
+- Feature #15: API endpoints reject requests without valid JWT ✅
+
+### Verification Details:
+- Feature #10: User can login with valid credentials
+  - Navigate to /login, enter presidente@tapin.cl / password123
+  - Click "Ingresar" button, verify JWT token stored in localStorage (231 chars)
+  - Verify redirect to / (dashboard)
+  - Verify user name "Maria Gonzalez" and role "presidente" displayed
+  - Dashboard shows welcome message, user info section, sidebar with user name/role
+  - Verified via Playwright browser automation with screenshots
+
+- Feature #13: Unauthenticated user is redirected to login
+  - Clear localStorage tokens, navigate to / (dashboard) -> redirected to /login
+  - Navigate to /ingresos -> redirected to /login
+  - Navigate to /solicitudes (egresos) -> redirected to /login
+  - Navigate to /reportes -> redirected to /login
+  - Navigate to /notificaciones -> redirected to /login
+  - Navigate to /configuracion -> redirected to /login
+  - Login form renders correctly after each redirect
+  - Verified via Playwright browser automation with screenshots
+
+- Feature #15: API endpoints reject requests without valid JWT
+  - GET /api/transactions without auth -> 401
+  - GET /api/payment-requests without auth -> 401
+  - GET /api/dashboard/summary without auth -> 401
+  - POST /api/transactions without auth -> 401
+  - GET /api/transactions with invalid token -> 401
+  - GET /api/users without auth -> 401
+  - GET /api/categories without auth -> 401
+  - GET /api/dashboard/chart without auth -> 401
+  - GET /api/dashboard/categories without auth -> 401
+  - Verified via both Node.js HTTP tests and Playwright browser automation
+
+### Infrastructure Added:
+- Dashboard API routes (GET /api/dashboard/summary, /chart, /categories)
+  - /summary: balance, income/expense totals, monthly flow with prev month comparison, pending counts
+  - /chart: income vs expense data for last 6 months
+  - /categories: expense distribution by category
+  - All routes require authenticateToken middleware
+- Added port 5180 to CORS whitelist in backend
+
+### Current Status: ~22/265 features passing (~8.3%)
+
+### What should be worked on next:
+- Dashboard UI with real data from the new API endpoints
+- Category management UI improvements
+- Income/expense recording pages
+- More security/access control features
+- Payment request workflow features
