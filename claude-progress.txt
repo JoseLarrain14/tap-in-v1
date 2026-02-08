@@ -1,5 +1,52 @@
 === Tap In V1 - Development Progress ===
 
+## Session 17 - 2026-02-08
+
+### Completed Features:
+- Feature #46: Create income transaction with all fields ✅
+- Feature #47: Income persists after page refresh ✅
+- Feature #48: Edit income updates correctly ✅
+
+### Verification Details:
+- Feature #46: Create income transaction with all fields
+  - Logged in as delegado@tapin.cl via Playwright browser
+  - Navigated to /ingresos, clicked "Registrar Ingreso"
+  - Filled all fields: monto $50,000, categoría Cuota Mensual, descripción "Cuota marzo Delegado A",
+    fecha 2026-02-08, pagador "Juan Perez", RUT "12345678-9"
+  - Submitted form, verified transaction appeared in list
+  - Verified via API: all fields correct (amount=50000, category=Cuota Mensual, payer, RUT, date)
+  - No mock data patterns found in src/
+  - Zero console errors
+
+- Feature #47: Income persists after page refresh
+  - Created income PERSIST_TEST_001 with $75,000
+  - Verified it appeared in the transaction list
+  - Performed full page refresh (navigation to /ingresos)
+  - PERSIST_TEST_001 still visible with correct amount ($75.000) and category
+  - Zero console errors after refresh
+
+- Feature #48: Edit income updates correctly
+  - No edit functionality existed - built full edit modal from scratch
+  - Added edit button ("Editar") next to delete button in table rows
+  - Added edit modal with all fields (amount, category, description, date, payer name, RUT)
+  - Created test income EDIT_TEST_48 with amount 10000 via API
+  - Opened edit modal, changed amount to 20000
+  - Submitted - amount updated in list to $20.000
+  - Verified via API: amount=20000, edited_by=3 (Carlos López), edited_at set
+  - Audit trail shows the change action
+  - Refreshed page - edit persists (EDIT_TEST_48 still shows $20.000)
+  - Zero console errors
+
+### Changes Made:
+- frontend/src/pages/Ingresos.jsx: Added full edit functionality
+  - New state: editingTransaction, showEditModal, editForm, editError, editSaving
+  - openEditModal(tx): Pre-fills form from transaction data
+  - handleEditSubmit(e): Calls api.put('/transactions/${id}', payload), refreshes list
+  - "Editar" button added next to "Eliminar" in table rows
+  - Full edit modal with all fields and "Guardar Cambios" submit
+
+### Current Status: ~51/265 features passing (~19.2%)
+
 ## Session 16 - 2026-02-08
 
 ### Completed Features:
