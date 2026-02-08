@@ -1,5 +1,75 @@
 === Tap In V1 - Development Progress ===
 
+## Session 14 - 2026-02-08
+
+### Completed Features:
+- Feature #40: Toggle between Kanban and Table views in pipeline ✅
+- Feature #41: Notification badge shows unread count ✅
+- Feature #42: Kanban columns display correct state labels ✅
+
+### Verification Details:
+- Feature #40: Toggle between Kanban and Table views
+  - Solicitudes (Egresos) page now has Kanban view as default
+  - Toggle buttons ("Kanban" / "Tabla") switch between views
+  - View mode persists via localStorage ('solicitudes_view' key)
+  - Both views show same data from /api/payment-requests
+  - Kanban: 5 columns (borrador, pendiente, aprobado, rechazado, ejecutado) with colored headers
+  - Table: Traditional table with status filters, same as before
+  - Verified via Playwright browser automation with screenshots
+
+- Feature #41: Notification badge shows unread count
+  - Backend: Full notifications REST API created (/api/notifications)
+    - GET / - List with pagination + unread count
+    - GET /unread-count - Lightweight count endpoint for badge polling
+    - PUT /:id/read - Mark single as read
+    - PUT /read-all - Mark all as read
+    - POST / - Create notification (for testing)
+  - Frontend Layout.jsx: Fetches unread count, displays red badge on notifications icon
+  - Badge polls every 30 seconds + listens for 'notifications-updated' custom events
+  - Badge appears on both sidebar icon and label, plus mobile bottom nav
+  - Notificaciones.jsx completely rewritten with real API integration
+  - Created test notification, verified badge showed "1", marked as read, badge disappeared
+  - Verified via Playwright browser automation + API test scripts
+
+- Feature #42: Kanban columns display correct state labels
+  - 5 columns with full Spanish labels:
+    - "Borrador", "Pendiente de Aprobacion", "Aprobado", "Rechazado", "Ejecutado"
+  - Color-coded column headers (gray, yellow, green, red, blue)
+  - Each column shows count of cards
+  - data-testid="kanban-column-{status}" for testability
+  - Verified via Playwright accessibility snapshot + JavaScript DOM evaluation
+
+### Changes Made:
+- frontend/src/pages/Solicitudes.jsx: Complete rewrite with Kanban + Table toggle views
+  - Added KANBAN_COLUMNS, STATUS_LABELS, KANBAN_COLUMN_COLORS, KANBAN_COLUMN_BG constants
+  - viewMode state with localStorage persistence
+  - KanbanView component with 5 columns, card layout, action buttons
+  - TableView component (original table view preserved)
+  - Toggle buttons in page header
+- frontend/src/components/Layout.jsx: Added notification badge with unread count
+  - fetchUnreadCount callback polling /api/notifications/unread-count every 30s
+  - Custom event listener for 'notifications-updated'
+  - Badge rendering on nav items with badge property
+- frontend/src/pages/Notificaciones.jsx: Full rewrite from placeholder to functional page
+  - Fetches from /api/notifications, shows notifications with type icons
+  - Mark as read (individual + all), relative time formatting
+  - Dispatches 'notifications-updated' event for Layout badge sync
+- backend/src/routes/notifications.js: New full notifications REST API
+- backend/src/index.js: Registered /api/notifications route
+
+### Test Scripts Created:
+- test-notifications-api.js: API test for notification endpoints
+- test-create-notification.js: Test creating notifications and checking unread count
+
+### Current Status: 42/265 features passing (15.8%)
+
+### What should be worked on next:
+- Dashboard UI with real data from API endpoints
+- Payment request workflow features
+- Income/expense recording pages
+- Reporting and export features
+- More UI polish features
+
 ## Session 13 - 2026-02-08
 
 ### Completed Features:
