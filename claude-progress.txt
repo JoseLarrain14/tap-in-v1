@@ -474,3 +474,53 @@
 - More payment request workflow features
 - Income/expense recording pages
 - Reporting and export features
+
+## Session 10 - 2026-02-08
+
+### Completed Features:
+- Feature #34: Back button works correctly after navigation ✅
+- Feature #35: 404 page displays for unknown routes ✅
+- Feature #36: Post-login redirects to Dashboard ✅
+
+### Verification Details:
+- Feature #34: Back button works correctly
+  - Login as presidente, navigate Dashboard → Ingresos → Egresos
+  - Press back → returns to Ingresos (/ingresos) ✅
+  - Press back again → returns to Dashboard (/) ✅
+  - No loops or unexpected redirects
+  - BrowserRouter handles history natively
+  - Verified via Playwright browser automation with screenshots
+
+- Feature #35: 404 page displays for unknown routes
+  - Created NotFound.jsx component with friendly 404 UI
+  - Navigate to /nonexistent-route → shows "404 Página no encontrada" ✅
+  - "Volver al Dashboard" button present ✅
+  - Click link → navigates to Dashboard ✅
+  - Page renders within Layout (sidebar visible for navigation)
+  - Unauthenticated users hitting unknown routes → redirected to /login
+  - Updated App.jsx: catch-all route uses NotFound instead of silent redirect
+  - Added ProtectedNotFound wrapper for auth check on outer catch-all
+  - Verified via Playwright browser automation with screenshots
+
+- Feature #36: Post-login redirects to Dashboard
+  - Clear token, navigate to /login
+  - Enter presidente@tapin.cl / password123, submit
+  - URL changes to / (main page/dashboard) ✅
+  - Dashboard content displayed: heading, welcome message, financial cards ✅
+  - Login.jsx uses navigate('/') after successful login
+  - Verified via Playwright browser automation with screenshots
+
+### Changes Made:
+- frontend/src/pages/NotFound.jsx: New 404 page component with friendly UI
+- frontend/src/App.jsx: Import NotFound, add inner catch-all route, add ProtectedNotFound component
+- frontend/src/components/Layout.jsx: Mobile responsive layout improvements (from another agent)
+
+### Current Status: 32/265 features passing (12.1%)
+
+### What should be worked on next:
+- Dashboard UI with real data from API endpoints
+- Category management UI improvements
+- Payment request workflow features
+- Income/expense recording pages
+- Reporting and export features
+- More navigation/UI features
