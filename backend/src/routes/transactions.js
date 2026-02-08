@@ -165,63 +165,79 @@ router.post('/', requireActive, (req, res) => {
 
 // PUT /api/transactions/:id - Edit a transaction
 router.put('/:id', requireActive, (req, res) => {
-  const db = getDb();
-  const orgId = req.user.organization_id;
-  const userId = req.user.id;
-  const transactionId = req.params.id;
+  try {
+    const db = getDb();
+    const orgId = req.user.organization_id;
+    const userId = req.user.id;
+    const transactionId = req.params.id;
 
-  // Verify transaction exists and belongs to org
-  const existing = db.prepare(
-    'SELECT * FROM transactions WHERE id = ? AND organization_id = ? AND deleted_at IS NULL'
-  ).get(transactionId, orgId);
+    // Verify transaction exists and belongs to org
+    const existing = db.prepare(
+      'SELECT * FROM transactions WHERE id = ? AND organization_id = ? AND deleted_at IS NULL'
+    ).get(transactionId, orgId);
 
-  if (!existing) {
-    return res.status(404).json({ error: 'Transacción no encontrada' });
+    if (!existing) {
+      return res.status(404).json({ error: 'Transacción no encontrada' });
+    }
+
+    const { amount, category_id, description, date, payer_name, payer_rut, beneficiary } = req.body;
+
+    // Track changes for audit
+    const changes = {};
+    if (amount !== undefined && amount !== existing.amount) changes.amount = { from: existing.amount, to: amount };
+    if (description !== undefined && description !== existing.description) changes.description = { from: existing.description, to: description };
+    if (date !== undefined && date !== existing.date) changes.date = { from: existing.date, to: date };
+    if (category_id !== undefined && category_id !== existing.category_id) changes.category_id = { from: existing.category_id, to: category_id };
+    if (payer_name !== undefined && payer_name !== existing.payer_name) changes.payer_name = { from: existing.payer_name, to: payer_name };
+    if (payer_rut !== undefined && payer_rut !== existing.payer_rut) changes.payer_rut = { from: existing.payer_rut, to: payer_rut };
+
+    // Use explicit values - convert undefined to null for sql.js compatibility
+    const newAmount = (amount !== undefined && amount !== null) ? amount : null;
+    const newCategoryId = (category_id !== undefined && category_id !== null) ? category_id : null;
+    const newDescription = (description !== undefined && description !== null && description !== '') ? description : null;
+    const newDate = (date !== undefined && date !== null) ? date : null;
+    const newPayerName = (payer_name !== undefined && payer_name !== null && payer_name !== '') ? payer_name : null;
+    const newPayerRut = (payer_rut !== undefined && payer_rut !== null && payer_rut !== '') ? payer_rut : null;
+    const newBeneficiary = (beneficiary !== undefined && beneficiary !== null && beneficiary !== '') ? beneficiary : null;
+
+    db.prepare(`
+      UPDATE transactions SET
+        amount = COALESCE(?, amount),
+        category_id = COALESCE(?, category_id),
+        description = COALESCE(?, description),
+        date = COALESCE(?, date),
+        payer_name = COALESCE(?, payer_name),
+        payer_rut = COALESCE(?, payer_rut),
+        beneficiary = COALESCE(?, beneficiary),
+        edited_by = ?,
+        edited_at = CURRENT_TIMESTAMP,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = ? AND organization_id = ?
+    `).run(
+      newAmount, newCategoryId, newDescription, newDate,
+      newPayerName, newPayerRut, newBeneficiary,
+      userId, transactionId, orgId
+    );
+
+    // Create audit log
+    db.prepare(`
+      INSERT INTO transaction_audit_log (transaction_id, action, user_id, changes, ip_address, user_agent)
+      VALUES (?, 'edited', ?, ?, ?, ?)
+    `).run(transactionId, userId, JSON.stringify(changes), req.ip || null, req.headers['user-agent'] || null);
+
+    const updated = db.prepare(`
+      SELECT t.*, c.name as category_name, u.name as created_by_name
+      FROM transactions t
+      LEFT JOIN categories c ON t.category_id = c.id
+      LEFT JOIN users u ON t.created_by = u.id
+      WHERE t.id = ?
+    `).get(transactionId);
+
+    res.json(updated);
+  } catch (err) {
+    console.error('[PUT /transactions/:id ERROR]', err);
+    res.status(500).json({ error: 'Error al actualizar transacción' });
   }
-
-  const { amount, category_id, description, date, payer_name, payer_rut, beneficiary } = req.body;
-
-  // Track changes for audit
-  const changes = {};
-  if (amount !== undefined && amount !== existing.amount) changes.amount = { from: existing.amount, to: amount };
-  if (description !== undefined && description !== existing.description) changes.description = { from: existing.description, to: description };
-  if (date !== undefined && date !== existing.date) changes.date = { from: existing.date, to: date };
-  if (category_id !== undefined && category_id !== existing.category_id) changes.category_id = { from: existing.category_id, to: category_id };
-
-  db.prepare(`
-    UPDATE transactions SET
-      amount = COALESCE(?, amount),
-      category_id = COALESCE(?, category_id),
-      description = COALESCE(?, description),
-      date = COALESCE(?, date),
-      payer_name = COALESCE(?, payer_name),
-      payer_rut = COALESCE(?, payer_rut),
-      beneficiary = COALESCE(?, beneficiary),
-      edited_by = ?,
-      edited_at = CURRENT_TIMESTAMP,
-      updated_at = CURRENT_TIMESTAMP
-    WHERE id = ? AND organization_id = ?
-  `).run(
-    amount || null, category_id || null, description || null, date || null,
-    payer_name || null, payer_rut || null, beneficiary || null,
-    userId, transactionId, orgId
-  );
-
-  // Create audit log
-  db.prepare(`
-    INSERT INTO transaction_audit_log (transaction_id, action, user_id, changes, ip_address, user_agent)
-    VALUES (?, 'edited', ?, ?, ?, ?)
-  `).run(transactionId, userId, JSON.stringify(changes), req.ip || null, req.headers['user-agent'] || null);
-
-  const updated = db.prepare(`
-    SELECT t.*, c.name as category_name, u.name as created_by_name
-    FROM transactions t
-    LEFT JOIN categories c ON t.category_id = c.id
-    LEFT JOIN users u ON t.created_by = u.id
-    WHERE t.id = ?
-  `).get(transactionId);
-
-  res.json(updated);
 });
 
 // DELETE /api/transactions/:id - Soft delete a transaction
