@@ -1,5 +1,24 @@
 === Tap In V1 - Development Progress ===
 
+## Session 20 - 2026-02-08
+
+### Completed Features:
+- Feature #52: Approve payment request changes status ✅
+- Feature #53: Reject payment request requires comment ✅
+- Feature #54: Execute approved request with receipt ✅
+
+### Verification Details:
+- Feature #52: Delegado created request #16, presidente approved → status=aprobado, approved_by/at set, audit event logged
+- Feature #53: Rejection without comment shows validation error; with comment → status=rechazado, rejection_comment saved, audit event logged
+- Feature #54: Added multer file upload to execute endpoint; secretaria uploads comprobante PDF → status=ejecutado, file stored in uploads/, attachment record created, UI shows "Documentos Adjuntos" section with download link
+
+### Changes Made:
+- backend/src/routes/payment-requests.js: Added multer config, file upload on execute endpoint, GET /:id/attachments endpoint
+- frontend/src/lib/api.js: Added uploadRequest() for FormData, api.upload method
+- frontend/src/pages/SolicitudDetail.jsx: Added file picker for execute, attachments display section with download links
+
+### Current Status: 60/265 features passing (22.6%)
+
 ## Session 19 - 2026-02-08
 
 ### Completed Features:
