@@ -1,5 +1,50 @@
 === Tap In V1 - Development Progress ===
 
+## Session 15 - 2026-02-08
+
+### Completed Features:
+- Feature #43: Deep link to specific payment request works ✅
+- Feature #44: Login page not accessible when already authenticated ✅
+- Feature #45: Active navigation item highlighted ✅
+
+### Verification Details:
+- Feature #43: Deep link to specific payment request
+  - Navigate directly to /solicitudes/14 → loads correct detail page
+  - All fields match: Monto $50,000, Descripción TEST_F39_Compra materiales, Beneficiario Proveedor XYZ, Estado Pendiente
+  - Added /egresos and /egresos/:id route aliases in App.jsx
+  - Navigate to /egresos/14 → also loads correct detail page
+  - Navigate to /solicitudes/99999 (non-existent) → shows "Solicitud de pago no encontrada" error with back button
+  - Zero console errors
+  - Verified via Playwright browser automation with screenshots
+
+- Feature #44: Login page not accessible when already authenticated
+  - Logged in as presidente (María González)
+  - Navigate directly to /login → automatically redirected to / (Dashboard)
+  - Dashboard shows with full user info (session preserved)
+  - PublicRoute component wraps /login route, checks for user, redirects to / if authenticated
+  - Verified via Playwright browser automation with screenshots
+
+- Feature #45: Active navigation item highlighted
+  - Dashboard (/) → Dashboard nav item highlighted with purple/primary color
+  - Ingresos (/ingresos) → Ingresos nav item highlighted
+  - Egresos (/solicitudes) → Egresos nav item highlighted
+  - Only ONE item highlighted at a time (verified across all pages)
+  - Mobile bottom nav: Dashboard highlighted on /, Egresos highlighted on /solicitudes
+  - Uses NavLink with isActive callback for dynamic className (bg-primary-50 text-primary-700)
+  - Verified via Playwright browser automation on desktop and mobile viewports
+
+### Changes Made:
+- frontend/src/App.jsx: Added /egresos and /egresos/:id route aliases
+
+### Current Status: ~44/265 features passing (~16.6%)
+
+### What should be worked on next:
+- More Navigation Integrity features
+- Dashboard UI with real data from API endpoints
+- Payment request workflow features
+- Income/expense recording pages
+- Reporting and export features
+
 ## Session 14 - 2026-02-08
 
 ### Completed Features:
