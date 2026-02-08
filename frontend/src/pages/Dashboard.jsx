@@ -59,8 +59,8 @@ export default function Dashboard() {
         </p>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Financial Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <p className="text-sm text-gray-500">Saldo Actual</p>
           <p className={`text-2xl font-bold mt-1 ${balance >= 0 ? 'text-gray-900' : 'text-red-600'}`}>
@@ -90,13 +90,26 @@ export default function Dashboard() {
             <p className={`text-xs mt-1 ${expenseDelta.color}`}>{expenseDelta.text}</p>
           )}
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+      </div>
+
+      {/* Pending Counters */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-white rounded-xl border border-gray-200 p-6" data-testid="pending-approval-card">
           <p className="text-sm text-gray-500">Pendientes de Aprobaci&oacute;n</p>
-          <p className="text-2xl font-bold text-yellow-600 mt-1">
+          <p className="text-2xl font-bold text-yellow-600 mt-1" data-testid="pending-approval-count">
             {loading ? '...' : pendingApproval}
           </p>
-          {!loading && pendingExecution > 0 && (
-            <p className="text-xs text-blue-600 mt-1">{pendingExecution} aprobadas por ejecutar</p>
+          {!loading && (
+            <p className="text-xs text-gray-400 mt-1">Solicitudes esperando aprobaci&oacute;n</p>
+          )}
+        </div>
+        <div className="bg-white rounded-xl border border-gray-200 p-6" data-testid="pending-execution-card">
+          <p className="text-sm text-gray-500">Pendientes de Ejecuci&oacute;n</p>
+          <p className="text-2xl font-bold text-blue-600 mt-1" data-testid="pending-execution-count">
+            {loading ? '...' : pendingExecution}
+          </p>
+          {!loading && (
+            <p className="text-xs text-gray-400 mt-1">Aprobadas, esperando ejecuci&oacute;n</p>
           )}
         </div>
       </div>
