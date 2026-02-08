@@ -45,6 +45,16 @@ function PublicRoute({ children }) {
   return children;
 }
 
+function RoleRoute({ children, roles }) {
+  const { user } = useAuth();
+
+  if (!user || !roles.includes(user.role)) {
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
+}
+
 function App() {
   return (
     <BrowserRouter>
@@ -65,7 +75,11 @@ function App() {
             <Route path="solicitudes" element={<Solicitudes />} />
             <Route path="reportes" element={<Reportes />} />
             <Route path="notificaciones" element={<Notificaciones />} />
-            <Route path="configuracion/*" element={<Configuracion />} />
+            <Route path="configuracion/*" element={
+              <RoleRoute roles={['presidente']}>
+                <Configuracion />
+              </RoleRoute>
+            } />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
