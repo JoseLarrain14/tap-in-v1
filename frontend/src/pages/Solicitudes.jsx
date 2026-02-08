@@ -1,8 +1,17 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/AuthContext';
 import { api } from '../lib/api';
 
 const STATUS_LABELS = {
+  borrador: 'Borrador',
+  pendiente: 'Pendiente de Aprobación',
+  aprobado: 'Aprobado',
+  rechazado: 'Rechazado',
+  ejecutado: 'Ejecutado',
+};
+
+const STATUS_LABELS_SHORT = {
   borrador: 'Borrador',
   pendiente: 'Pendiente',
   aprobado: 'Aprobado',
@@ -18,6 +27,26 @@ const STATUS_COLORS = {
   ejecutado: 'bg-blue-100 text-blue-800',
 };
 
+const KANBAN_COLUMN_COLORS = {
+  borrador: 'border-t-gray-400',
+  pendiente: 'border-t-yellow-400',
+  aprobado: 'border-t-green-400',
+  rechazado: 'border-t-red-400',
+  ejecutado: 'border-t-blue-400',
+};
+
+const KANBAN_COLUMN_BG = {
+  borrador: 'bg-gray-50',
+  pendiente: 'bg-yellow-50',
+  aprobado: 'bg-green-50',
+  rechazado: 'bg-red-50',
+  ejecutado: 'bg-blue-50',
+};
+
+const KANBAN_COLUMNS = ['borrador', 'pendiente', 'aprobado', 'rechazado', 'ejecutado'];
+
+const VIEW_KEY = 'solicitudes_view';
+
 function formatCLP(amount) {
   return new Intl.NumberFormat('es-CL', {
     style: 'currency',
@@ -28,6 +57,7 @@ function formatCLP(amount) {
 
 export default function Solicitudes() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -39,6 +69,9 @@ export default function Solicitudes() {
   const [rejectComment, setRejectComment] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
   const [feedback, setFeedback] = useState(null);
+  const [viewMode, setViewMode] = useState(() => {
+    return localStorage.getItem(VIEW_KEY) || 'kanban';
+  });
 
   // Create form state
   const [newRequest, setNewRequest] = useState({
@@ -70,19 +103,14 @@ export default function Solicitudes() {
     }
   }
 
-  async function loadCategories() {
-    try {
-      // Load egreso categories for payment requests
-      const data = await api.get('/transactions?type=egreso&limit=1');
-      // We'll just skip category loading for now if the endpoint doesn't support it
-    } catch (err) {
-      // ignore
-    }
-  }
-
   useEffect(() => {
     loadRequests();
   }, [statusFilter]);
+
+  function handleViewChange(mode) {
+    setViewMode(mode);
+    localStorage.setItem(VIEW_KEY, mode);
+  }
 
   async function handleCreate(e) {
     e.preventDefault();
@@ -186,9 +214,7 @@ export default function Solicitudes() {
   }
 
   function openDetail(request) {
-    setSelectedRequest(request);
-    setShowDetailModal(true);
-    setRejectComment('');
+    navigate(`/solicitudes/${request.id}`);
   }
 
   // Check if current user can edit a specific request (only own drafts)
@@ -201,22 +227,70 @@ export default function Solicitudes() {
   const canExecute = user?.role === 'secretaria';
   const canCreate = user?.role === 'delegado' || user?.role === 'presidente';
 
+  // Group requests by status for Kanban view
+  const requestsByStatus = KANBAN_COLUMNS.reduce((acc, status) => {
+    acc[status] = requests.filter(r => r.status === status);
+    return acc;
+  }, {});
+
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-semibold text-gray-900">Solicitudes de Pago</h1>
           <p className="text-sm text-gray-500 mt-1">Pipeline completo de solicitudes de egreso</p>
         </div>
-        {canCreate && (
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
-          >
-            + Nueva Solicitud
-          </button>
-        )}
+        <div className="flex items-center gap-3">
+          {/* View Toggle */}
+          <div className="flex items-center bg-gray-100 rounded-lg p-0.5" data-testid="view-toggle">
+            <button
+              onClick={() => handleViewChange('kanban')}
+              data-testid="view-kanban"
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                viewMode === 'kanban'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              <span className="flex items-center gap-1.5">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="1" y="1" width="4" height="14" rx="1" stroke="currentColor" strokeWidth="1.5"/>
+                  <rect x="6" y="1" width="4" height="10" rx="1" stroke="currentColor" strokeWidth="1.5"/>
+                  <rect x="11" y="1" width="4" height="7" rx="1" stroke="currentColor" strokeWidth="1.5"/>
+                </svg>
+                Kanban
+              </span>
+            </button>
+            <button
+              onClick={() => handleViewChange('table')}
+              data-testid="view-table"
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                viewMode === 'table'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              <span className="flex items-center gap-1.5">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="1" y="1" width="14" height="3" rx="0.5" stroke="currentColor" strokeWidth="1.5"/>
+                  <rect x="1" y="6" width="14" height="3" rx="0.5" stroke="currentColor" strokeWidth="1.5"/>
+                  <rect x="1" y="11" width="14" height="3" rx="0.5" stroke="currentColor" strokeWidth="1.5"/>
+                </svg>
+                Tabla
+              </span>
+            </button>
+          </div>
+
+          {canCreate && (
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
+            >
+              + Nueva Solicitud
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Feedback */}
@@ -238,22 +312,24 @@ export default function Solicitudes() {
         </div>
       )}
 
-      {/* Status Filters */}
-      <div className="flex gap-2 flex-wrap">
-        {['', 'pendiente', 'aprobado', 'rechazado', 'ejecutado', 'borrador'].map((s) => (
-          <button
-            key={s}
-            onClick={() => setStatusFilter(s)}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-              statusFilter === s
-                ? 'bg-black text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            {s ? STATUS_LABELS[s] : 'Todas'}
-          </button>
-        ))}
-      </div>
+      {/* Status Filters - only show in Table view */}
+      {viewMode === 'table' && (
+        <div className="flex gap-2 flex-wrap">
+          {['', 'pendiente', 'aprobado', 'rechazado', 'ejecutado', 'borrador'].map((s) => (
+            <button
+              key={s}
+              onClick={() => setStatusFilter(s)}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                statusFilter === s
+                  ? 'bg-black text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              {s ? STATUS_LABELS_SHORT[s] : 'Todas'}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Loading */}
       {loading && (
@@ -272,7 +348,7 @@ export default function Solicitudes() {
           <h3 className="text-lg font-medium text-gray-900">No hay solicitudes</h3>
           <p className="text-gray-500 mt-1 text-sm">
             {statusFilter
-              ? `No hay solicitudes con estado "${STATUS_LABELS[statusFilter]}"`
+              ? `No hay solicitudes con estado "${STATUS_LABELS_SHORT[statusFilter]}"`
               : 'Crea tu primera solicitud de pago para comenzar'}
           </p>
           {canCreate && !statusFilter && (
@@ -286,14 +362,90 @@ export default function Solicitudes() {
         </div>
       )}
 
-      {/* Requests List */}
-      {!loading && requests.length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      {/* KANBAN VIEW */}
+      {!loading && requests.length > 0 && viewMode === 'kanban' && (
+        <div className="flex gap-4 overflow-x-auto pb-4" data-testid="kanban-view">
+          {KANBAN_COLUMNS.map(status => (
+            <div
+              key={status}
+              className={`flex-shrink-0 w-64 rounded-xl border border-gray-200 border-t-4 ${KANBAN_COLUMN_COLORS[status]} bg-white flex flex-col max-h-[calc(100vh-240px)]`}
+              data-testid={`kanban-column-${status}`}
+            >
+              {/* Column header */}
+              <div className={`px-3 py-3 border-b border-gray-100 ${KANBAN_COLUMN_BG[status]} rounded-t-lg`}>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-gray-700" data-testid={`kanban-label-${status}`}>
+                    {STATUS_LABELS[status]}
+                  </h3>
+                  <span className="text-xs font-medium text-gray-400 bg-white px-2 py-0.5 rounded-full">
+                    {requestsByStatus[status].length}
+                  </span>
+                </div>
+              </div>
+              {/* Column body */}
+              <div className="flex-1 overflow-y-auto p-2 space-y-2">
+                {requestsByStatus[status].length === 0 ? (
+                  <div className="text-center py-6 text-xs text-gray-400">
+                    Sin solicitudes
+                  </div>
+                ) : (
+                  requestsByStatus[status].map(req => (
+                    <div
+                      key={req.id}
+                      onClick={() => openDetail(req)}
+                      className="bg-white border border-gray-100 rounded-lg p-3 hover:border-gray-300 hover:shadow-sm transition-all cursor-pointer"
+                    >
+                      <div className="flex items-start justify-between mb-1.5">
+                        <span className="text-xs text-gray-400 font-mono">#{req.id}</span>
+                        <span className="text-xs font-semibold text-gray-900">{formatCLP(req.amount)}</span>
+                      </div>
+                      <p className="text-sm font-medium text-gray-900 line-clamp-2 mb-1">
+                        {req.description}
+                      </p>
+                      <p className="text-xs text-gray-500 truncate">{req.beneficiary}</p>
+                      <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-50">
+                        <span className="text-xs text-gray-400">{req.created_by_name}</span>
+                        {/* Quick actions */}
+                        {canApproveReject && req.status === 'pendiente' && (
+                          <div className="flex gap-1" onClick={e => e.stopPropagation()}>
+                            <button
+                              onClick={() => handleApprove(req.id)}
+                              className="text-xs px-1.5 py-0.5 bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors"
+                              disabled={actionLoading}
+                            >
+                              ✓
+                            </button>
+                          </div>
+                        )}
+                        {canExecute && req.status === 'aprobado' && (
+                          <div onClick={e => e.stopPropagation()}>
+                            <button
+                              onClick={() => handleExecute(req.id)}
+                              className="text-xs px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
+                              disabled={actionLoading}
+                            >
+                              Ejecutar
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* TABLE VIEW */}
+      {!loading && requests.length > 0 && viewMode === 'table' && (
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden" data-testid="table-view">
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-100">
                 <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">ID</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Descripci&oacute;n</th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Descripción</th>
                 <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Beneficiario</th>
                 <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 uppercase">Monto</th>
                 <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Estado</th>
@@ -316,7 +468,7 @@ export default function Solicitudes() {
                   </td>
                   <td className="px-4 py-3">
                     <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${STATUS_COLORS[req.status]}`}>
-                      {STATUS_LABELS[req.status]}
+                      {STATUS_LABELS_SHORT[req.status]}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-600">{req.created_by_name}</td>
@@ -391,7 +543,7 @@ export default function Solicitudes() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Descripci&oacute;n</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
                 <input
                   type="text"
                   required
@@ -461,7 +613,7 @@ export default function Solicitudes() {
                 <span className="text-sm font-medium">{formatCLP(selectedRequest.amount)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-500">Descripci&oacute;n</span>
+                <span className="text-sm text-gray-500">Descripción</span>
                 <span className="text-sm text-right max-w-[60%]">{selectedRequest.description}</span>
               </div>
               <div className="flex justify-between">
@@ -563,7 +715,7 @@ export default function Solicitudes() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Descripci&oacute;n</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
                 <input
                   type="text"
                   required

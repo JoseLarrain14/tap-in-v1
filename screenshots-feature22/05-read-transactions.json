@@ -1,0 +1,39 @@
+{
+  "status": 200,
+  "body": {
+    "transactions": [
+      {
+        "id": 2,
+        "organization_id": 1,
+        "type": "ingreso",
+        "amount": 99999,
+        "category_id": 1,
+        "description": "RESTART_TEST_12345",
+        "date": "2026-02-07",
+        "payer_name": null,
+        "payer_rut": null,
+        "beneficiary": null,
+        "source": "manual",
+        "external_id": null,
+        "raw_metadata": null,
+        "created_by": 1,
+        "edited_by": null,
+        "edited_at": null,
+        "created_at": "2026-02-07 23:05:48",
+        "updated_at": "2026-02-07 23:05:48",
+        "deleted_at": null,
+        "deleted_by": null,
+        "period_year": 2026,
+        "category_name": "Cuota Mensual",
+        "created_by_name": "María González",
+        "edited_by_name": null
+      }
+    ],
+    "pagination": {
+      "total": 1,
+      "page": 1,
+      "limit": 50,
+      "pages": 1
+    }
+  }
+}

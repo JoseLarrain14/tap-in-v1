@@ -1,0 +1,14 @@
+{
+  "status": 200,
+  "body": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywiZW1haWwiOiJkZWxlZ2Fkb0B0YXBpbi5jbCIsInJvbGUiOiJkZWxlZ2FkbyIsIm9yZ2FuaXphdGlvbl9pZCI6MSwiaWF0IjoxNzcwNTE3NjA5LCJleHAiOjE3NzA2MDQwMDl9.M9FsdNfXdFbvLWRu3UjMlWihTz_wNPnUpPCRipXMezM",
+    "user": {
+      "id": 3,
+      "email": "delegado@tapin.cl",
+      "name": "Carlos López",
+      "role": "delegado",
+      "organization_id": 1,
+      "is_active": 0
+    }
+  }
+}

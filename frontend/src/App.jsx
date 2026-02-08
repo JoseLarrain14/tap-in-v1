@@ -8,6 +8,7 @@ import Solicitudes from './pages/Solicitudes';
 import Reportes from './pages/Reportes';
 import Notificaciones from './pages/Notificaciones';
 import Configuracion from './pages/Configuracion';
+import SolicitudDetail from './pages/SolicitudDetail';
 import NotFound from './pages/NotFound';
 
 function ProtectedRoute({ children }) {
@@ -92,6 +93,7 @@ function App() {
             <Route index element={<Dashboard />} />
             <Route path="ingresos" element={<Ingresos />} />
             <Route path="solicitudes" element={<Solicitudes />} />
+            <Route path="solicitudes/:id" element={<SolicitudDetail />} />
             <Route path="reportes" element={<Reportes />} />
             <Route path="notificaciones" element={<Notificaciones />} />
             <Route path="configuracion/*" element={

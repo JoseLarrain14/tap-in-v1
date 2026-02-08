@@ -1,0 +1,6 @@
+{
+  "status": 403,
+  "body": {
+    "error": "Cuenta desactivada. No puede realizar esta acción."
+  }
+}

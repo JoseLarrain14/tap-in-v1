@@ -1,0 +1,11 @@
+{
+  "presidenteLoginOk": true,
+  "usersListOk": true,
+  "deactivationOk": true,
+  "delegadoCanLogin": true,
+  "readTransactionsOk": true,
+  "readPaymentRequestsOk": true,
+  "writeTransactionsBlocked": true,
+  "writePaymentRequestsBlocked": true,
+  "reactivationOk": true
+}

@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/AuthContext';
+import { api } from '../lib/api';
 
 const SIDEBAR_KEY = 'sidebar_collapsed';
 
@@ -10,6 +11,34 @@ export default function Layout() {
   const [collapsed, setCollapsed] = useState(() => {
     return localStorage.getItem(SIDEBAR_KEY) === 'true';
   });
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  const fetchUnreadCount = useCallback(async () => {
+    try {
+      const data = await api.get('/notifications/unread-count');
+      setUnreadCount(data.unread_count || 0);
+    } catch (err) {
+      // Silently fail - notification badge is not critical
+      console.debug('Failed to fetch unread count:', err.message);
+    }
+  }, []);
+
+  useEffect(() => {
+    // Fetch initial unread count
+    fetchUnreadCount();
+
+    // Poll every 30 seconds
+    const interval = setInterval(fetchUnreadCount, 30000);
+
+    // Listen for custom events from Notificaciones page
+    const handleUpdate = () => fetchUnreadCount();
+    window.addEventListener('notifications-updated', handleUpdate);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('notifications-updated', handleUpdate);
+    };
+  }, [fetchUnreadCount]);
 
   const handleToggle = () => {
     const newState = !collapsed;
@@ -27,7 +56,7 @@ export default function Layout() {
     { to: '/ingresos', label: 'Ingresos', icon: '💰' },
     { to: '/solicitudes', label: 'Egresos', icon: '📋' },
     { to: '/reportes', label: 'Reportes', icon: '📈' },
-    { to: '/notificaciones', label: 'Notificaciones', icon: '🔔' },
+    { to: '/notificaciones', label: 'Notificaciones', icon: '🔔', badge: unreadCount },
     ...(user?.role === 'presidente' ? [{ to: '/configuracion', label: 'Configuración', icon: '⚙️' }] : []),
   ];
 
@@ -36,7 +65,7 @@ export default function Layout() {
     { to: '/', label: 'Dashboard', icon: '📊' },
     { to: '/ingresos', label: 'Ingresos', icon: '💰' },
     { to: '/solicitudes', label: 'Egresos', icon: '📋' },
-    { to: '/notificaciones', label: 'Notificaciones', icon: '🔔' },
+    { to: '/notificaciones', label: 'Notificaciones', icon: '🔔', badge: unreadCount },
   ];
 
   return (
@@ -89,8 +118,30 @@ export default function Layout() {
                 }`
               }
             >
-              <span>{item.icon}</span>
-              {!collapsed && item.label}
+              <span className="relative">
+                {item.icon}
+                {item.badge > 0 && (
+                  <span
+                    className="absolute -top-2 -right-2 min-w-[16px] h-4 flex items-center justify-center bg-red-500 text-white text-[10px] font-bold rounded-full px-1"
+                    data-testid="notification-badge"
+                  >
+                    {item.badge > 99 ? '99+' : item.badge}
+                  </span>
+                )}
+              </span>
+              {!collapsed && (
+                <span className="flex-1 flex items-center justify-between">
+                  {item.label}
+                  {item.badge > 0 && (
+                    <span
+                      className="ml-2 min-w-[20px] h-5 flex items-center justify-center bg-red-500 text-white text-xs font-bold rounded-full px-1.5"
+                      data-testid="notification-badge-label"
+                    >
+                      {item.badge > 99 ? '99+' : item.badge}
+                    </span>
+                  )}
+                </span>
+              )}
             </NavLink>
           ))}
         </nav>
@@ -184,7 +235,17 @@ export default function Layout() {
               }`
             }
           >
-            <span className="text-lg">{item.icon}</span>
+            <span className="relative text-lg">
+              {item.icon}
+              {item.badge > 0 && (
+                <span
+                  className="absolute -top-1 -right-1 min-w-[14px] h-3.5 flex items-center justify-center bg-red-500 text-white text-[9px] font-bold rounded-full px-0.5"
+                  data-testid="notification-badge-mobile"
+                >
+                  {item.badge > 99 ? '99+' : item.badge}
+                </span>
+              )}
+            </span>
             <span className="truncate">{item.label}</span>
           </NavLink>
         ))}
