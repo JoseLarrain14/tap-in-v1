@@ -334,3 +334,60 @@
 - Income/expense recording pages
 - More security/access control features
 - Payment request workflow features
+
+## Session 8 - 2026-02-08
+
+### Completed Features:
+- Feature #17: Secretaria cannot create payment requests ✅
+- Feature #18: Delegado cannot approve or reject payment requests ✅
+- Feature #19: Data isolation between organizations ✅
+
+### Verification Details:
+- Feature #17: Secretaria cannot create payment requests
+  - Backend: Added requireRole('delegado', 'presidente') middleware to POST /api/payment-requests
+  - Frontend: Changed canCreate from `true` to check role (delegado or presidente only)
+  - Secretaria POST /api/payment-requests → 403 "No tiene permisos para esta acción"
+  - Delegado and Presidente can still create (201 success)
+  - UI: "+ Nueva Solicitud" button NOT visible for secretaria on Egresos page
+  - UI: Button IS visible for delegado and presidente
+  - Verified via API tests and Playwright browser automation with screenshots
+
+- Feature #18: Delegado cannot approve or reject payment requests
+  - Backend already had requireRole('presidente') on /approve and /reject endpoints
+  - Frontend already had canApproveReject = user?.role === 'presidente'
+  - Delegado POST /api/payment-requests/:id/approve → 403
+  - Delegado POST /api/payment-requests/:id/reject → 403
+  - UI: No Aprobar/Rechazar buttons for delegado in list or detail views
+  - Added info text "Solo el Presidente puede aprobar o rechazar" for delegado in detail view
+  - Verified via API tests and Playwright browser automation with screenshots
+
+- Feature #19: Data isolation between organizations
+  - Created Organization B ("CPP Org B Test") with user orgb_presidente@tapin.cl
+  - Created test transaction in Org A (ORGA_ISOLATION_TEST_XYZ, $999,999)
+  - Org B GET /api/transactions → [] (empty, no Org A data)
+  - Org B GET /api/transactions/9/audit → 404 (Org A transaction inaccessible)
+  - Org B GET /api/payment-requests → [] (empty, no Org A data)
+  - Org B GET /api/payment-requests/1 → 404 (Org A request inaccessible)
+  - Org B GET /api/categories → only Org B categories (2 items, not Org A's 10)
+  - Org B GET /api/users → only Org B users (1 user, not Org A's 5+)
+  - Dashboard shows $0 for all values (no cross-org data leakage)
+  - All data queries use organization_id from JWT token
+  - Verified via API tests and Playwright browser automation with screenshots
+
+### Changes Made:
+- backend/src/routes/payment-requests.js: Added requireRole('delegado', 'presidente') to POST /
+- frontend/src/pages/Solicitudes.jsx: canCreate checks role, info text for delegado on pending requests
+- backend/src/index.js: Extended CORS origins list
+
+### Test Data Created:
+- Organization B (ID: 2) with user orgb_presidente@tapin.cl / password123
+- Test transaction ORGA_ISOLATION_TEST_XYZ in Org A
+
+### Current Status: ~20/265 features passing (~7.5%)
+
+### What should be worked on next:
+- Dashboard UI with real data from the API endpoints
+- Category management UI improvements
+- More payment request workflow features
+- Income/expense recording pages
+- Reporting and export features
