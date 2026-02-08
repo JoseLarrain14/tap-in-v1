@@ -12,6 +12,16 @@ export default function Ingresos() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  // Filter state
+  const [filterCategory, setFilterCategory] = useState('');
+  const [filterFrom, setFilterFrom] = useState('');
+  const [filterTo, setFilterTo] = useState('');
+  const [filterSearch, setFilterSearch] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+  // Sort state
+  const [sortBy, setSortBy] = useState('date');
+  const [sortOrder, setSortOrder] = useState('desc');
+
   const [form, setForm] = useState({
     amount: '',
     category_id: '',
@@ -33,15 +43,36 @@ export default function Ingresos() {
   const [saving, setSaving] = useState(false);
   const [editSaving, setEditSaving] = useState(false);
 
+  const hasActiveFilters = filterCategory || filterFrom || filterTo || filterSearch;
+
+  // Build query string from filters
+  function buildFilterQuery(overrides = {}) {
+    const cat = overrides.category !== undefined ? overrides.category : filterCategory;
+    const from = overrides.from !== undefined ? overrides.from : filterFrom;
+    const to = overrides.to !== undefined ? overrides.to : filterTo;
+    const search = overrides.search !== undefined ? overrides.search : filterSearch;
+    const sb = overrides.sort_by !== undefined ? overrides.sort_by : sortBy;
+    const so = overrides.sort_order !== undefined ? overrides.sort_order : sortOrder;
+    const params = new URLSearchParams();
+    params.set('type', 'ingreso');
+    params.set('sort_by', sb);
+    params.set('sort_order', so);
+    if (cat) params.set('category_id', cat);
+    if (from) params.set('from', from);
+    if (to) params.set('to', to);
+    if (search) params.set('search', search);
+    return params.toString();
+  }
+
   useEffect(() => {
     loadData();
   }, []);
 
-  async function loadData() {
+  async function loadData(filterOverrides = {}) {
     try {
       setLoading(true);
       const [txRes, catRes] = await Promise.all([
-        api.get('/transactions?type=ingreso&sort_by=date&sort_order=desc'),
+        api.get(`/transactions?${buildFilterQuery(filterOverrides)}`),
         api.get('/categories')
       ]);
       setTransactions(txRes.transactions || []);
@@ -51,6 +82,34 @@ export default function Ingresos() {
     } finally {
       setLoading(false);
     }
+  }
+
+  // Apply filters (reload data with current filter state)
+  function applyFilters() {
+    loadData();
+  }
+
+  function clearFilters() {
+    setFilterCategory('');
+    setFilterFrom('');
+    setFilterTo('');
+    setFilterSearch('');
+    loadData({ category: '', from: '', to: '', search: '' });
+  }
+
+  function handleSort(column) {
+    let newOrder = 'asc';
+    if (sortBy === column) {
+      newOrder = sortOrder === 'asc' ? 'desc' : 'asc';
+    }
+    setSortBy(column);
+    setSortOrder(newOrder);
+    loadData({ sort_by: column, sort_order: newOrder });
+  }
+
+  function SortArrow({ column }) {
+    if (sortBy !== column) return <span className="text-gray-300 ml-1">↕</span>;
+    return <span className="text-primary-600 ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>;
   }
 
   async function handleSubmit(e) {
@@ -168,28 +227,146 @@ export default function Ingresos() {
         </button>
       </div>
 
+      {/* Filter Bar */}
+      <div className="bg-white rounded-xl border border-gray-200 p-4" data-testid="filter-bar">
+        <div className="flex items-center gap-3 flex-wrap">
+          {/* Search */}
+          <div className="flex-1 min-w-[200px]">
+            <input
+              type="text"
+              placeholder="Buscar por descripción..."
+              value={filterSearch}
+              onChange={e => setFilterSearch(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') applyFilters(); }}
+              data-testid="filter-search"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            />
+          </div>
+
+          {/* Category Filter */}
+          <select
+            value={filterCategory}
+            onChange={e => { setFilterCategory(e.target.value); }}
+            data-testid="filter-category"
+            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
+          >
+            <option value="">Todas las categorías</option>
+            {categories.map(c => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+
+          {/* Toggle advanced filters */}
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className={`px-3 py-2 border rounded-lg text-sm font-medium transition-colors ${
+              showFilters || filterFrom || filterTo
+                ? 'border-primary-300 bg-primary-50 text-primary-700'
+                : 'border-gray-300 text-gray-600 hover:bg-gray-50'
+            }`}
+          >
+            <span className="flex items-center gap-1.5">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+              </svg>
+              Filtros
+              {hasActiveFilters && (
+                <span className="w-2 h-2 rounded-full bg-primary-500"></span>
+              )}
+            </span>
+          </button>
+
+          {/* Apply */}
+          <button
+            onClick={applyFilters}
+            data-testid="filter-apply"
+            className="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors"
+          >
+            Buscar
+          </button>
+
+          {/* Clear */}
+          {hasActiveFilters && (
+            <button
+              onClick={clearFilters}
+              data-testid="filter-clear"
+              className="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 transition-colors font-medium"
+            >
+              Limpiar
+            </button>
+          )}
+        </div>
+
+        {/* Date range - shown when advanced filters toggled */}
+        {showFilters && (
+          <div className="flex items-center gap-3 mt-3 pt-3 border-t border-gray-100">
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-gray-500 whitespace-nowrap">Desde:</label>
+              <input
+                type="date"
+                value={filterFrom}
+                onChange={e => setFilterFrom(e.target.value)}
+                data-testid="filter-from"
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-gray-500 whitespace-nowrap">Hasta:</label>
+              <input
+                type="date"
+                value={filterTo}
+                onChange={e => setFilterTo(e.target.value)}
+                data-testid="filter-to"
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
       {transactions.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-          <div className="text-4xl mb-3">💰</div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-1">No hay ingresos registrados</h3>
-          <p className="text-gray-500 mb-4">Comienza registrando el primer ingreso del CPP</p>
-          <button
-            onClick={() => setShowModal(true)}
-            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium"
-          >
-            Registrar primer ingreso
-          </button>
+          <div className="text-4xl mb-3">{hasActiveFilters ? '🔍' : '💰'}</div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-1">
+            {hasActiveFilters ? 'Sin resultados' : 'No hay ingresos registrados'}
+          </h3>
+          <p className="text-gray-500 mb-4">
+            {hasActiveFilters
+              ? 'No se encontraron ingresos con los filtros aplicados'
+              : 'Comienza registrando el primer ingreso del CPP'}
+          </p>
+          {hasActiveFilters ? (
+            <button
+              onClick={clearFilters}
+              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+            >
+              Limpiar filtros
+            </button>
+          ) : (
+            <button
+              onClick={() => setShowModal(true)}
+              className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium"
+            >
+              Registrar primer ingreso
+            </button>
+          )}
         </div>
       ) : (
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50">
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Fecha</th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Descripción</th>
+                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase cursor-pointer hover:text-gray-700 select-none" onClick={() => handleSort('date')} data-testid="sort-fecha">
+                  Fecha<SortArrow column="date" />
+                </th>
+                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase cursor-pointer hover:text-gray-700 select-none" onClick={() => handleSort('description')} data-testid="sort-descripcion">
+                  Descripción<SortArrow column="description" />
+                </th>
                 <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Categoría</th>
                 <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Pagador</th>
-                <th className="text-right px-6 py-3 text-xs font-medium text-gray-500 uppercase">Monto</th>
+                <th className="text-right px-6 py-3 text-xs font-medium text-gray-500 uppercase cursor-pointer hover:text-gray-700 select-none" onClick={() => handleSort('amount')} data-testid="sort-monto">
+                  Monto<SortArrow column="amount" />
+                </th>
                 <th className="text-center px-6 py-3 text-xs font-medium text-gray-500 uppercase">Acciones</th>
               </tr>
             </thead>

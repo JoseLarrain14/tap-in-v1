@@ -408,11 +408,23 @@ router.post('/:id/approve', requireRole('presidente'), (req, res) => {
     VALUES (?, 'pendiente', 'aprobado', ?, ?, ?, ?)
   `).run(req.params.id, userId, comment || 'Solicitud aprobada', req.ip || null, req.headers['user-agent'] || null);
 
-  // Create notification for the creator
+  // Create notification for the creator (delegado)
   db.prepare(`
     INSERT INTO notifications (organization_id, user_id, type, title, message, reference_type, reference_id)
     VALUES (?, ?, 'solicitud_aprobada', 'Solicitud aprobada', ?, 'payment_request', ?)
   `).run(orgId, request.created_by, `Tu solicitud "${request.description}" ha sido aprobada`, req.params.id);
+
+  // Create notification for all secretarias in the organization
+  const secretarias = db.prepare(
+    'SELECT id FROM users WHERE organization_id = ? AND role = ? AND is_active = 1'
+  ).all(orgId, 'secretaria');
+
+  for (const sec of secretarias) {
+    db.prepare(`
+      INSERT INTO notifications (organization_id, user_id, type, title, message, reference_type, reference_id)
+      VALUES (?, ?, 'solicitud_aprobada', 'Solicitud aprobada', ?, 'payment_request', ?)
+    `).run(orgId, sec.id, `La solicitud "${request.description}" ha sido aprobada y está lista para ejecución`, req.params.id);
+  }
 
   const updated = db.prepare(`
     SELECT pr.*, c.name as category_name, u.name as created_by_name, au.name as approved_by_name

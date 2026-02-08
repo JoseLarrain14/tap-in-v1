@@ -89,12 +89,33 @@ export default function Solicitudes() {
     category_id: '',
   });
   const [categories, setCategories] = useState([]);
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [creatorFilter, setCreatorFilter] = useState('');
+  const [searchFilter, setSearchFilter] = useState('');
+  const [users, setUsers] = useState([]);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const hasAdvancedFilters = categoryFilter || creatorFilter || searchFilter;
 
-  async function loadRequests() {
+  function buildFilterQuery(overrides = {}) {
+    const status = overrides.status !== undefined ? overrides.status : statusFilter;
+    const cat = overrides.category !== undefined ? overrides.category : categoryFilter;
+    const creator = overrides.creator !== undefined ? overrides.creator : creatorFilter;
+    const search = overrides.search !== undefined ? overrides.search : searchFilter;
+    const params = new URLSearchParams();
+    if (status) params.set('status', status);
+    if (cat) params.set('category_id', cat);
+    if (creator) params.set('created_by', creator);
+    if (search) params.set('search', search);
+    params.set('sort_by', 'created_at');
+    params.set('sort_order', 'desc');
+    return params.toString();
+  }
+
+  async function loadRequests(filterOverrides = {}) {
     try {
       setLoading(true);
-      const params = statusFilter ? `?status=${statusFilter}` : '';
-      const data = await api.get(`/payment-requests${params}`);
+      const qs = buildFilterQuery(filterOverrides);
+      const data = await api.get(`/payment-requests?${qs}`);
       setRequests(data.payment_requests || []);
     } catch (err) {
       setError(err.message);
@@ -113,10 +134,36 @@ export default function Solicitudes() {
     }
   }
 
+  async function loadUsers() {
+    try {
+      const data = await api.get('/users');
+      setUsers(data.users || data || []);
+    } catch (err) {
+      // Users are optional for filter
+    }
+  }
+
+  function handleStatusFilter(s) {
+    setStatusFilter(s);
+    loadRequests({ status: s });
+  }
+
+  function applyFilters() {
+    loadRequests();
+  }
+
+  function clearAdvancedFilters() {
+    setCategoryFilter('');
+    setCreatorFilter('');
+    setSearchFilter('');
+    loadRequests({ category: '', creator: '', search: '' });
+  }
+
   useEffect(() => {
     loadRequests();
     loadCategories();
-  }, [statusFilter]);
+    loadUsers();
+  }, []);
 
   function handleViewChange(mode) {
     setViewMode(mode);
@@ -330,20 +377,103 @@ export default function Solicitudes() {
 
       {/* Status Filters - only show in Table view */}
       {viewMode === 'table' && (
-        <div className="flex gap-2 flex-wrap">
-          {['', 'pendiente', 'aprobado', 'rechazado', 'ejecutado', 'borrador'].map((s) => (
+        <div className="space-y-3">
+          <div className="flex gap-2 flex-wrap">
+            {['', 'pendiente', 'aprobado', 'rechazado', 'ejecutado', 'borrador'].map((s) => (
+              <button
+                key={s}
+                onClick={() => handleStatusFilter(s)}
+                data-testid={`status-filter-${s || 'all'}`}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                  statusFilter === s
+                    ? 'bg-black text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                {s ? STATUS_LABELS_SHORT[s] : 'Todas'}
+              </button>
+            ))}
             <button
-              key={s}
-              onClick={() => setStatusFilter(s)}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                statusFilter === s
-                  ? 'bg-black text-white'
+              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+              data-testid="toggle-advanced-filters"
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ml-auto ${
+                showAdvancedFilters || hasAdvancedFilters
+                  ? 'bg-indigo-100 text-indigo-700'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
-              {s ? STATUS_LABELS_SHORT[s] : 'Todas'}
+              {hasAdvancedFilters ? '⚙ Filtros Activos' : '⚙ Filtros'}
             </button>
-          ))}
+          </div>
+
+          {/* Advanced Filter Bar */}
+          {showAdvancedFilters && (
+            <div className="bg-white border border-gray-200 rounded-xl p-4">
+              <div className="flex flex-wrap items-end gap-3">
+                {/* Search */}
+                <div className="flex-1 min-w-[180px]">
+                  <label className="block text-xs font-medium text-gray-500 mb-1">Buscar</label>
+                  <input
+                    type="text"
+                    value={searchFilter}
+                    onChange={(e) => setSearchFilter(e.target.value)}
+                    data-testid="pipeline-filter-search"
+                    placeholder="Descripción o beneficiario..."
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none"
+                  />
+                </div>
+                {/* Category */}
+                <div className="min-w-[160px]">
+                  <label className="block text-xs font-medium text-gray-500 mb-1">Categoría</label>
+                  <select
+                    value={categoryFilter}
+                    onChange={(e) => setCategoryFilter(e.target.value)}
+                    data-testid="pipeline-filter-category"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none"
+                  >
+                    <option value="">Todas</option>
+                    {categories.map(c => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
+                {/* Creator */}
+                <div className="min-w-[160px]">
+                  <label className="block text-xs font-medium text-gray-500 mb-1">Creador</label>
+                  <select
+                    value={creatorFilter}
+                    onChange={(e) => setCreatorFilter(e.target.value)}
+                    data-testid="pipeline-filter-creator"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none"
+                  >
+                    <option value="">Todos</option>
+                    {users.map(u => (
+                      <option key={u.id} value={u.id}>{u.name || u.email}</option>
+                    ))}
+                  </select>
+                </div>
+                {/* Action Buttons */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={applyFilters}
+                    data-testid="pipeline-filter-apply"
+                    className="px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
+                  >
+                    Buscar
+                  </button>
+                  {hasAdvancedFilters && (
+                    <button
+                      onClick={clearAdvancedFilters}
+                      data-testid="pipeline-filter-clear"
+                      className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors"
+                    >
+                      Limpiar
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -363,11 +493,19 @@ export default function Solicitudes() {
           <div className="text-4xl mb-3">📋</div>
           <h3 className="text-lg font-medium text-gray-900">No hay solicitudes</h3>
           <p className="text-gray-500 mt-1 text-sm">
-            {statusFilter
-              ? `No hay solicitudes con estado "${STATUS_LABELS_SHORT[statusFilter]}"`
+            {statusFilter || hasAdvancedFilters
+              ? 'No se encontraron solicitudes con los filtros aplicados'
               : 'Crea tu primera solicitud de pago para comenzar'}
           </p>
-          {canCreate && !statusFilter && (
+          {(statusFilter || hasAdvancedFilters) && (
+            <button
+              onClick={() => { setStatusFilter(''); clearAdvancedFilters(); }}
+              className="mt-4 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors"
+            >
+              Limpiar filtros
+            </button>
+          )}
+          {canCreate && !statusFilter && !hasAdvancedFilters && (
             <button
               onClick={() => setShowCreateModal(true)}
               className="mt-4 px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
