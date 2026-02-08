@@ -231,3 +231,51 @@
 - More payment request workflow features
 - Income/expense recording pages
 - Reporting and export features
+
+## Session 6 - 2026-02-08
+
+### Completed Features:
+- Feature #8: Sidebar navigation displays all menu items on desktop ✅
+- Feature #9: Sidebar collapse toggle works and persists ✅
+- Feature #16: Delegado cannot access Configuración page ✅
+
+### Verification Details:
+- Feature #8: Sidebar navigation displays all menu items
+  - Presidente sees: Dashboard, Ingresos, Egresos, Reportes, Notificaciones, Configuración
+  - Delegado sees: Dashboard, Ingresos, Egresos, Reportes, Notificaciones (no Configuración)
+  - All navigation links work and route to correct pages
+  - Verified with Playwright browser automation + screenshots
+
+- Feature #9: Sidebar collapse toggle works and persists
+  - Toggle button (chevron) in sidebar header
+  - Expanded: 256px width, full labels + user info
+  - Collapsed: 64px width, icons only, centered layout
+  - State persists via localStorage('sidebar_collapsed')
+  - Verified: collapse → refresh → still collapsed → expand → refresh → still expanded
+  - Smooth CSS transition (200ms)
+
+- Feature #16: Delegado cannot access Configuración page
+  - Configuración not in sidebar for Delegado ✅
+  - Direct URL /configuracion redirects Delegado to dashboard ✅
+  - PUT /api/users/:id/role with Delegado token returns 403 ✅
+  - POST /api/users/invite with Delegado token returns 403 ✅
+  - Unauthenticated access returns 401 ✅
+  - Presidente CAN access /configuracion ✅ (cross-check)
+  - Added RoleRoute component for frontend route protection
+
+### Infrastructure Added:
+- Ingresos page (income management with create/list, categories, CLP formatting)
+- Reportes page (placeholder for financial reports and export)
+- Notificaciones page (placeholder for activity notifications)
+- Sidebar collapse/expand with localStorage persistence
+- RoleRoute component for role-based route protection
+- All new pages properly integrated with React Router routes
+
+### Current Status: ~19/265 features passing (~7.2%)
+
+### What should be worked on next:
+- Dashboard content with real financial data
+- Category management UI for presidente
+- More payment request workflow features
+- Income recording functionality (Ingresos page enhancement)
+- Reporting and export features
