@@ -124,3 +124,59 @@
 - Navigation and routing features
 - Payment request workflow
 - Category management
+
+## Session 4 - 2026-02-08
+
+### Completed Features:
+- Feature #24: Presidente can change user roles ✅
+- Feature #25: Delegado cannot edit other delegados draft requests ✅
+- Feature #26: Secretaria cannot manage categories ✅
+
+### Verification Details:
+- Feature #24: Presidente can change user roles
+  - PUT /api/users/:id/role endpoint works correctly (presidente only)
+  - Configuracion page has role dropdown in users table (only for non-self users)
+  - Role change persists across server restart (SQLite persistence verified)
+  - Changed user logs in with new role and permissions
+  - Non-presidente users get 403 when trying to change roles
+  - Verified via API testing
+
+- Feature #25: Delegado cannot edit other delegados draft requests
+  - PUT /api/payment-requests/:id endpoint checks ownership (created_by === userId)
+  - Only drafts (status === 'borrador') can be edited
+  - Delegado A creates draft, Delegado B gets 403 when trying to edit it
+  - Delegado A can successfully edit their own draft (200)
+  - Edit button in UI only shows for own drafts (canEditRequest function)
+  - Unauthenticated access returns 401
+  - Verified via API testing
+
+- Feature #26: Secretaria cannot manage categories
+  - Categories CRUD API at /api/categories with requireRole('presidente') middleware
+  - POST /api/categories with secretaria token returns 403
+  - PUT /api/categories/:id with secretaria token returns 403
+  - DELETE /api/categories/:id with secretaria token returns 403
+  - Configuracion nav item only visible for presidente role in sidebar
+  - Presidente can successfully create/edit/delete categories (201/200)
+  - Verified via API testing
+
+### Infrastructure Added:
+- Categories CRUD API (GET/POST/PUT/DELETE /api/categories)
+  - GET: All roles can read categories
+  - POST/PUT/DELETE: Only presidente (requireRole middleware)
+  - Duplicate name check within org + type
+  - Delete protection when category is in use
+- Payment request edit (PUT /api/payment-requests/:id)
+  - Only creator can edit their own drafts
+  - Returns 403 for non-creators
+  - Only borrador status can be edited
+- Role change dropdown in Configuracion page (presidente only)
+- Conditional sidebar navigation (Configuracion only for presidente)
+- Edit modal for draft payment requests in Solicitudes page
+
+### Current Status: 13/265 features passing (~4.9%)
+
+### What should be worked on next:
+- More security/access control features
+- Dashboard content with real data
+- Category management UI for presidente
+- Payment request workflow improvements
