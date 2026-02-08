@@ -94,6 +94,8 @@ function App() {
             <Route path="ingresos" element={<Ingresos />} />
             <Route path="solicitudes" element={<Solicitudes />} />
             <Route path="solicitudes/:id" element={<SolicitudDetail />} />
+            <Route path="egresos" element={<Navigate to="/solicitudes" replace />} />
+            <Route path="egresos/:id" element={<SolicitudDetail />} />
             <Route path="reportes" element={<Reportes />} />
             <Route path="notificaciones" element={<Notificaciones />} />
             <Route path="configuracion/*" element={
