@@ -103,8 +103,19 @@ export default function Solicitudes() {
     }
   }
 
+  async function loadCategories() {
+    try {
+      const data = await api.get('/categories');
+      const cats = (data.categories || data || []).filter(c => c.type === 'egreso');
+      setCategories(cats);
+    } catch (err) {
+      // Categories are optional
+    }
+  }
+
   useEffect(() => {
     loadRequests();
+    loadCategories();
   }, [statusFilter]);
 
   function handleViewChange(mode) {
@@ -112,8 +123,13 @@ export default function Solicitudes() {
     localStorage.setItem(VIEW_KEY, mode);
   }
 
-  async function handleCreate(e) {
-    e.preventDefault();
+  async function handleCreate(e, asDraft = false) {
+    if (e && e.preventDefault) e.preventDefault();
+    // Validate required fields
+    if (!newRequest.amount || !newRequest.description || !newRequest.beneficiary) {
+      setFeedback({ type: 'error', message: 'Monto, descripción y beneficiario son requeridos' });
+      return;
+    }
     try {
       setActionLoading(true);
       await api.post('/payment-requests', {
@@ -121,11 +137,11 @@ export default function Solicitudes() {
         description: newRequest.description,
         beneficiary: newRequest.beneficiary,
         category_id: newRequest.category_id ? parseInt(newRequest.category_id) : undefined,
-        status: 'pendiente',
+        status: asDraft ? 'borrador' : 'pendiente',
       });
       setShowCreateModal(false);
       setNewRequest({ amount: '', description: '', beneficiary: '', category_id: '' });
-      setFeedback({ type: 'success', message: 'Solicitud creada exitosamente' });
+      setFeedback({ type: 'success', message: asDraft ? 'Borrador guardado exitosamente' : 'Solicitud enviada exitosamente' });
       loadRequests();
     } catch (err) {
       setFeedback({ type: 'error', message: err.message });
@@ -529,7 +545,7 @@ export default function Solicitudes() {
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Nueva Solicitud de Pago</h2>
-            <form onSubmit={handleCreate} className="space-y-4">
+            <form onSubmit={(e) => handleCreate(e, false)} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Monto (CLP)</label>
                 <input
@@ -541,6 +557,19 @@ export default function Solicitudes() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none"
                   placeholder="50000"
                 />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
+                <select
+                  value={newRequest.category_id}
+                  onChange={(e) => setNewRequest({ ...newRequest, category_id: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none"
+                >
+                  <option value="">Sin categoría</option>
+                  {categories.map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
@@ -568,16 +597,24 @@ export default function Solicitudes() {
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
+                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
                 >
                   Cancelar
+                </button>
+                <button
+                  type="button"
+                  disabled={actionLoading}
+                  onClick={(e) => handleCreate(e, true)}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
+                >
+                  {actionLoading ? 'Guardando...' : 'Guardar Borrador'}
                 </button>
                 <button
                   type="submit"
                   disabled={actionLoading}
                   className="flex-1 px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors disabled:opacity-50"
                 >
-                  {actionLoading ? 'Creando...' : 'Crear Solicitud'}
+                  {actionLoading ? 'Creando...' : 'Enviar'}
                 </button>
               </div>
             </form>
