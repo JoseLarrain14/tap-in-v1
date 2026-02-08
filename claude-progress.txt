@@ -39,3 +39,47 @@
 - More infrastructure features (if assigned)
 - Authentication features (login UI, JWT sessions, etc.)
 - Frontend setup with React + Vite + Tailwind CSS
+
+## Session 2 - 2026-02-07
+
+### Completed Features:
+- Feature #5: Backend API queries real database ✅
+- Feature #6: App loads without errors in browser ✅
+- Feature #7: Login page renders with form fields ✅
+
+### Verification Details:
+- Feature #5: Confirmed server logs show [SQL] prefixed queries for every API call
+  - Login: SELECT ... FROM users WHERE email = ?
+  - Auth/me: SELECT u.id, u.email, ... FROM users u JOIN organizations o ...
+  - No mock data patterns found in src/
+- Feature #6: Frontend loads at http://localhost:5175 without blank screen
+  - Zero JavaScript errors, zero warnings
+  - React app renders login page correctly
+  - Vite proxy to backend works for /api routes
+- Feature #7: Login page renders with all required elements
+  - "Tap In" branding heading present
+  - "Gestión financiera para tu CPP" subtitle
+  - Email input (labeled "Correo electrónico", placeholder "tu@correo.cl")
+  - Password input (labeled "Contraseña")
+  - "Ingresar" submit button
+  - Professional purple gradient styling with white card
+
+### Technical Notes:
+- Frontend built with React + Vite + Tailwind CSS v4
+- Frontend runs on port 5173 (or next available: 5174, 5175)
+- Vite proxies /api requests to backend at localhost:3001
+- AuthContext handles JWT storage in localStorage
+- ProtectedRoute/PublicRoute handle authentication-based routing
+- DM Sans font loaded from Google Fonts
+- Custom color theme with primary (purple) and accent (teal) colors defined in index.css @theme
+
+### Starting frontend server:
+  npm --prefix /c/Users/josel/CPP/frontend run dev -- --host
+
+### Current Status: 7/265 features passing (2.6%)
+
+### What should be worked on next:
+- Authentication flow features (login functionality, session management)
+- Dashboard content with real data
+- Navigation and routing features
+- Payment request workflow
