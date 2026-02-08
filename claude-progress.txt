@@ -1,5 +1,113 @@
 === Tap In V1 - Development Progress ===
 
+## Session 25 - 2026-02-08
+
+### Completed Features:
+- Feature #76: Complete expense workflow (draft to executed) ✅
+- Feature #77: Complete income CRUD lifecycle ✅
+- Feature #78: Category CRUD lifecycle ✅
+
+### Verification Details:
+- Feature #76: Full payment request lifecycle
+  - Delegado creates draft, edits (amount 45K→55K), submits to pendiente
+  - Immutability verified (edit after submit blocked with 400)
+  - Presidente approves with comment
+  - Secretaria executes with comprobante upload
+  - Final status: ejecutado, transaction record created (egreso, 55000, source: solicitud)
+  - 5 payment events logged (created, edited, submitted, approved, executed)
+  - Notifications sent: delegado (approved + executed), presidente (created + executed), secretaria (approved)
+  - Comprobante attachment verified
+  - Verified via API tests + UI screenshots
+
+- Feature #77: Income CRUD lifecycle
+  - Create income with all fields (amount, description, category, date, payer_name, payer_rut)
+  - Read: found in list with correct data
+  - Edit: amount/description/payer updated, edited_by and edited_at metadata tracked
+  - Delete: soft delete, removed from list, data preserved in DB
+  - Audit log: 3 entries (created, edited, deleted) all correctly logged
+  - Verified via API tests + UI screenshot of Ingresos page
+
+- Feature #78: Category CRUD lifecycle
+  - Login as Presidente (required role)
+  - Create egreso category "Capacitacion", verified in list
+  - Edit name to "Formacion", verified update
+  - Delete category, verified removed from list
+  - Verified deleted from database (404 on GET by ID)
+  - UI verified: Configuracion > Categorias tab shows full table with Editar/Eliminar buttons
+  - Zero console errors
+
+### Current Status: 75/265 features passing (28.3%)
+
+### What should be worked on next:
+- More workflow completeness features
+- User management CRUD lifecycle
+- Reporting and export features
+- Additional role-based access control tests
+- UI/UX polish features
+
+## Session 22 - 2026-02-08
+
+### Completed Features:
+- Feature #61: Dashboard pending counters are accurate ✅
+- Feature #62: Notification created on payment request submission ✅
+- Feature #63: Notification created on approval ✅
+
+### Verification Details:
+- Feature #61: Dashboard pending counters are accurate
+  - Split Dashboard from 4 cards in 1 grid to 3 financial cards + 2 separate pending counter cards
+  - Pending Approval: counts payment_requests with status='pendiente'
+  - Pending Execution: counts payment_requests with status='aprobado'
+  - Created test data, verified counters change correctly when approving requests (8→7 pending, 2→3 execution)
+  - Verified persistence after server restart
+  - Zero console errors, no mock data
+
+- Feature #62: Notification created on payment request submission
+  - Added notification to submit endpoint: notifies all presidentes when draft is submitted
+  - Added notification to POST create endpoint: notifies all presidentes when creating directly as pendiente
+  - Added "Ver solicitud →" link to Notificaciones.jsx for payment_request notifications
+  - Verified: delegado submits → presidente gets notification with type 'solicitud_creada'
+  - Verified link navigates to correct payment request detail page
+  - Zero console errors
+
+- Feature #63: Notification created on approval
+  - Added notification to approve endpoint: notifies all secretarias when request is approved
+  - Creator (delegado) already received approval notification
+  - Verified: delegado gets 'solicitud_aprobada' notification after presidente approves
+  - Verified: secretaria gets 'solicitud_aprobada' notification with "lista para ejecución" message
+  - Both verified via API tests and browser UI for each role
+  - Zero console errors
+
+### Changes Made:
+- frontend/src/pages/Dashboard.jsx: Split into 3 financial cards + 2 pending counter cards with data-testid attributes
+- backend/src/routes/payment-requests.js: Added presidente notification on submit, secretaria notification on approve
+- frontend/src/pages/Notificaciones.jsx: Added useNavigate import, "Ver solicitud →" button with navigation
+
+### Current Status: 69/265 features passing (26.0%)
+
+### What should be worked on next:
+- More real data verification features
+- Filtering and search features
+- Reporting and export features
+- UI polish and responsiveness
+
+## Session 21 - 2026-02-08
+
+### Completed Features:
+- Feature #64: Notification created on rejection ✅
+- Feature #65: Notification created on execution ✅
+- Feature #66: Income table sorting works with real data ✅
+
+### Verification Details:
+- Feature #64: Rejection notification already implemented in backend; verified via API test (delegado receives solicitud_rechazada notification with comment) and browser UI
+- Feature #65: Added presidente notification on payment execution; both delegado creator and presidente approver receive solicitud_ejecutada notifications; verified via API test and browser UI for both roles
+- Feature #66: Added sortable column headers (Fecha, Descripción, Monto) to Ingresos page; clicking toggles asc/desc; server-side sorting via sort_by/sort_order API params; verified all 4 sort combos (amount asc/desc, date asc/desc) via API test and browser screenshots
+
+### Changes Made:
+- backend/src/routes/payment-requests.js: Added presidente notification on execute, secretaria notification on approve
+- frontend/src/pages/Ingresos.jsx: Added sortBy/sortOrder state, handleSort(), SortArrow component, clickable column headers with data-testid attributes, dynamic sort params in API calls
+
+### Current Status: 69/265 features passing (26.0%)
+
 ## Session 20 - 2026-02-08
 
 ### Completed Features:
