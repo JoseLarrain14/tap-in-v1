@@ -8,6 +8,7 @@ import Solicitudes from './pages/Solicitudes';
 import Reportes from './pages/Reportes';
 import Notificaciones from './pages/Notificaciones';
 import Configuracion from './pages/Configuracion';
+import NotFound from './pages/NotFound';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -55,6 +56,24 @@ function RoleRoute({ children, roles }) {
   return children;
 }
 
+function ProtectedNotFound() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-pulse text-gray-400">Cargando...</div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return <NotFound />;
+}
+
 function App() {
   return (
     <BrowserRouter>
@@ -80,8 +99,9 @@ function App() {
                 <Configuracion />
               </RoleRoute>
             } />
+            <Route path="*" element={<NotFound />} />
           </Route>
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<ProtectedNotFound />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

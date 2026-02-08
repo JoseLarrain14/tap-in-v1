@@ -31,13 +31,21 @@ export default function Layout() {
     ...(user?.role === 'presidente' ? [{ to: '/configuracion', label: 'Configuración', icon: '⚙️' }] : []),
   ];
 
+  // Bottom nav items (subset for mobile - main navigation items)
+  const bottomNavItems = [
+    { to: '/', label: 'Dashboard', icon: '📊' },
+    { to: '/ingresos', label: 'Ingresos', icon: '💰' },
+    { to: '/solicitudes', label: 'Egresos', icon: '📋' },
+    { to: '/notificaciones', label: 'Notificaciones', icon: '🔔' },
+  ];
+
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      {/* Sidebar */}
+      {/* Sidebar - hidden on mobile, visible on md+ */}
       <aside
         data-testid="sidebar"
         data-collapsed={collapsed ? 'true' : 'false'}
-        className={`${collapsed ? 'w-16' : 'w-64'} bg-white border-r border-gray-200 flex flex-col min-h-screen transition-all duration-200`}
+        className={`hidden md:flex ${collapsed ? 'w-16' : 'w-64'} bg-white border-r border-gray-200 flex-col min-h-screen transition-all duration-200`}
       >
         {/* Logo + Toggle */}
         <div className={`${collapsed ? 'px-2' : 'px-6'} py-5 border-b border-gray-200 flex items-center justify-between`}>
@@ -128,10 +136,59 @@ export default function Layout() {
         </div>
       </aside>
 
-      {/* Main content */}
-      <main className="flex-1 p-8">
+      {/* Mobile header - visible on mobile only */}
+      <header
+        data-testid="mobile-header"
+        className="md:hidden fixed top-0 left-0 right-0 z-40 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between"
+      >
+        <h1 className="text-lg font-bold text-primary-700">Tap In</h1>
+        <div className="flex items-center gap-3">
+          <div className="w-7 h-7 bg-primary-100 rounded-full flex items-center justify-center text-primary-700 font-semibold text-xs">
+            {user?.name?.charAt(0)}
+          </div>
+          <button
+            onClick={handleLogout}
+            className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg transition-colors"
+            title="Cerrar sesión"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      {/* Main content - adjusted padding for mobile header/bottom nav */}
+      <main className="flex-1 p-4 pt-16 pb-20 md:p-8 md:pt-8 md:pb-8">
         <Outlet />
       </main>
+
+      {/* Bottom navigation - visible on mobile only */}
+      <nav
+        data-testid="bottom-nav"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 flex items-center justify-around px-2 py-1"
+      >
+        {bottomNavItems.map(item => (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            end={item.to === '/'}
+            data-testid={`bottom-nav-${item.label.toLowerCase()}`}
+            className={({ isActive }) =>
+              `flex flex-col items-center gap-0.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors min-w-0 ${
+                isActive
+                  ? 'text-primary-700'
+                  : 'text-gray-400 hover:text-gray-600'
+              }`
+            }
+          >
+            <span className="text-lg">{item.icon}</span>
+            <span className="truncate">{item.label}</span>
+          </NavLink>
+        ))}
+      </nav>
     </div>
   );
 }
