@@ -180,3 +180,54 @@
 - Dashboard content with real data
 - Category management UI for presidente
 - Payment request workflow improvements
+
+## Session 5 - 2026-02-08
+
+### Completed Features:
+- Feature #21: Secretaria cannot approve or reject payment requests ✅
+- Feature #22: Deactivated user cannot perform write actions ✅
+- Feature #23: Presidente can invite new users to CPP ✅
+
+### Verification Details:
+- Feature #21: Secretaria cannot approve/reject payment requests
+  - POST /api/payment-requests/:id/approve with secretaria token returns 403
+  - POST /api/payment-requests/:id/reject with secretaria token returns 403
+  - Delegado also gets 403 (only presidente can approve/reject)
+  - Presidente CAN approve (200) and reject (200 with mandatory comment)
+  - UI: Aprobar/Rechazar buttons hidden for secretaria in both list and detail views
+  - UI: Informational message shown to secretaria on pending requests
+  - Verified via Playwright browser automation with screenshots
+
+- Feature #22: Deactivated user cannot perform write actions
+  - PUT /api/users/:id/deactivate endpoint works (presidente only)
+  - Deactivated users CAN still login (auth.js allows for read access)
+  - Deactivated users CAN GET /api/transactions and /api/payment-requests (read access)
+  - Deactivated users get 403 on POST /api/transactions (requireActive middleware)
+  - Deactivated users get 403 on POST /api/payment-requests (requireActive middleware)
+  - requireActive middleware added to all write endpoints (POST/PUT/DELETE)
+  - Verified via API tests and Playwright browser automation
+
+- Feature #23: Presidente can invite new users to CPP
+  - POST /api/users/invite endpoint (presidente only, creates user with default password)
+  - New user appears in user list immediately after invite
+  - Secretaria and Delegado get 403 when trying to invite
+  - Invite modal in Configuracion page with name, email, role fields
+  - Verified via Playwright browser automation with screenshots
+
+### Infrastructure Added:
+- requireActive middleware in auth.js (blocks deactivated users from write operations)
+- Auth middleware updated: deactivated users can authenticate for read-only access
+- Users management API (GET /api/users, POST /api/users/invite, PUT /api/users/:id/deactivate, PUT /api/users/:id/activate, PUT /api/users/:id/role)
+- Payment requests API (full CRUD + approve/reject/execute workflow with role restrictions)
+- Solicitudes page with pipeline view, status filters, create/detail modals
+- Configuracion page with user list, invite modal, activate/deactivate controls
+- Updated navigation with Solicitudes and Configuracion links
+
+### Current Status: ~16/265 features passing (~6.0%)
+
+### What should be worked on next:
+- Dashboard content with real data
+- Category management UI for presidente
+- More payment request workflow features
+- Income/expense recording pages
+- Reporting and export features
