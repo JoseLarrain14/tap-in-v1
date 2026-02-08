@@ -436,3 +436,41 @@
 - More payment request workflow features
 - Income/expense recording pages
 - Reporting and export features
+
+## Session 8 - 2026-02-08
+
+### Completed Features:
+- Feature #8: Sidebar navigation displays all menu items on desktop ✅
+- Feature #9: Sidebar collapse toggle works and persists ✅
+- Feature #16: Delegado cannot access Configuración page ✅
+
+### Verification Details:
+- Feature #8: Re-verified with fresh browser session
+  - Presidente sees: Dashboard, Ingresos, Egresos, Reportes, Notificaciones, Configuración
+  - Delegado sees: Dashboard, Ingresos, Egresos, Reportes, Notificaciones (no Configuración)
+  - All navigation links work and route to correct pages (verified by clicking each)
+  - Zero console errors
+
+- Feature #9: Full collapse/expand cycle verified
+  - Default state: expanded (full text labels, user info visible)
+  - Click collapse → icons only, "Expandir sidebar" button
+  - Refresh → still collapsed (localStorage persistence confirmed)
+  - Click expand → full labels restored, "Colapsar sidebar" button
+  - Refresh → still expanded (persistence confirmed both ways)
+
+- Feature #16: Comprehensive access control verified
+  - Configuración not in sidebar for Delegado ✅
+  - Direct URL /configuracion redirects Delegado to dashboard ✅
+  - PUT /api/users/:id/role with Delegado token → 403 Forbidden ✅
+  - POST /api/users/invite with Delegado token → 403 Forbidden ✅
+  - Unauthenticated access → 401 Unauthorized ✅
+  - All verified via Playwright browser automation + Node.js API tests
+
+### Current Status: ~24/265 features passing (~9.1%)
+
+### What should be worked on next:
+- Dashboard UI with real data from the API endpoints
+- Category management UI improvements
+- More payment request workflow features
+- Income/expense recording pages
+- Reporting and export features
