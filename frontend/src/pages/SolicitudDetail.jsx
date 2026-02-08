@@ -125,8 +125,23 @@ export default function SolicitudDetail() {
     }
   }
 
+  async function handleSubmit() {
+    try {
+      setActionLoading(true);
+      await api.post(`/payment-requests/${id}/submit`, {});
+      setFeedback({ type: 'success', message: 'Solicitud enviada para aprobación' });
+      loadDetail();
+    } catch (err) {
+      setFeedback({ type: 'error', message: err.message });
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
   const canApproveReject = user?.role === 'presidente';
   const canExecute = user?.role === 'secretaria';
+  const canSubmitDraft = request?.status === 'borrador' && request?.created_by === user?.id;
+  const canEditDraft = request?.status === 'borrador' && request?.created_by === user?.id;
 
   if (loading) {
     return (
@@ -340,6 +355,23 @@ export default function SolicitudDetail() {
             className="w-full px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
           >
             {actionLoading ? 'Procesando...' : 'Marcar como Ejecutado'}
+          </button>
+        </div>
+      )}
+
+      {/* Submit draft for approval - only creator of borrador */}
+      {canSubmitDraft && (
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <h2 className="text-lg font-medium text-gray-900 mb-4">Acciones</h2>
+          <p className="text-sm text-gray-500 mb-4">
+            Esta solicitud es un borrador. Puedes editarla o enviarla para aprobación.
+          </p>
+          <button
+            onClick={handleSubmit}
+            disabled={actionLoading}
+            className="w-full px-4 py-2.5 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors disabled:opacity-50"
+          >
+            {actionLoading ? 'Enviando...' : 'Enviar para Aprobación'}
           </button>
         </div>
       )}
