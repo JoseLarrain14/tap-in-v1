@@ -1,5 +1,40 @@
 === Tap In V1 - Development Progress ===
 
+## Session 18 - 2026-02-08
+
+### Completed Features:
+- Feature #55: Default categories exist for new organization
+  - Verified 5 income categories (Cuota Mensual, Evento, Taller, Donacion, Otro) with is_default: 1
+  - Verified 5 expense categories (Materiales, Servicios, Eventos, Infraestructura, Otro) with is_default: 1
+  - Verified GET /api/categories?type=ingreso returns 5 defaults
+  - Verified GET /api/categories?type=egreso returns 5 defaults
+  - All seeded on org creation via database.js seedDefaultData()
+
+- Feature #56: Create custom category via UI
+  - Logged in as Presidente, navigated to Configuracion > Categorias tab
+  - Clicked "+ Nueva Categoria", filled name: Transporte, type: Egreso
+  - Category created successfully with inline success message
+  - Verified "Transporte" appears in category list
+  - Verified GET /api/categories?type=egreso includes Transporte
+  - Verified "Transporte" appears in dropdown when creating new payment request
+  - Zero console errors
+
+- Feature #57: Edit category name updates everywhere
+  - Created test data: payment request #17 and transaction #25 with category_id=6 (Materiales)
+  - Edited category "Materiales" to "Suministros" via PUT /api/categories/6
+  - Verified category list shows "Suministros" instead of "Materiales"
+  - Verified transaction FEAT57_TX_MATERIALES shows "Suministros" in Ingresos table
+  - Verified payment request #17 detail page shows "Suministros"
+  - Category names propagate via SQL JOINs, not stored denormalized
+  - Zero console errors
+
+### Notes:
+- All 3 features were verification-only - the Categories UI and backend CRUD were already fully implemented
+- Configuracion.jsx already had a Categorias tab with full CRUD (create, edit, delete)
+- Backend categories.js had all routes: GET, POST, PUT, DELETE with proper authorization
+
+### Current Status: 55/265 features passing (~20.8%)
+
 ## Session 17 - 2026-02-08
 
 ### Completed Features:
