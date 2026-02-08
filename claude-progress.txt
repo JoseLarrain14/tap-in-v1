@@ -1,5 +1,58 @@
 === Tap In V1 - Development Progress ===
 
+## Session 13 - 2026-02-08
+
+### Completed Features:
+- Feature #28: Secretaria cannot execute unapproved payment request ✅
+- Feature #29: Expired JWT token forces re-login ✅
+- Feature #30: Password is hashed in database ✅
+
+### Verification Details:
+- Feature #28: Secretaria cannot execute unapproved payment request
+  - TEST A: Execute pendiente request → 400 "Solo se pueden ejecutar solicitudes aprobadas" ✅
+  - TEST B: Execute borrador request → 400 ✅
+  - TEST C: Execute approved request → 200, status changes to "ejecutado" ✅
+  - TEST D: Execute rechazado request → 400 ✅
+  - Backend: requireRole('secretaria') + status check for 'aprobado' on /execute endpoint
+  - Frontend: Ejecutar button only shows when canExecute && req.status === 'aprobado'
+  - Verified via API tests (test-feature28.js) and Playwright browser automation
+
+- Feature #29: Expired JWT token forces re-login
+  - Backend: TokenExpiredError returns 401 from auth middleware
+  - Frontend: api.js clears token and redirects to /login on 401
+  - AuthContext validates token on load via /auth/me
+  - Login as secretaria, corrupt token in localStorage → API returns 401 → redirect to /login ✅
+  - Re-login with valid credentials works correctly ✅
+  - Verified via Playwright browser automation
+
+- Feature #30: Password is hashed in database
+  - All 7 users have bcrypt hashes ($2a$10$...) in password_hash column ✅
+  - Hash length is 60 characters (standard bcrypt) ✅
+  - No plain text passwords stored ✅
+  - bcrypt.compareSync('password123', hash) returns true ✅
+  - bcrypt.compareSync('wrongpassword', hash) returns false ✅
+  - Verified by directly reading SQLite database with sql.js (test-feature30.js)
+
+### Changes Made:
+- backend/src/routes/payment-requests.js: Fixed undefined user-agent/ip in sql.js bindings (6 occurrences, added || null)
+- backend/src/routes/transactions.js: Same fix (3 occurrences)
+- test-feature28.js: Created API test for secretaria execution access control
+- test-feature30.js: Created database password hash verification test
+
+### Bug Fix:
+- sql.js throws when undefined is passed as a bound parameter. req.headers['user-agent']
+  and req.ip are undefined in Node.js HTTP clients without User-Agent header. Fixed by
+  converting to null with || null in all audit log insertions.
+
+### Current Status: ~39/265 features passing (~14.7%)
+
+### What should be worked on next:
+- Dashboard UI with real data from API endpoints
+- Payment request workflow features
+- Income/expense recording pages
+- Reporting and export features
+- More security/access control features
+
 ## Session 12 - 2026-02-08
 
 ### Completed Features:
