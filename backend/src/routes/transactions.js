@@ -156,8 +156,8 @@ router.post('/', requireActive, (req, res) => {
     result.lastInsertRowid,
     userId,
     JSON.stringify({ type, amount, category_id, description, date }),
-    req.ip,
-    req.headers['user-agent']
+    req.ip || null,
+    req.headers['user-agent'] || null
   );
 
   res.status(201).json(transaction);
@@ -211,7 +211,7 @@ router.put('/:id', requireActive, (req, res) => {
   db.prepare(`
     INSERT INTO transaction_audit_log (transaction_id, action, user_id, changes, ip_address, user_agent)
     VALUES (?, 'edited', ?, ?, ?, ?)
-  `).run(transactionId, userId, JSON.stringify(changes), req.ip, req.headers['user-agent']);
+  `).run(transactionId, userId, JSON.stringify(changes), req.ip || null, req.headers['user-agent'] || null);
 
   const updated = db.prepare(`
     SELECT t.*, c.name as category_name, u.name as created_by_name
@@ -248,7 +248,7 @@ router.delete('/:id', requireActive, (req, res) => {
   db.prepare(`
     INSERT INTO transaction_audit_log (transaction_id, action, user_id, changes, ip_address, user_agent)
     VALUES (?, 'deleted', ?, ?, ?, ?)
-  `).run(transactionId, userId, JSON.stringify({ deleted: true }), req.ip, req.headers['user-agent']);
+  `).run(transactionId, userId, JSON.stringify({ deleted: true }), req.ip || null, req.headers['user-agent'] || null);
 
   res.json({ message: 'Transacción eliminada' });
 });

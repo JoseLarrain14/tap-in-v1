@@ -184,7 +184,7 @@ router.post('/', requireActive, requireRole('delegado', 'presidente'), (req, res
   db.prepare(`
     INSERT INTO payment_events (payment_request_id, previous_status, new_status, user_id, comment, ip_address, user_agent)
     VALUES (?, NULL, ?, ?, 'Solicitud creada', ?, ?)
-  `).run(result.lastInsertRowid, initialStatus, userId, req.ip, req.headers['user-agent']);
+  `).run(result.lastInsertRowid, initialStatus, userId, req.ip || null, req.headers['user-agent'] || null);
 
   const created = db.prepare(`
     SELECT pr.*, c.name as category_name, u.name as created_by_name
@@ -251,7 +251,7 @@ router.put('/:id', (req, res) => {
   db.prepare(`
     INSERT INTO payment_events (payment_request_id, previous_status, new_status, user_id, comment, ip_address, user_agent)
     VALUES (?, 'borrador', 'borrador', ?, 'Solicitud editada', ?, ?)
-  `).run(req.params.id, userId, req.ip, req.headers['user-agent']);
+  `).run(req.params.id, userId, req.ip || null, req.headers['user-agent'] || null);
 
   const updated = db.prepare(`
     SELECT pr.*, c.name as category_name, u.name as created_by_name
@@ -295,7 +295,7 @@ router.post('/:id/submit', (req, res) => {
   db.prepare(`
     INSERT INTO payment_events (payment_request_id, previous_status, new_status, user_id, comment, ip_address, user_agent)
     VALUES (?, 'borrador', 'pendiente', ?, 'Solicitud enviada para aprobaci\u00f3n', ?, ?)
-  `).run(req.params.id, userId, req.ip, req.headers['user-agent']);
+  `).run(req.params.id, userId, req.ip || null, req.headers['user-agent'] || null);
 
   const updated = db.prepare(`
     SELECT pr.*, c.name as category_name, u.name as created_by_name
@@ -340,7 +340,7 @@ router.post('/:id/approve', requireRole('presidente'), (req, res) => {
   db.prepare(`
     INSERT INTO payment_events (payment_request_id, previous_status, new_status, user_id, comment, ip_address, user_agent)
     VALUES (?, 'pendiente', 'aprobado', ?, ?, ?, ?)
-  `).run(req.params.id, userId, comment || 'Solicitud aprobada', req.ip, req.headers['user-agent']);
+  `).run(req.params.id, userId, comment || 'Solicitud aprobada', req.ip || null, req.headers['user-agent'] || null);
 
   // Create notification for the creator
   db.prepare(`
@@ -398,7 +398,7 @@ router.post('/:id/reject', requireRole('presidente'), (req, res) => {
   db.prepare(`
     INSERT INTO payment_events (payment_request_id, previous_status, new_status, user_id, comment, ip_address, user_agent)
     VALUES (?, 'pendiente', 'rechazado', ?, ?, ?, ?)
-  `).run(req.params.id, userId, comment, req.ip, req.headers['user-agent']);
+  `).run(req.params.id, userId, comment, req.ip || null, req.headers['user-agent'] || null);
 
   // Create notification for the creator
   db.prepare(`
@@ -450,7 +450,7 @@ router.post('/:id/execute', requireRole('secretaria'), (req, res) => {
   db.prepare(`
     INSERT INTO payment_events (payment_request_id, previous_status, new_status, user_id, comment, ip_address, user_agent)
     VALUES (?, 'aprobado', 'ejecutado', ?, ?, ?, ?)
-  `).run(req.params.id, userId, comment || 'Pago ejecutado', req.ip, req.headers['user-agent']);
+  `).run(req.params.id, userId, comment || 'Pago ejecutado', req.ip || null, req.headers['user-agent'] || null);
 
   // Create the corresponding egreso transaction
   const txResult = db.prepare(`
