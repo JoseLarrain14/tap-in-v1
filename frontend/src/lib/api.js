@@ -28,13 +28,14 @@ async function request(endpoint, options = {}) {
     headers,
   });
 
-  if (response.status === 401) {
+  const data = await response.json();
+
+  // For 401 on non-login endpoints, clear token and redirect
+  if (response.status === 401 && !endpoint.startsWith('/auth/login')) {
     removeToken();
     window.location.href = '/login';
     throw new Error('No autenticado');
   }
-
-  const data = await response.json();
 
   if (!response.ok) {
     throw new Error(data.error || 'Error en la solicitud');
