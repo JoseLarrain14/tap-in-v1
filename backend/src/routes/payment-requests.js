@@ -146,8 +146,8 @@ router.get('/:id', (req, res) => {
   res.json({ ...request, events, attachments });
 });
 
-// POST /api/payment-requests - Create payment request (delegado, presidente, secretaria can create)
-router.post('/', requireActive, (req, res) => {
+// POST /api/payment-requests - Create payment request (delegado and presidente only)
+router.post('/', requireActive, requireRole('delegado', 'presidente'), (req, res) => {
   const db = getDb();
   const orgId = req.user.organization_id;
   const userId = req.user.id;

@@ -199,7 +199,7 @@ export default function Solicitudes() {
   // Determine which action buttons to show based on role
   const canApproveReject = user?.role === 'presidente';
   const canExecute = user?.role === 'secretaria';
-  const canCreate = true; // all roles can create
+  const canCreate = user?.role === 'delegado' || user?.role === 'presidente';
 
   return (
     <div className="space-y-6">
@@ -524,8 +524,8 @@ export default function Solicitudes() {
               </div>
             )}
 
-            {/* Show info text for secretaria on pending requests */}
-            {user?.role === 'secretaria' && selectedRequest.status === 'pendiente' && (
+            {/* Show info text for non-presidente roles on pending requests */}
+            {(user?.role === 'secretaria' || user?.role === 'delegado') && selectedRequest.status === 'pendiente' && (
               <div className="border-t border-gray-100 pt-4">
                 <p className="text-sm text-gray-500 text-center italic">
                   Solo el Presidente puede aprobar o rechazar solicitudes pendientes.
