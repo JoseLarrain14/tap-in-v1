@@ -1,5 +1,55 @@
 === Tap In V1 - Development Progress ===
 
+## Session 16 - 2026-02-08
+
+### Completed Features:
+- Feature #49: Delete income soft-deletes and appears in audit ✅
+- Feature #50: Create payment request as draft ✅
+- Feature #51: Submit draft changes status to pendiente ✅
+
+### Verification Details:
+- Feature #49: Delete income soft-deletes and appears in audit
+  - Added "Eliminar" button to each row in Ingresos page
+  - Delete confirmation modal with description and amount
+  - Created DELETE_TEST_001 income ($25,000), deleted it via UI
+  - Verified: record disappears from list (GET /api/transactions returns 0)
+  - Verified: deleted_at is set in database (soft-delete, not hard delete)
+  - Verified: transaction_audit_log has 'deleted' action with {deleted: true}
+  - No mock data patterns found in frontend/src or backend/src
+
+- Feature #50: Create payment request as draft (borrador)
+  - Modified create modal: added "Guardar Borrador" and "Enviar" buttons
+  - Added category dropdown for egreso categories (Materiales, Servicios, etc.)
+  - handleCreate now accepts asDraft parameter (borrador vs pendiente)
+  - Logged in as delegado (Carlos López), filled form:
+    - Monto: 100000, Categoría: Materiales, Descripción: Compra materiales taller, Beneficiario: Proveedor ABC
+  - Clicked "Guardar Borrador" → success, appears in Borrador kanban column
+  - API confirms: status=borrador, amount=100000, category=Materiales
+  - Verified via Playwright browser automation with screenshots
+
+- Feature #51: Submit draft changes status to pendiente
+  - Added handleSubmit function to SolicitudDetail.jsx
+  - Added "Enviar para Aprobación" button on detail page for draft requests (creator only)
+  - Navigated to Solicitud #15 (borrador), clicked "Enviar para Aprobación"
+  - Status changed from Borrador → Pendiente in UI
+  - "Enviar para Aprobación" button disappears (request is immutable)
+  - API confirms: status=pendiente
+  - payment_events log: previous_status=borrador, new_status=pendiente, comment="Solicitud enviada para aprobación"
+  - Event timeline on detail page shows both events with timestamps
+
+### Changes Made:
+- frontend/src/pages/Ingresos.jsx: Added delete button, confirmation modal, handleDelete function
+- frontend/src/pages/Solicitudes.jsx: Added draft creation, category dropdown, Guardar Borrador button
+- frontend/src/pages/SolicitudDetail.jsx: Added handleSubmit, Enviar para Aprobación button for drafts
+
+### Current Status: 45/265 features passing (17.0%)
+
+### What should be worked on next:
+- More payment request workflow features
+- Dashboard with real financial data
+- Income/expense recording enhancements
+- Reporting and export features
+
 ## Session 15 - 2026-02-08
 
 ### Completed Features:
