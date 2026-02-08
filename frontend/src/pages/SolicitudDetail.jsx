@@ -62,6 +62,8 @@ export default function SolicitudDetail() {
   const [actionLoading, setActionLoading] = useState(false);
   const [feedback, setFeedback] = useState(null);
   const [rejectComment, setRejectComment] = useState('');
+  const [executeFile, setExecuteFile] = useState(null);
+  const [attachments, setAttachments] = useState([]);
 
   useEffect(() => {
     loadDetail();
@@ -74,6 +76,7 @@ export default function SolicitudDetail() {
       const data = await api.get(`/payment-requests/${id}`);
       setRequest(data.payment_request || data);
       setEvents(data.events || []);
+      setAttachments(data.attachments || []);
     } catch (err) {
       setError(err.message || 'Error al cargar la solicitud');
     } finally {
@@ -115,8 +118,14 @@ export default function SolicitudDetail() {
   async function handleExecute() {
     try {
       setActionLoading(true);
-      await api.post(`/payment-requests/${id}/execute`, {});
+      const formData = new FormData();
+      if (executeFile) {
+        formData.append('comprobante', executeFile);
+      }
+      formData.append('comment', 'Pago ejecutado');
+      await api.upload(`/payment-requests/${id}/execute`, formData);
       setFeedback({ type: 'success', message: 'Pago ejecutado exitosamente' });
+      setExecuteFile(null);
       loadDetail();
     } catch (err) {
       setFeedback({ type: 'error', message: err.message });
@@ -348,14 +357,64 @@ export default function SolicitudDetail() {
 
       {canExecute && request.status === 'aprobado' && (
         <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">Acciones</h2>
-          <button
-            onClick={handleExecute}
-            disabled={actionLoading}
-            className="w-full px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
-          >
-            {actionLoading ? 'Procesando...' : 'Marcar como Ejecutado'}
-          </button>
+          <h2 className="text-lg font-medium text-gray-900 mb-4">Ejecutar Pago</h2>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Comprobante de pago (imagen o PDF)
+              </label>
+              <input
+                type="file"
+                accept=".jpg,.jpeg,.png,.gif,.pdf,.webp"
+                onChange={(e) => setExecuteFile(e.target.files[0] || null)}
+                className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 file:cursor-pointer"
+              />
+              {executeFile && (
+                <p className="mt-1 text-xs text-gray-500">
+                  Archivo seleccionado: {executeFile.name} ({(executeFile.size / 1024).toFixed(1)} KB)
+                </p>
+              )}
+            </div>
+            <button
+              onClick={handleExecute}
+              disabled={actionLoading}
+              className="w-full px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
+            >
+              {actionLoading ? 'Procesando...' : 'Marcar como Ejecutado'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Attachments section */}
+      {attachments.length > 0 && (
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <h2 className="text-lg font-medium text-gray-900 mb-4">Documentos Adjuntos</h2>
+          <div className="space-y-2">
+            {attachments.map((att) => (
+              <div key={att.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <span className="text-lg">{att.file_type?.includes('pdf') ? '📄' : '🖼️'}</span>
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">{att.file_name}</p>
+                    <p className="text-xs text-gray-500">
+                      {att.attachment_type === 'comprobante' ? 'Comprobante de pago' : 'Documento de respaldo'}
+                      {att.uploaded_by_name && ` — ${att.uploaded_by_name}`}
+                      {att.file_size && ` — ${(att.file_size / 1024).toFixed(1)} KB`}
+                    </p>
+                  </div>
+                </div>
+                <a
+                  href={att.file_path}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+                >
+                  Descargar
+                </a>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 

@@ -1,7 +1,41 @@
 const express = require('express');
 const router = express.Router();
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 const { getDb } = require('../database');
 const { authenticateToken, requireRole, requireActive } = require('../middleware/auth');
+
+// Configure multer for file uploads
+const uploadsDir = path.join(__dirname, '..', '..', 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadsDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    cb(null, 'comprobante-' + uniqueSuffix + ext);
+  }
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB max
+  fileFilter: (req, file, cb) => {
+    const allowed = ['.jpg', '.jpeg', '.png', '.gif', '.pdf', '.webp'];
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (allowed.includes(ext)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Tipo de archivo no permitido. Use JPG, PNG, GIF, PDF o WebP.'));
+    }
+  }
+});
 
 // All routes require authentication
 router.use(authenticateToken);
@@ -419,7 +453,7 @@ router.post('/:id/reject', requireRole('presidente'), (req, res) => {
 });
 
 // POST /api/payment-requests/:id/execute - Execute payment (ONLY secretaria)
-router.post('/:id/execute', requireRole('secretaria'), (req, res) => {
+router.post('/:id/execute', requireRole('secretaria'), upload.single('comprobante'), (req, res) => {
   const db = getDb();
   const orgId = req.user.organization_id;
   const userId = req.user.id;
@@ -436,7 +470,7 @@ router.post('/:id/execute', requireRole('secretaria'), (req, res) => {
     return res.status(400).json({ error: 'Solo se pueden ejecutar solicitudes aprobadas' });
   }
 
-  const { comment } = req.body;
+  const comment = req.body.comment;
 
   db.prepare(`
     UPDATE payment_requests SET
@@ -451,6 +485,15 @@ router.post('/:id/execute', requireRole('secretaria'), (req, res) => {
     INSERT INTO payment_events (payment_request_id, previous_status, new_status, user_id, comment, ip_address, user_agent)
     VALUES (?, 'aprobado', 'ejecutado', ?, ?, ?, ?)
   `).run(req.params.id, userId, comment || 'Pago ejecutado', req.ip || null, req.headers['user-agent'] || null);
+
+  // Save attachment if file was uploaded
+  if (req.file) {
+    const relativePath = '/uploads/' + req.file.filename;
+    db.prepare(`
+      INSERT INTO attachments (organization_id, entity_type, entity_id, file_name, file_path, file_type, file_size, attachment_type, uploaded_by)
+      VALUES (?, 'payment_request', ?, ?, ?, ?, ?, 'comprobante', ?)
+    `).run(orgId, req.params.id, req.file.originalname, relativePath, req.file.mimetype, req.file.size, userId);
+  }
 
   // Create the corresponding egreso transaction
   const txResult = db.prepare(`
@@ -477,6 +520,29 @@ router.post('/:id/execute', requireRole('secretaria'), (req, res) => {
   `).get(req.params.id);
 
   res.json(updated);
+});
+
+// GET /api/payment-requests/:id/attachments - Get attachments for a payment request
+router.get('/:id/attachments', (req, res) => {
+  const db = getDb();
+  const orgId = req.user.organization_id;
+
+  const request = db.prepare(
+    'SELECT id FROM payment_requests WHERE id = ? AND organization_id = ?'
+  ).get(req.params.id, orgId);
+
+  if (!request) {
+    return res.status(404).json({ error: 'Solicitud no encontrada' });
+  }
+
+  const attachments = db.prepare(`
+    SELECT a.*, u.name as uploaded_by_name
+    FROM attachments a
+    LEFT JOIN users u ON a.uploaded_by = u.id
+    WHERE a.entity_type = 'payment_request' AND a.entity_id = ?
+  `).all(req.params.id);
+
+  res.json(attachments);
 });
 
 module.exports = router;
