@@ -12,8 +12,11 @@ export default function Layout() {
 
   const navItems = [
     { to: '/', label: 'Dashboard', icon: '📊' },
-    { to: '/solicitudes', label: 'Solicitudes', icon: '📋' },
-    ...(user?.role === 'presidente' ? [{ to: '/configuracion', label: 'Configuraci\u00f3n', icon: '⚙️' }] : []),
+    { to: '/ingresos', label: 'Ingresos', icon: '💰' },
+    { to: '/solicitudes', label: 'Egresos', icon: '📋' },
+    { to: '/reportes', label: 'Reportes', icon: '📈' },
+    { to: '/notificaciones', label: 'Notificaciones', icon: '🔔' },
+    ...(user?.role === 'presidente' ? [{ to: '/configuracion', label: 'Configuración', icon: '⚙️' }] : []),
   ];
 
   return (

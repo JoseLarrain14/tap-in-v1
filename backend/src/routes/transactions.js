@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { getDb } = require('../database');
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateToken, requireActive } = require('../middleware/auth');
 
 // All routes require authentication
 router.use(authenticateToken);
@@ -105,7 +105,7 @@ router.get('/', (req, res) => {
 });
 
 // POST /api/transactions - Create a transaction (income)
-router.post('/', (req, res) => {
+router.post('/', requireActive, (req, res) => {
   const db = getDb();
   const orgId = req.user.organization_id;
   const userId = req.user.id;
@@ -164,7 +164,7 @@ router.post('/', (req, res) => {
 });
 
 // PUT /api/transactions/:id - Edit a transaction
-router.put('/:id', (req, res) => {
+router.put('/:id', requireActive, (req, res) => {
   const db = getDb();
   const orgId = req.user.organization_id;
   const userId = req.user.id;
@@ -225,7 +225,7 @@ router.put('/:id', (req, res) => {
 });
 
 // DELETE /api/transactions/:id - Soft delete a transaction
-router.delete('/:id', (req, res) => {
+router.delete('/:id', requireActive, (req, res) => {
   const db = getDb();
   const orgId = req.user.organization_id;
   const userId = req.user.id;

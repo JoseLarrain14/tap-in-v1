@@ -3,7 +3,10 @@ import { AuthProvider, useAuth } from './lib/AuthContext';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import Ingresos from './pages/Ingresos';
 import Solicitudes from './pages/Solicitudes';
+import Reportes from './pages/Reportes';
+import Notificaciones from './pages/Notificaciones';
 import Configuracion from './pages/Configuracion';
 
 function ProtectedRoute({ children }) {
@@ -58,7 +61,10 @@ function App() {
             </ProtectedRoute>
           }>
             <Route index element={<Dashboard />} />
+            <Route path="ingresos" element={<Ingresos />} />
             <Route path="solicitudes" element={<Solicitudes />} />
+            <Route path="reportes" element={<Reportes />} />
+            <Route path="notificaciones" element={<Notificaciones />} />
             <Route path="configuracion/*" element={<Configuracion />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />

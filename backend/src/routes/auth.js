@@ -21,9 +21,8 @@ router.post('/login', (req, res) => {
     return res.status(401).json({ error: 'Credenciales inválidas' });
   }
 
-  if (!user.is_active) {
-    return res.status(403).json({ error: 'Cuenta desactivada. Contacte al presidente del CPP.' });
-  }
+  // Deactivated users can still login for read access
+  // Write operations are blocked by requireActive middleware
 
   const validPassword = bcrypt.compareSync(password, user.password_hash);
   if (!validPassword) {
@@ -39,7 +38,8 @@ router.post('/login', (req, res) => {
       email: user.email,
       name: user.name,
       role: user.role,
-      organization_id: user.organization_id
+      organization_id: user.organization_id,
+      is_active: user.is_active
     }
   });
 });

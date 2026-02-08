@@ -38,10 +38,8 @@ function authenticateToken(req, res, next) {
       return res.status(401).json({ error: 'Usuario no encontrado' });
     }
 
-    if (!user.is_active) {
-      return res.status(403).json({ error: 'Cuenta desactivada' });
-    }
-
+    // Allow deactivated users to authenticate for read access
+    // Write operations are blocked by requireActive middleware
     req.user = user;
     next();
   } catch (error) {
@@ -64,9 +62,22 @@ function requireRole(...roles) {
   };
 }
 
+// Middleware to block write operations for deactivated users
+// Deactivated users can still read (GET) but cannot write (POST, PUT, DELETE)
+function requireActive(req, res, next) {
+  if (!req.user) {
+    return res.status(401).json({ error: 'No autenticado' });
+  }
+  if (!req.user.is_active) {
+    return res.status(403).json({ error: 'Cuenta desactivada. No puede realizar esta acción.' });
+  }
+  next();
+}
+
 module.exports = {
   JWT_SECRET,
   generateToken,
   authenticateToken,
-  requireRole
+  requireRole,
+  requireActive
 };

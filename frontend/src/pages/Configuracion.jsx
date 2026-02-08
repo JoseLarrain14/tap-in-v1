@@ -257,7 +257,7 @@ export default function Configuracion() {
                   value={inviteForm.name}
                   onChange={(e) => setInviteForm({ ...inviteForm, name: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none"
-                  placeholder="Juan P\u00e9rez"
+                  placeholder="Juan P&#233;rez"
                 />
               </div>
               <div>
