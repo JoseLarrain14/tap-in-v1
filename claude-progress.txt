@@ -391,3 +391,48 @@
 - More payment request workflow features
 - Income/expense recording pages
 - Reporting and export features
+
+## Session 9 - 2026-02-08
+
+### Completed Features (re-verified from previous session):
+- Feature #10: User can login with valid credentials ✅ (re-verified and marked passing)
+- Feature #13: Unauthenticated user is redirected to login ✅ (re-verified and marked passing)
+- Feature #15: API endpoints reject requests without valid JWT ✅ (re-verified and marked passing)
+
+### Verification Details:
+- Feature #10: Login with valid credentials
+  - Navigate to /login, enter presidente@tapin.cl / password123
+  - Click "Ingresar", JWT token stored in localStorage (231 chars, starts with eyJhbGci...)
+  - Redirected to / (dashboard)
+  - User "María González" and role "presidente" displayed in sidebar and dashboard
+  - Verified with Playwright browser automation + screenshot
+
+- Feature #13: Unauthenticated redirect to login
+  - Cleared localStorage token
+  - / (dashboard) → redirected to /login ✅
+  - /ingresos → redirected to /login ✅
+  - /solicitudes (egresos) → redirected to /login ✅
+  - /egresos → redirected to /login ✅
+  - Login form renders correctly after each redirect
+  - Verified with Playwright browser automation + screenshot
+
+- Feature #15: API rejects requests without JWT
+  - GET /api/transactions → 401 ✅
+  - GET /api/payment-requests → 401 ✅
+  - GET /api/dashboard/summary → 401 ✅
+  - POST /api/transactions → 401 ✅
+  - Invalid token → 401 ✅
+  - Verified via both curl and browser fetch() + screenshot
+
+### Infrastructure Changes:
+- backend/src/index.js: Simplified CORS to allow all origins in dev mode
+- start-frontend.js: Added --host flag for Vite to expose to network interfaces
+
+### Current Status: ~21/265 features passing (~7.9%)
+
+### What should be worked on next:
+- Dashboard UI with real data from the API endpoints
+- Category management UI improvements
+- More payment request workflow features
+- Income/expense recording pages
+- Reporting and export features
