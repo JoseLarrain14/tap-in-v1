@@ -16,7 +16,7 @@ async function startServer() {
 
   // Middleware
   app.use(cors({
-    origin: ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173'],
+    origin: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:5176', 'http://localhost:5177', 'http://localhost:5178', 'http://localhost:5179', 'http://localhost:3000', 'http://127.0.0.1:5173'],
     credentials: true
   }));
   app.use(express.json({ limit: '10mb' }));
@@ -29,6 +29,9 @@ async function startServer() {
   app.use('/api/health', require('./routes/health'));
   app.use('/api/auth', require('./routes/auth'));
   app.use('/api/transactions', require('./routes/transactions'));
+  app.use('/api/payment-requests', require('./routes/payment-requests'));
+  app.use('/api/users', require('./routes/users'));
+  app.use('/api/categories', require('./routes/categories'));
   app.use('/api/debug/schema', require('./routes/debug-schema'));
 
   // 404 handler

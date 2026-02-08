@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { getDb } = require('../database');
-const { authenticateToken, requireRole } = require('../middleware/auth');
+const { authenticateToken, requireRole, requireActive } = require('../middleware/auth');
 
 // All routes require authentication
 router.use(authenticateToken);
@@ -147,7 +147,7 @@ router.get('/:id', (req, res) => {
 });
 
 // POST /api/payment-requests - Create payment request (delegado, presidente, secretaria can create)
-router.post('/', (req, res) => {
+router.post('/', requireActive, (req, res) => {
   const db = getDb();
   const orgId = req.user.organization_id;
   const userId = req.user.id;
@@ -195,6 +195,73 @@ router.post('/', (req, res) => {
   `).get(result.lastInsertRowid);
 
   res.status(201).json(created);
+});
+
+// PUT /api/payment-requests/:id - Edit payment request (only creator, only drafts)
+router.put('/:id', (req, res) => {
+  const db = getDb();
+  const orgId = req.user.organization_id;
+  const userId = req.user.id;
+
+  const request = db.prepare(
+    'SELECT * FROM payment_requests WHERE id = ? AND organization_id = ?'
+  ).get(req.params.id, orgId);
+
+  if (!request) {
+    return res.status(404).json({ error: 'Solicitud no encontrada' });
+  }
+
+  // Only drafts can be edited
+  if (request.status !== 'borrador') {
+    return res.status(400).json({ error: 'Solo se pueden editar borradores' });
+  }
+
+  // Only the creator can edit their own drafts
+  if (request.created_by !== userId) {
+    return res.status(403).json({ error: 'Solo el creador puede editar esta solicitud' });
+  }
+
+  const { amount, category_id, description, beneficiary } = req.body;
+
+  if (!amount || !description || !beneficiary) {
+    return res.status(400).json({ error: 'Monto, descripción y beneficiario son requeridos' });
+  }
+
+  if (typeof amount !== 'number' || amount <= 0) {
+    return res.status(400).json({ error: 'Monto debe ser un número positivo' });
+  }
+
+  // Validate category belongs to organization
+  if (category_id) {
+    const category = db.prepare(
+      'SELECT id FROM categories WHERE id = ? AND organization_id = ?'
+    ).get(category_id, orgId);
+    if (!category) {
+      return res.status(400).json({ error: 'Categoría no válida' });
+    }
+  }
+
+  db.prepare(`
+    UPDATE payment_requests
+    SET amount = ?, category_id = ?, description = ?, beneficiary = ?, updated_at = CURRENT_TIMESTAMP
+    WHERE id = ?
+  `).run(amount, category_id || null, description, beneficiary, req.params.id);
+
+  // Create event for edit
+  db.prepare(`
+    INSERT INTO payment_events (payment_request_id, previous_status, new_status, user_id, comment, ip_address, user_agent)
+    VALUES (?, 'borrador', 'borrador', ?, 'Solicitud editada', ?, ?)
+  `).run(req.params.id, userId, req.ip, req.headers['user-agent']);
+
+  const updated = db.prepare(`
+    SELECT pr.*, c.name as category_name, u.name as created_by_name
+    FROM payment_requests pr
+    LEFT JOIN categories c ON pr.category_id = c.id
+    LEFT JOIN users u ON pr.created_by = u.id
+    WHERE pr.id = ?
+  `).get(req.params.id);
+
+  res.json(updated);
 });
 
 // POST /api/payment-requests/:id/submit - Submit draft to pending

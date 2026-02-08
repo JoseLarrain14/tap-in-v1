@@ -83,3 +83,44 @@
 - Dashboard content with real data
 - Navigation and routing features
 - Payment request workflow
+
+## Session 3 - 2026-02-08
+
+### Completed Features:
+- Feature #11: Login fails with invalid credentials ✅
+- Feature #12: User can logout successfully ✅
+- Feature #14: JWT session persists across page refreshes ✅
+
+### Changes Made:
+- Fixed api.js request() to not intercept 401 on /auth/login endpoint
+  - Previously, any 401 would trigger token removal + redirect, preventing the
+    login error message from reaching the Login component
+  - Now /auth/login 401 responses pass through so "Credenciales inválidas" displays
+
+### Verification Details:
+- Feature #11: Login with wrong password shows "Credenciales inválidas" error
+  - Same error for wrong email AND wrong password (no information leakage)
+  - No JWT token stored on failed login
+  - User stays on login page
+  - Verified via Playwright browser automation
+- Feature #12: Logout works end-to-end
+  - "Cerrar sesión" button in sidebar triggers logout
+  - JWT token cleared from localStorage
+  - User redirected to /login
+  - Accessing protected routes after logout redirects to /login
+  - Verified via Playwright test script
+- Feature #14: JWT session persists across page refreshes
+  - Token persists in localStorage across F5/reload
+  - AuthContext useEffect checks token on mount, calls /auth/me to restore user
+  - User info (name, role) displays correctly after refresh
+  - No console errors, no redirect to login
+  - Even works across multiple refreshes
+  - Verified via Playwright test script
+
+### Current Status: 10/265 features passing (3.8%)
+
+### What should be worked on next:
+- Dashboard content with real data
+- Navigation and routing features
+- Payment request workflow
+- Category management
