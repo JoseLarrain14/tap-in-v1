@@ -8,6 +8,10 @@ export default function Ingresos() {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [deleting, setDeleting] = useState(false);
   const [form, setForm] = useState({
     amount: '',
     category_id: '',
@@ -16,8 +20,18 @@ export default function Ingresos() {
     payer_name: '',
     payer_rut: ''
   });
+  const [editForm, setEditForm] = useState({
+    amount: '',
+    category_id: '',
+    description: '',
+    date: '',
+    payer_name: '',
+    payer_rut: ''
+  });
   const [error, setError] = useState('');
+  const [editError, setEditError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [editSaving, setEditSaving] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -73,6 +87,60 @@ export default function Ingresos() {
     }
   }
 
+  async function handleDelete(tx) {
+    setDeleting(true);
+    try {
+      await api.delete(`/transactions/${tx.id}`);
+      setDeleteConfirm(null);
+      loadData();
+    } catch (err) {
+      console.error('Error deleting transaction:', err);
+      setDeleteConfirm(null);
+    } finally {
+      setDeleting(false);
+    }
+  }
+
+  function openEditModal(tx) {
+    setEditingTransaction(tx);
+    setEditForm({
+      amount: tx.amount.toString(),
+      category_id: tx.category_id ? tx.category_id.toString() : '',
+      description: tx.description || '',
+      date: tx.date,
+      payer_name: tx.payer_name || '',
+      payer_rut: tx.payer_rut || ''
+    });
+    setEditError('');
+    setShowEditModal(true);
+  }
+
+  async function handleEditSubmit(e) {
+    e.preventDefault();
+    setEditError('');
+    setEditSaving(true);
+
+    try {
+      const payload = {
+        amount: parseInt(editForm.amount),
+        category_id: editForm.category_id ? parseInt(editForm.category_id) : null,
+        description: editForm.description || null,
+        date: editForm.date,
+        payer_name: editForm.payer_name || null,
+        payer_rut: editForm.payer_rut || null
+      };
+
+      await api.put(`/transactions/${editingTransaction.id}`, payload);
+      setShowEditModal(false);
+      setEditingTransaction(null);
+      loadData();
+    } catch (err) {
+      setEditError(err.message || 'Error al actualizar ingreso');
+    } finally {
+      setEditSaving(false);
+    }
+  }
+
   function formatCLP(amount) {
     return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(amount);
   }
@@ -122,6 +190,7 @@ export default function Ingresos() {
                 <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Categoría</th>
                 <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Pagador</th>
                 <th className="text-right px-6 py-3 text-xs font-medium text-gray-500 uppercase">Monto</th>
+                <th className="text-center px-6 py-3 text-xs font-medium text-gray-500 uppercase">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -132,6 +201,24 @@ export default function Ingresos() {
                   <td className="px-6 py-4 text-sm text-gray-600">{tx.category_name || '-'}</td>
                   <td className="px-6 py-4 text-sm text-gray-600">{tx.payer_name || '-'}</td>
                   <td className="px-6 py-4 text-sm text-green-600 font-medium text-right">{formatCLP(tx.amount)}</td>
+                  <td className="px-6 py-4 text-center">
+                    <div className="flex items-center justify-center gap-3">
+                      <button
+                        onClick={() => openEditModal(tx)}
+                        className="text-primary-600 hover:text-primary-800 transition-colors text-sm font-medium"
+                        title="Editar ingreso"
+                      >
+                        Editar
+                      </button>
+                      <button
+                        onClick={() => setDeleteConfirm(tx)}
+                        className="text-red-500 hover:text-red-700 transition-colors text-sm font-medium"
+                        title="Eliminar ingreso"
+                      >
+                        Eliminar
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -139,7 +226,41 @@ export default function Ingresos() {
         </div>
       )}
 
-      {/* Modal */}
+      {/* Delete Confirmation Modal */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+            <div className="text-center">
+              <div className="text-4xl mb-3">⚠️</div>
+              <h2 className="text-lg font-semibold text-gray-900 mb-2">Confirmar eliminación</h2>
+              <p className="text-gray-600 text-sm mb-1">
+                ¿Estás seguro de eliminar este ingreso?
+              </p>
+              <p className="text-gray-800 font-medium text-sm mb-4">
+                {deleteConfirm.description || 'Sin descripción'} — {formatCLP(deleteConfirm.amount)}
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setDeleteConfirm(null)}
+                  disabled={deleting}
+                  className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={() => handleDelete(deleteConfirm)}
+                  disabled={deleting}
+                  className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium disabled:opacity-50"
+                >
+                  {deleting ? 'Eliminando...' : 'Eliminar'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl max-w-lg w-full p-6">
