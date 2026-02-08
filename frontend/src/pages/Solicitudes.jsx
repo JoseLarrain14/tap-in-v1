@@ -532,6 +532,15 @@ export default function Solicitudes() {
                 </p>
               </div>
             )}
+
+            {/* Show info text for non-secretaria roles on approved requests */}
+            {(user?.role === 'presidente' || user?.role === 'delegado') && selectedRequest.status === 'aprobado' && (
+              <div className="border-t border-gray-100 pt-4">
+                <p className="text-sm text-gray-500 text-center italic">
+                  Solo la Secretaria puede ejecutar solicitudes aprobadas.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       )}
