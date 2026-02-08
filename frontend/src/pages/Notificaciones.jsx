@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/AuthContext';
 import { api } from '../lib/api';
 
@@ -12,6 +13,7 @@ const TYPE_ICONS = {
 
 export default function Notificaciones() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -140,7 +142,18 @@ export default function Notificaciones() {
                     </button>
                   )}
                 </div>
-                <p className="text-xs text-gray-400 mt-1">{formatDate(n.created_at)}</p>
+                <div className="flex items-center gap-3 mt-1">
+                  <p className="text-xs text-gray-400">{formatDate(n.created_at)}</p>
+                  {n.reference_type === 'payment_request' && n.reference_id && (
+                    <button
+                      onClick={() => navigate(`/solicitudes/${n.reference_id}`)}
+                      className="text-xs text-indigo-600 hover:text-indigo-800 font-medium hover:underline transition-colors"
+                      data-testid={`notification-link-${n.id}`}
+                    >
+                      Ver solicitud →
+                    </button>
+                  )}
+                </div>
               </div>
               {!n.is_read && (
                 <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-2" data-testid={`unread-dot-${n.id}`}></div>

@@ -220,6 +220,23 @@ router.post('/', requireActive, requireRole('delegado', 'presidente'), (req, res
     VALUES (?, NULL, ?, ?, 'Solicitud creada', ?, ?)
   `).run(result.lastInsertRowid, initialStatus, userId, req.ip || null, req.headers['user-agent'] || null);
 
+  // If created directly as pendiente, notify presidentes
+  if (initialStatus === 'pendiente') {
+    const presidentes = db.prepare(
+      'SELECT id FROM users WHERE organization_id = ? AND role = ? AND is_active = 1'
+    ).all(orgId, 'presidente');
+
+    const creatorName = db.prepare('SELECT name FROM users WHERE id = ?').get(userId);
+    const creatorDisplayName = creatorName ? creatorName.name : 'Un delegado';
+
+    for (const pres of presidentes) {
+      db.prepare(`
+        INSERT INTO notifications (organization_id, user_id, type, title, message, reference_type, reference_id)
+        VALUES (?, ?, 'solicitud_creada', 'Solicitud creada', ?, 'payment_request', ?)
+      `).run(orgId, pres.id, `${creatorDisplayName} ha enviado la solicitud "${description}" para aprobación`, result.lastInsertRowid);
+    }
+  }
+
   const created = db.prepare(`
     SELECT pr.*, c.name as category_name, u.name as created_by_name
     FROM payment_requests pr
@@ -330,6 +347,21 @@ router.post('/:id/submit', (req, res) => {
     INSERT INTO payment_events (payment_request_id, previous_status, new_status, user_id, comment, ip_address, user_agent)
     VALUES (?, 'borrador', 'pendiente', ?, 'Solicitud enviada para aprobaci\u00f3n', ?, ?)
   `).run(req.params.id, userId, req.ip || null, req.headers['user-agent'] || null);
+
+  // Create notification for all presidentes in the organization
+  const presidentes = db.prepare(
+    'SELECT id FROM users WHERE organization_id = ? AND role = ? AND is_active = 1'
+  ).all(orgId, 'presidente');
+
+  const creatorName = db.prepare('SELECT name FROM users WHERE id = ?').get(userId);
+  const creatorDisplayName = creatorName ? creatorName.name : 'Un delegado';
+
+  for (const pres of presidentes) {
+    db.prepare(`
+      INSERT INTO notifications (organization_id, user_id, type, title, message, reference_type, reference_id)
+      VALUES (?, ?, 'solicitud_creada', 'Solicitud creada', ?, 'payment_request', ?)
+    `).run(orgId, pres.id, `${creatorDisplayName} ha enviado la solicitud "${request.description}" para aprobación`, req.params.id);
+  }
 
   const updated = db.prepare(`
     SELECT pr.*, c.name as category_name, u.name as created_by_name
@@ -509,6 +541,26 @@ router.post('/:id/execute', requireRole('secretaria'), upload.single('comprobant
     INSERT INTO notifications (organization_id, user_id, type, title, message, reference_type, reference_id)
     VALUES (?, ?, 'solicitud_ejecutada', 'Pago ejecutado', ?, 'payment_request', ?)
   `).run(orgId, request.created_by, `El pago de tu solicitud "${request.description}" ha sido ejecutado`, req.params.id);
+
+  // Notify the presidente who approved it (if different from creator)
+  if (request.approved_by && request.approved_by !== request.created_by) {
+    db.prepare(`
+      INSERT INTO notifications (organization_id, user_id, type, title, message, reference_type, reference_id)
+      VALUES (?, ?, 'solicitud_ejecutada', 'Pago ejecutado', ?, 'payment_request', ?)
+    `).run(orgId, request.approved_by, `La solicitud "${request.description}" que aprobaste ha sido ejecutada`, req.params.id);
+  }
+
+  // Also notify other presidentes in the organization (who haven't been notified yet)
+  const notifiedIds = [request.created_by, request.approved_by || 0, userId];
+  const otherPresidentes = db.prepare(
+    `SELECT id FROM users WHERE organization_id = ? AND role = 'presidente' AND is_active = 1 AND id NOT IN (${notifiedIds.join(',')})`
+  ).all(orgId);
+  for (const pres of otherPresidentes) {
+    db.prepare(`
+      INSERT INTO notifications (organization_id, user_id, type, title, message, reference_type, reference_id)
+      VALUES (?, ?, 'solicitud_ejecutada', 'Pago ejecutado', ?, 'payment_request', ?)
+    `).run(orgId, pres.id, `La solicitud "${request.description}" ha sido ejecutada`, req.params.id);
+  }
 
   const updated = db.prepare(`
     SELECT pr.*, c.name as category_name, u.name as created_by_name, eu.name as executed_by_name
