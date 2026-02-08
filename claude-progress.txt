@@ -1,5 +1,55 @@
 === Tap In V1 - Development Progress ===
 
+## Session 12 - 2026-02-08
+
+### Completed Features:
+- Feature #37: Post-logout redirects to login page ✅
+- Feature #38: Breadcrumb or page title updates on navigation ✅
+- Feature #39: Payment request detail page navigable from pipeline ✅
+
+### Verification Details:
+- Feature #37: Post-logout redirects to login page
+  - Logged in as presidente@tapin.cl
+  - Clicked "Cerrar sesión" button
+  - URL changed to /login ✅
+  - Login form displayed (email, password fields, Ingresar button) ✅
+  - No protected content visible (no sidebar, no dashboard) ✅
+  - Protected routes (/dashboard) redirect to /login after logout ✅
+  - Zero console errors
+
+- Feature #38: Breadcrumb/page title updates on navigation
+  - Dashboard → heading "Dashboard" ✅
+  - Ingresos → heading "Ingresos" ✅
+  - Egresos → heading "Solicitudes de Pago" ✅
+  - Notificaciones → heading "Notificaciones" ✅
+  - Configuración → heading "Configuración" ✅
+  - All verified via Playwright browser automation
+  - Zero console errors across all pages
+
+- Feature #39: Payment request detail page navigable from pipeline
+  - Created SolicitudDetail.jsx page with full detail view
+  - Added route /solicitudes/:id in App.jsx
+  - Updated Solicitudes.jsx to navigate to detail page on row/card click
+  - Detail page shows: monto, categoría, descripción, beneficiario, estado ✅
+  - Timeline of events (Historial de Eventos) section shown ✅
+  - "Volver al Pipeline" back button returns to /solicitudes ✅
+  - Action buttons available for presidente (Aprobar/Rechazar) ✅
+  - Zero console errors, no mock data
+
+### Changes Made:
+- frontend/src/pages/SolicitudDetail.jsx: New detail page with full request info, timeline, actions
+- frontend/src/App.jsx: Import SolicitudDetail, add /solicitudes/:id route
+- frontend/src/pages/Solicitudes.jsx: Import useNavigate, update openDetail to navigate to detail page
+
+### Current Status: 36/265 features passing (13.6%)
+
+### What should be worked on next:
+- More payment request workflow features
+- Dashboard with real data from API endpoints
+- Category management UI improvements
+- Income/expense recording pages
+- Reporting and export features
+
 ## Session 11 - 2026-02-08
 
 ### Completed Features:
