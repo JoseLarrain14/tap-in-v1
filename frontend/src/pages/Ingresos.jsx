@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../lib/AuthContext';
 import { api } from '../lib/api';
+import * as XLSX from 'xlsx';
 
 export default function Ingresos() {
   const { user } = useAuth();
@@ -112,6 +113,62 @@ export default function Ingresos() {
     return <span className="text-primary-600 ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>;
   }
 
+  const [exporting, setExporting] = useState(false);
+
+  async function handleExport() {
+    try {
+      setExporting(true);
+      // Fetch ALL records matching current filters (no pagination limit)
+      const params = new URLSearchParams();
+      params.set('type', 'ingreso');
+      params.set('sort_by', sortBy);
+      params.set('sort_order', sortOrder);
+      params.set('limit', '10000'); // Get all records
+      if (filterCategory) params.set('category_id', filterCategory);
+      if (filterFrom) params.set('from', filterFrom);
+      if (filterTo) params.set('to', filterTo);
+      if (filterSearch) params.set('search', filterSearch);
+
+      const res = await api.get(`/transactions?${params.toString()}`);
+      const data = res.transactions || [];
+
+      if (data.length === 0) {
+        alert('No hay datos para exportar con los filtros actuales.');
+        return;
+      }
+
+      // Build Excel data
+      const rows = data.map(tx => ({
+        'Fecha': tx.date,
+        'Descripcion': tx.description || '',
+        'Categoria': tx.category_name || 'Sin categoria',
+        'Pagador': tx.payer_name || '',
+        'RUT Pagador': tx.payer_rut || '',
+        'Monto (CLP)': tx.amount,
+        'Registrado por': tx.created_by_name || '',
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(rows);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Ingresos');
+
+      // Generate filename with filter info
+      let filename = 'ingresos';
+      if (filterFrom || filterTo) {
+        if (filterFrom) filename += `_desde_${filterFrom}`;
+        if (filterTo) filename += `_hasta_${filterTo}`;
+      }
+      filename += '.xlsx';
+
+      XLSX.writeFile(wb, filename);
+    } catch (err) {
+      console.error('Error exporting:', err);
+      alert('Error al exportar: ' + (err.message || 'Error desconocido'));
+    } finally {
+      setExporting(false);
+    }
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
@@ -219,12 +276,27 @@ export default function Ingresos() {
           <h1 className="text-2xl font-bold text-gray-900">Ingresos</h1>
           <p className="text-gray-500 mt-1">Registro de ingresos del CPP</p>
         </div>
-        <button
-          onClick={() => setShowModal(true)}
-          className="px-4 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium text-sm"
-        >
-          + Registrar Ingreso
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleExport}
+            disabled={exporting}
+            data-testid="export-excel-btn"
+            className="px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm disabled:opacity-50 flex items-center gap-2"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            {exporting ? 'Exportando...' : 'Exportar Excel'}
+          </button>
+          <button
+            onClick={() => setShowModal(true)}
+            className="px-4 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium text-sm"
+          >
+            + Registrar Ingreso
+          </button>
+        </div>
       </div>
 
       {/* Filter Bar */}

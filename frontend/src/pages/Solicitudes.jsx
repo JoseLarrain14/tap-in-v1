@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/AuthContext';
 import { api } from '../lib/api';
+import * as XLSX from 'xlsx';
 
 const STATUS_LABELS = {
   borrador: 'Borrador',
@@ -157,6 +158,57 @@ export default function Solicitudes() {
     setCreatorFilter('');
     setSearchFilter('');
     loadRequests({ category: '', creator: '', search: '' });
+  }
+
+  const [exporting, setExporting] = useState(false);
+
+  async function handleExport() {
+    try {
+      setExporting(true);
+      // Fetch all records matching current filters
+      const params = new URLSearchParams();
+      if (statusFilter) params.set('status', statusFilter);
+      if (categoryFilter) params.set('category_id', categoryFilter);
+      if (creatorFilter) params.set('created_by', creatorFilter);
+      if (searchFilter) params.set('search', searchFilter);
+      params.set('sort_by', 'created_at');
+      params.set('sort_order', 'desc');
+      params.set('limit', '10000');
+
+      const data = await api.get(`/payment-requests?${params.toString()}`);
+      const reqs = data.payment_requests || [];
+
+      if (reqs.length === 0) {
+        alert('No hay datos para exportar con los filtros actuales.');
+        return;
+      }
+
+      const rows = reqs.map(req => ({
+        'ID': req.id,
+        'Descripcion': req.description || '',
+        'Beneficiario': req.beneficiary || '',
+        'Categoria': req.category_name || 'Sin categoria',
+        'Monto (CLP)': req.amount,
+        'Estado': STATUS_LABELS[req.status] || req.status,
+        'Creado por': req.created_by_name || '',
+        'Fecha creacion': req.created_at || '',
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(rows);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Solicitudes');
+
+      let filename = 'solicitudes';
+      if (statusFilter) filename += `_${statusFilter}`;
+      filename += '.xlsx';
+
+      XLSX.writeFile(wb, filename);
+    } catch (err) {
+      console.error('Error exporting:', err);
+      alert('Error al exportar: ' + (err.message || 'Error desconocido'));
+    } finally {
+      setExporting(false);
+    }
   }
 
   useEffect(() => {
@@ -345,6 +397,19 @@ export default function Solicitudes() {
             </button>
           </div>
 
+          <button
+            onClick={handleExport}
+            disabled={exporting}
+            data-testid="export-solicitudes-btn"
+            className="px-3 py-1.5 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 flex items-center gap-1.5"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            {exporting ? 'Exportando...' : 'Excel'}
+          </button>
           {canCreate && (
             <button
               onClick={() => setShowCreateModal(true)}
