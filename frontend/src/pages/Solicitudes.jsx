@@ -5,6 +5,7 @@ import { api } from '../lib/api';
 import * as XLSX from 'xlsx';
 import { SkeletonTable, SkeletonKanban, SkeletonLine } from '../components/Skeleton';
 import Spinner from '../components/Spinner';
+import NetworkError from '../components/NetworkError';
 
 const STATUS_LABELS = {
   borrador: 'Borrador',
@@ -64,6 +65,7 @@ export default function Solicitudes() {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isNetworkError, setIsNetworkError] = useState(false);
   const [statusFilter, setStatusFilter] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -123,6 +125,7 @@ export default function Solicitudes() {
       setRequests(data.payment_requests || []);
     } catch (err) {
       setError(err.message);
+      setIsNetworkError(!!err.isNetworkError);
     } finally {
       setLoading(false);
     }
@@ -223,6 +226,11 @@ export default function Solicitudes() {
   function handleViewChange(mode) {
     setViewMode(mode);
     localStorage.setItem(VIEW_KEY, mode);
+    // When switching to kanban, clear status filter to show all columns
+    if (mode === 'kanban' && statusFilter) {
+      setStatusFilter('');
+      loadRequests({ status: '' });
+    }
   }
 
   function validatePaymentForm(f) {
@@ -573,8 +581,24 @@ export default function Solicitudes() {
       )}
 
       {/* Error */}
-      {error && (
-        <div className="text-center py-12 text-red-500">{error}</div>
+      {error && isNetworkError && (
+        <NetworkError
+          message={error}
+          onRetry={async () => { setError(null); setIsNetworkError(false); await loadRequests(); }}
+        />
+      )}
+      {error && !isNetworkError && (
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6 text-center">
+          <div className="text-3xl mb-2">⚠️</div>
+          <h3 className="text-lg font-semibold text-red-800 dark:text-red-300 mb-1">Error al cargar datos</h3>
+          <p className="text-red-600 dark:text-red-400 text-sm mb-3">{error}</p>
+          <button
+            onClick={() => { setError(null); loadRequests(); }}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
+          >
+            Reintentar
+          </button>
+        </div>
       )}
 
       {/* Empty State */}
