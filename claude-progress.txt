@@ -1,5 +1,50 @@
 === Tap In V1 - Development Progress ===
 
+## Session 28 - 2026-02-09
+
+### Completed Features:
+- Feature #86: Export income to Excel produces valid file ✅
+- Feature #87: Export expenses to Excel produces valid file ✅
+- Feature #94: Payment request immutable after submission ✅
+
+### Verification Details:
+- Feature #86: Export income to Excel
+  - Navigated to Ingresos page, verified "Exportar Excel" button visible
+  - Clicked export → downloaded ingresos.xlsx (36 rows)
+  - Verified columns: Fecha, Descripcion, Categoria, Pagador, RUT Pagador, Monto (CLP), Registrado por
+  - All amounts are numeric, data matches displayed records
+  - Zero console errors
+  - Verified with Playwright browser automation + xlsx file validation script
+
+- Feature #87: Export expenses to Excel
+  - Navigated to Solicitudes page, verified "Excel" export button visible
+  - Clicked export → downloaded solicitudes.xlsx (39 rows)
+  - Verified columns: ID, Descripcion, Beneficiario, Categoria, Monto (CLP), Estado, Creado por, Fecha creacion
+  - States distribution: Ejecutado: 7, Aprobado: 6, Rechazado: 6, Pendiente: 12, Borrador: 8
+  - All amounts are numeric, data matches displayed records
+  - Zero console errors
+
+- Feature #94: Payment request immutable after submission
+  - Created draft #40 "F94_IMMUTABLE_TEST" for $12,345
+  - Verified "Editar" button visible on draft detail page
+  - Submitted to pendiente via "Enviar para Aprobación"
+  - Verified "Editar" button DISAPPEARED after submission
+  - PUT /api/payment-requests/40 with new amount → 400 "Solo se pueden editar borradores"
+  - PUT /api/payment-requests/40 with new description → 400 "Solo se pueden editar borradores"
+  - Verified original values unchanged: amount=12345, description=F94_IMMUTABLE_TEST, beneficiary=Test Vendor F94
+  - Zero console errors
+
+### Changes Made:
+- backend/src/routes/transactions.js: Increased pagination limit from 200 to 10000 for exports
+- backend/src/routes/payment-requests.js: Increased pagination limit from 200 to 10000 for exports
+
+### Current Status: 88/265 features passing (~33.2%)
+
+### What should be worked on next:
+- More workflow completeness features
+- Reporting features
+- Additional security/access control features
+
 ## Session 25 - 2026-02-08
 
 ### Completed Features:
