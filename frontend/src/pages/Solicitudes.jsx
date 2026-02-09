@@ -4,6 +4,7 @@ import { useAuth } from '../lib/AuthContext';
 import { api } from '../lib/api';
 import * as XLSX from 'xlsx';
 import { SkeletonTable, SkeletonKanban, SkeletonLine } from '../components/Skeleton';
+import Spinner from '../components/Spinner';
 
 const STATUS_LABELS = {
   borrador: 'Borrador',
@@ -847,14 +848,14 @@ export default function Solicitudes() {
                   onClick={(e) => handleCreate(e, true)}
                   className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
                 >
-                  {actionLoading ? 'Guardando...' : 'Guardar Borrador'}
+                  {actionLoading ? <><Spinner size={14} className="inline mr-1" />Guardando...</> : 'Guardar Borrador'}
                 </button>
                 <button
                   type="submit"
                   disabled={actionLoading}
                   className="flex-1 px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors disabled:opacity-50"
                 >
-                  {actionLoading ? 'Creando...' : 'Enviar'}
+                  {actionLoading ? <><Spinner size={14} className="inline mr-1" />Enviando...</> : 'Enviar'}
                 </button>
               </div>
             </form>
@@ -917,7 +918,7 @@ export default function Solicitudes() {
                   disabled={actionLoading}
                   className="w-full px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors disabled:opacity-50"
                 >
-                  {actionLoading ? 'Procesando...' : 'Aprobar Solicitud'}
+                  {actionLoading ? <><Spinner size={14} className="inline mr-1" />Procesando...</> : 'Aprobar Solicitud'}
                 </button>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -935,7 +936,7 @@ export default function Solicitudes() {
                     disabled={actionLoading}
                     className="mt-2 w-full px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-50"
                   >
-                    {actionLoading ? 'Procesando...' : 'Rechazar Solicitud'}
+                    {actionLoading ? <><Spinner size={14} className="inline mr-1" />Procesando...</> : 'Rechazar Solicitud'}
                   </button>
                 </div>
               </div>
@@ -1037,7 +1038,7 @@ export default function Solicitudes() {
                   disabled={actionLoading}
                   className="flex-1 px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors disabled:opacity-50"
                 >
-                  {actionLoading ? 'Guardando...' : 'Guardar Cambios'}
+                  {actionLoading ? <><Spinner size={14} className="inline mr-1" />Guardando...</> : 'Guardar Cambios'}
                 </button>
               </div>
             </form>

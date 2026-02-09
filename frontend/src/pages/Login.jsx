@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/AuthContext';
+import Spinner from '../components/Spinner';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -102,7 +103,7 @@ export default function Login() {
               disabled={loading}
               className="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Ingresando...' : 'Ingresar'}
+              {loading ? <><Spinner size={16} className="inline mr-1.5" />Ingresando...</> : 'Ingresar'}
             </button>
           </form>
         </div>

@@ -3,6 +3,7 @@ import { useAuth } from '../lib/AuthContext';
 import { api } from '../lib/api';
 import * as XLSX from 'xlsx';
 import { SkeletonTable, SkeletonLine } from '../components/Skeleton';
+import Spinner from '../components/Spinner';
 
 export default function Ingresos() {
   const { user } = useAuth();
@@ -82,6 +83,7 @@ export default function Ingresos() {
       setCategories((catRes.categories || catRes || []).filter(c => c.type === 'ingreso'));
     } catch (err) {
       console.error('Error loading data:', err);
+      setError(err.message || 'Error al cargar datos');
     } finally {
       setLoading(false);
     }
@@ -548,7 +550,7 @@ export default function Ingresos() {
                   disabled={deleting}
                   className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium disabled:opacity-50"
                 >
-                  {deleting ? 'Eliminando...' : 'Eliminar'}
+                  {deleting ? <><Spinner size={16} className="inline mr-1.5" />Eliminando...</> : 'Eliminar'}
                 </button>
               </div>
             </div>
@@ -654,7 +656,7 @@ export default function Ingresos() {
                   disabled={editSaving}
                   className="flex-1 px-4 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium disabled:opacity-50"
                 >
-                  {editSaving ? 'Guardando...' : 'Guardar Cambios'}
+                  {editSaving ? <><Spinner size={16} className="inline mr-1.5" />Guardando...</> : 'Guardar Cambios'}
                 </button>
               </div>
             </form>
@@ -770,7 +772,7 @@ export default function Ingresos() {
                   disabled={saving}
                   className="flex-1 px-4 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium disabled:opacity-50"
                 >
-                  {saving ? 'Guardando...' : 'Registrar'}
+                  {saving ? <><Spinner size={16} className="inline mr-1.5" />Guardando...</> : 'Registrar'}
                 </button>
               </div>
             </form>

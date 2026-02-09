@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../lib/AuthContext';
 import { api } from '../lib/api';
 import { SkeletonTable } from '../components/Skeleton';
+import Spinner from '../components/Spinner';
 
 const ROLE_LABELS = {
   delegado: 'Delegado',
@@ -473,7 +474,7 @@ export default function Configuracion() {
                   disabled={categorySaving}
                   className="flex-1 px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors disabled:opacity-50"
                 >
-                  {categorySaving ? 'Guardando...' : (editingCategory ? 'Actualizar' : 'Crear')}
+                  {categorySaving ? <><Spinner size={14} className="inline mr-1" />Guardando...</> : (editingCategory ? 'Actualizar' : 'Crear')}
                 </button>
               </div>
             </form>
@@ -534,7 +535,7 @@ export default function Configuracion() {
                   disabled={actionLoading}
                   className="flex-1 px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors disabled:opacity-50"
                 >
-                  {actionLoading ? 'Invitando...' : 'Invitar'}
+                  {actionLoading ? <><Spinner size={14} className="inline mr-1" />Invitando...</> : 'Invitar'}
                 </button>
               </div>
             </form>
