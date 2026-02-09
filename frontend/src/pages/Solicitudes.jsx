@@ -66,6 +66,8 @@ export default function Solicitudes() {
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [rejectComment, setRejectComment] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
+  const actionRef = useRef(false);
+  const isMountedRef = useRef(true);
   const [feedback, setFeedback] = useState(null);
   const [viewMode, setViewMode] = useState(() => {
     return localStorage.getItem(VIEW_KEY) || 'kanban';
@@ -88,6 +90,10 @@ export default function Solicitudes() {
   });
   const [categories, setCategories] = useState([]);
   const [createFormErrors, setCreateFormErrors] = useState({});
+  const [createSubmitted, setCreateSubmitted] = useState(false);
+  const [editSubmitted, setEditSubmitted] = useState(false);
+  const createSubmittingRef = useRef(false);
+  const editSubmittingRef = useRef(false);
   const [categoryFilter, setCategoryFilter] = useState('');
   const [creatorFilter, setCreatorFilter] = useState('');
   const [searchFilter, setSearchFilter] = useState('');
@@ -117,6 +123,7 @@ export default function Solicitudes() {
       if (!silent) setLoading(true);
       const qs = buildFilterQuery(filterOverrides);
       const data = await api.get(`/payment-requests?${qs}`);
+      if (!isMountedRef.current) return;
       setRequests(data.payment_requests || []);
     } catch (err) {
       setError(err.message);
@@ -130,6 +137,7 @@ export default function Solicitudes() {
     try {
       const data = await api.get('/categories');
       const cats = (data.categories || data || []).filter(c => c.type === 'egreso');
+      if (!isMountedRef.current) return;
       setCategories(cats);
     } catch (err) {
       // Categories are optional
@@ -139,6 +147,7 @@ export default function Solicitudes() {
   async function loadUsers() {
     try {
       const data = await api.get('/users');
+      if (!isMountedRef.current) return;
       setUsers(data.users || data || []);
     } catch (err) {
       // Users are optional for filter
@@ -213,9 +222,11 @@ export default function Solicitudes() {
   }
 
   useEffect(() => {
+    isMountedRef.current = true;
     loadRequests();
     loadCategories();
     loadUsers();
+    return function() { isMountedRef.current = false; };
   }, []);
 
   function handleViewChange(mode) {
@@ -251,6 +262,9 @@ export default function Solicitudes() {
     const errors = validatePaymentForm(newRequest);
     setCreateFormErrors(errors);
     if (Object.keys(errors).length > 0) return;
+    // Prevent double-click and back-resubmit: ref guard + submitted flag
+    if (createSubmittingRef.current || createSubmitted) return;
+    createSubmittingRef.current = true;
     try {
       setActionLoading(true);
       await api.post('/payment-requests', {
@@ -260,6 +274,7 @@ export default function Solicitudes() {
         category_id: newRequest.category_id ? parseInt(newRequest.category_id) : undefined,
         status: asDraft ? 'borrador' : 'pendiente',
       });
+      setCreateSubmitted(true);
       setShowCreateModal(false);
       setNewRequest({ amount: '', description: '', beneficiary: '', category_id: '' });
       setFeedback({ type: 'success', message: asDraft ? 'Borrador guardado exitosamente' : 'Solicitud enviada exitosamente' });
@@ -267,11 +282,15 @@ export default function Solicitudes() {
     } catch (err) {
       setFeedback({ type: 'error', message: err.message });
     } finally {
+      createSubmittingRef.current = false;
       setActionLoading(false);
     }
   }
 
   async function handleApprove(id) {
+    // Prevent double-click: ref guard blocks re-entry before React re-renders
+    if (actionRef.current) return;
+    actionRef.current = true;
     try {
       setActionLoading(true);
       await api.post(`/payment-requests/${id}/approve`, {});
@@ -293,6 +312,7 @@ export default function Solicitudes() {
     } catch (err) {
       setFeedback({ type: 'error', message: err.message });
     } finally {
+      actionRef.current = false;
       setActionLoading(false);
     }
   }
@@ -302,6 +322,9 @@ export default function Solicitudes() {
       setFeedback({ type: 'error', message: 'El comentario es obligatorio al rechazar' });
       return;
     }
+    // Prevent double-click: ref guard blocks re-entry before React re-renders
+    if (actionRef.current) return;
+    actionRef.current = true;
     try {
       setActionLoading(true);
       await api.post(`/payment-requests/${id}/reject`, { comment: rejectComment });
@@ -324,11 +347,15 @@ export default function Solicitudes() {
     } catch (err) {
       setFeedback({ type: 'error', message: err.message });
     } finally {
+      actionRef.current = false;
       setActionLoading(false);
     }
   }
 
   async function handleExecute(id) {
+    // Prevent double-click: ref guard blocks re-entry before React re-renders
+    if (actionRef.current) return;
+    actionRef.current = true;
     try {
       setActionLoading(true);
       await api.post(`/payment-requests/${id}/execute`, {});
@@ -350,6 +377,7 @@ export default function Solicitudes() {
     } catch (err) {
       setFeedback({ type: 'error', message: err.message });
     } finally {
+      actionRef.current = false;
       setActionLoading(false);
     }
   }
@@ -357,6 +385,9 @@ export default function Solicitudes() {
   async function handleEdit(e) {
     e.preventDefault();
     if (!selectedRequest) return;
+    // Prevent double-click and back-resubmit
+    if (editSubmittingRef.current || editSubmitted) return;
+    editSubmittingRef.current = true;
     try {
       setActionLoading(true);
       await api.put(`/payment-requests/${selectedRequest.id}`, {
@@ -365,12 +396,14 @@ export default function Solicitudes() {
         beneficiary: editRequest.beneficiary,
         category_id: editRequest.category_id ? parseInt(editRequest.category_id) : undefined,
       });
+      setEditSubmitted(true);
       setShowEditModal(false);
       setFeedback({ type: 'success', message: 'Solicitud editada exitosamente' });
       loadRequests({}, { silent: true });
     } catch (err) {
       setFeedback({ type: 'error', message: err.message });
     } finally {
+      editSubmittingRef.current = false;
       setActionLoading(false);
     }
   }
@@ -383,6 +416,7 @@ export default function Solicitudes() {
       beneficiary: request.beneficiary,
       category_id: request.category_id ? request.category_id.toString() : '',
     });
+    setEditSubmitted(false);
     setShowEditModal(true);
   }
 
@@ -470,7 +504,7 @@ export default function Solicitudes() {
           </button>
           {canCreate && (
             <button
-              onClick={() => { setShowCreateModal(true); setCreateFormErrors({}); }}
+              onClick={() => { setShowCreateModal(true); setCreateFormErrors({}); setCreateSubmitted(false); }}
               className="px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
             >
               + Nueva Solicitud
@@ -652,7 +686,7 @@ export default function Solicitudes() {
           )}
           {canCreate && !statusFilter && !hasAdvancedFilters && (
             <button
-              onClick={() => { setShowCreateModal(true); setCreateFormErrors({}); }}
+              onClick={() => { setShowCreateModal(true); setCreateFormErrors({}); setCreateSubmitted(false); }}
               className="mt-4 px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
             >
               + Nueva Solicitud
