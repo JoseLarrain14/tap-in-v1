@@ -270,34 +270,34 @@ export default function Dashboard() {
         {categoryLoading ? (
           <div className="animate-pulse bg-gray-100 dark:bg-gray-700 rounded-lg h-64" />
         ) : categoryData.length > 0 ? (
-          <div className="flex flex-col md:flex-row items-center gap-6">
-            <ResponsiveContainer width="100%" height={280}>
-              <PieChart>
-                <Pie
-                  data={categoryData}
-                  dataKey="total"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={100}
-                  paddingAngle={2}
-                  label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
-                >
-                  {categoryData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={CATEGORY_COLORS[index % CATEGORY_COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  formatter={(value) => formatCLP(value)}
-                  contentStyle={{ borderRadius: '8px', border: `1px solid ${tooltipBorder}`, backgroundColor: tooltipBg, color: tooltipLabelColor }}
-                />
-                <Legend
-                  wrapperStyle={{ fontSize: '13px', color: chartTickColor }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
+          <ResponsiveContainer width="100%" height={320}>
+            <PieChart>
+              <Pie
+                data={categoryData}
+                dataKey="total"
+                nameKey="name"
+                cx="50%"
+                cy="45%"
+                innerRadius={60}
+                outerRadius={110}
+                paddingAngle={2}
+                isAnimationActive={false}
+                label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                labelLine={true}
+              >
+                {categoryData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={CATEGORY_COLORS[index % CATEGORY_COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip
+                formatter={(value) => formatCLP(value)}
+                contentStyle={{ borderRadius: '8px', border: `1px solid ${tooltipBorder}`, backgroundColor: tooltipBg, color: tooltipLabelColor }}
+              />
+              <Legend
+                wrapperStyle={{ fontSize: '13px', color: chartTickColor }}
+              />
+            </PieChart>
+          </ResponsiveContainer>
         ) : (
           <div className="text-center py-12 text-gray-400 dark:text-gray-500">No hay egresos categorizados para mostrar</div>
         )}
