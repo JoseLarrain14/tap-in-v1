@@ -25,6 +25,11 @@ export default function Ingresos() {
   // Sort state
   const [sortBy, setSortBy] = useState('date');
   const [sortOrder, setSortOrder] = useState('desc');
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const pageSize = 15;
 
   const [form, setForm] = useState({
     amount: '',
@@ -60,10 +65,13 @@ export default function Ingresos() {
     const search = overrides.search !== undefined ? overrides.search : filterSearch;
     const sb = overrides.sort_by !== undefined ? overrides.sort_by : sortBy;
     const so = overrides.sort_order !== undefined ? overrides.sort_order : sortOrder;
+    const pg = overrides.page !== undefined ? overrides.page : currentPage;
     const params = new URLSearchParams();
     params.set('type', 'ingreso');
     params.set('sort_by', sb);
     params.set('sort_order', so);
+    params.set('page', pg.toString());
+    params.set('limit', pageSize.toString());
     if (cat) params.set('category_id', cat);
     if (from) params.set('from', from);
     if (to) params.set('to', to);
@@ -83,6 +91,13 @@ export default function Ingresos() {
         api.get('/categories')
       ]);
       setTransactions(txRes.transactions || []);
+      if (txRes.pagination) {
+        setTotalPages(txRes.pagination.pages || 1);
+        setTotalRecords(txRes.pagination.total || 0);
+        if (filterOverrides.page !== undefined) {
+          setCurrentPage(txRes.pagination.page || 1);
+        }
+      }
       setCategories((catRes.categories || catRes || []).filter(c => c.type === 'ingreso'));
     } catch (err) {
       console.error('Error loading data:', err);
@@ -93,9 +108,10 @@ export default function Ingresos() {
     }
   }
 
-  // Apply filters (reload data with current filter state)
+  // Apply filters (reload data with current filter state, reset to page 1)
   function applyFilters() {
-    loadData();
+    setCurrentPage(1);
+    loadData({ page: 1 });
   }
 
   function clearFilters() {
@@ -103,7 +119,8 @@ export default function Ingresos() {
     setFilterFrom('');
     setFilterTo('');
     setFilterSearch('');
-    loadData({ category: '', from: '', to: '', search: '' });
+    setCurrentPage(1);
+    loadData({ category: '', from: '', to: '', search: '', page: 1 });
   }
 
   function handleSort(column) {
@@ -113,7 +130,14 @@ export default function Ingresos() {
     }
     setSortBy(column);
     setSortOrder(newOrder);
-    loadData({ sort_by: column, sort_order: newOrder });
+    setCurrentPage(1);
+    loadData({ sort_by: column, sort_order: newOrder, page: 1 });
+  }
+
+  function goToPage(page) {
+    if (page < 1 || page > totalPages) return;
+    setCurrentPage(page);
+    loadData({ page });
   }
 
   function SortArrow({ column }) {
@@ -548,6 +572,47 @@ export default function Ingresos() {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Pagination Controls */}
+      {!loading && !pageError && totalPages > 1 && (
+        <div className="flex items-center justify-between px-2" data-testid="pagination">
+          <p className="text-sm text-gray-500">
+            Mostrando {((currentPage - 1) * pageSize) + 1}–{Math.min(currentPage * pageSize, totalRecords)} de {totalRecords} registros
+          </p>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => goToPage(currentPage - 1)}
+              disabled={currentPage <= 1}
+              data-testid="pagination-prev"
+              className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              ← Anterior
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+              <button
+                key={page}
+                onClick={() => goToPage(page)}
+                data-testid={`pagination-page-${page}`}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                  page === currentPage
+                    ? 'bg-primary-600 text-white'
+                    : 'border border-gray-300 text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                {page}
+              </button>
+            ))}
+            <button
+              onClick={() => goToPage(currentPage + 1)}
+              disabled={currentPage >= totalPages}
+              data-testid="pagination-next"
+              className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Siguiente →
+            </button>
+          </div>
         </div>
       )}
 

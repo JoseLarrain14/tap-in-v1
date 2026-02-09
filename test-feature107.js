@@ -23,13 +23,26 @@ const { chromium } = require('playwright');
     // ========== PHASE 1: Login and navigate to Configuracion ==========
     console.log('\n===== PHASE 1: Login and go to Configuracion =====\n');
 
-    // Step 1: Navigate to login
-    await page.goto('http://localhost:5174/login', { waitUntil: 'networkidle', timeout: 15000 });
+    // Step 1: Navigate to login - try port 5173 first, fallback to 5174
+    let baseUrl = 'http://localhost:5173';
+    try {
+      await page.goto(baseUrl + '/login', { waitUntil: 'domcontentloaded', timeout: 8000 });
+    } catch {
+      baseUrl = 'http://localhost:5174';
+      await page.goto(baseUrl + '/login', { waitUntil: 'domcontentloaded', timeout: 8000 });
+    }
+    console.log('Using base URL:', baseUrl);
     log('phase1', 'Navigate to /login', 'PASS');
 
+    // Wait for React to hydrate - look for the login form
+    await page.waitForSelector('#email', { state: 'visible', timeout: 15000 });
+
+    // Debug screenshot
+    await page.screenshot({ path: 'C:/Users/josel/CPP/feat107-debug-login.png', fullPage: true });
+
     // Step 2: Fill email and password
-    await page.fill('input[type="email"]', 'presidente@tapin.cl');
-    await page.fill('input[type="password"]', 'password123');
+    await page.fill('#email', 'presidente@tapin.cl');
+    await page.fill('#password', 'password123');
     log('phase1', 'Fill email and password', 'PASS');
 
     // Step 3: Click Ingresar
@@ -43,7 +56,7 @@ const { chromium } = require('playwright');
     log('phase1', 'Wait for navigation', currentUrl.includes('dashboard') ? 'PASS' : 'WARN', `Current URL: ${currentUrl}`);
 
     // Step 5: Navigate to Configuracion
-    await page.goto('http://localhost:5174/configuracion', { waitUntil: 'networkidle', timeout: 15000 });
+    await page.goto(baseUrl + '/configuracion', { waitUntil: 'domcontentloaded', timeout: 15000 });
     log('phase1', 'Navigate to /configuracion', 'PASS');
 
     // Step 6: Wait for page to load
