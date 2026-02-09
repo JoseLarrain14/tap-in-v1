@@ -1,5 +1,47 @@
 === Tap In V1 - Development Progress ===
 
+## Session 44 - 2026-02-09
+
+### Completed Features:
+- Feature #144: Direct access to payment request by ID (/egresos/:id) ✅
+- Feature #145: Invalid payment request ID shows 404 ✅
+- Feature #146: Direct access to /configuracion by non-Presidente denied ✅
+
+### Verification Details:
+- Feature #144: Navigate to /egresos/50 → loads Solicitud #50 with all fields
+  - Monto ($50.000), Descripcion (F125_EXECUTE_TEST), Beneficiario (Test Vendor F125)
+  - Categoria (Cuota Mensual), Estado (Ejecutado), Fecha de Creacion
+  - Timeline: 4 events (Borrador → Pendiente → Aprobado → Ejecutado) with user names
+  - Attachments section shows comprobante_test.pdf
+  - "Volver al Pipeline" back navigation works
+  - Zero console errors
+
+- Feature #145: Navigate to /egresos/999999 → shows error page
+  - Warning icon + "Error" heading + "Solicitud de pago no encontrada"
+  - No app crash, page renders within Layout
+  - Navigation still works (sidebar, back to pipeline)
+  - Zero console errors
+
+- Feature #146: Role-based access control for /configuracion
+  - Delegado (Carlos Lopez) → /configuracion → redirected to / (Dashboard)
+  - Secretaria (Ana Martinez) → /configuracion → redirected to / (Dashboard)
+  - Presidente (Maria Gonzalez) → /configuracion → stays at /configuracion (full settings page)
+  - Configuracion not shown in sidebar for non-Presidente roles
+  - Zero console errors
+
+### Changes Made:
+- No code changes needed - all features were already working correctly
+- Existing route /egresos/:id → SolicitudDetail component handles everything
+- RoleRoute component in App.jsx correctly restricts /configuracion to presidente only
+- Backend returns 404 for non-existent payment requests, frontend displays error gracefully
+
+### Current Status: ~141/265 features passing (~53.2%)
+
+### What should be worked on next:
+- More URL & Direct Access features
+- Additional role-based access control tests
+- Data persistence and CRUD features
+
 ## Session 43 - 2026-02-09
 
 ### Completed Features:
