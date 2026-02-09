@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-primary-50: #f5f3ff;
   --color-primary-100: #ede9fe;
@@ -37,4 +39,9 @@ body {
 
 #root {
   min-height: 100vh;
+}
+
+/* Dark mode transition */
+html {
+  transition: background-color 0.2s ease, color 0.2s ease;
 }

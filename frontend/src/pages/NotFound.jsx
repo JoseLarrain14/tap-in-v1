@@ -5,13 +5,13 @@ export default function NotFound() {
     <div className="min-h-[60vh] flex items-center justify-center">
       <div className="text-center max-w-md mx-auto px-6">
         <div className="mb-6">
-          <span className="text-8xl font-bold text-primary-600">404</span>
+          <span className="text-8xl font-bold text-primary-600 dark:text-primary-400">404</span>
         </div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-3">
-          Página no encontrada
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">
+          P&aacute;gina no encontrada
         </h1>
-        <p className="text-gray-500 mb-8">
-          La página que buscas no existe o ha sido movida. Verifica la URL e intenta de nuevo.
+        <p className="text-gray-500 dark:text-gray-400 mb-8">
+          La p&aacute;gina que buscas no existe o ha sido movida. Verifica la URL e intenta de nuevo.
         </p>
         <Link
           to="/"

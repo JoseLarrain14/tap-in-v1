@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../lib/AuthContext';
 import { api } from '../lib/api';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { useTheme } from '../lib/ThemeContext';
 
 function formatCLP(amount) {
   return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(amount || 0);
@@ -27,6 +28,7 @@ function formatChartCLP(value) {
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const { isDark } = useTheme();
   const [summary, setSummary] = useState(null);
   const [chartData, setChartData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -72,40 +74,48 @@ export default function Dashboard() {
   const incomeDelta = getDeltaText(monthIncome, prevMonthIncome);
   const expenseDelta = getDeltaText(monthExpense, prevMonthExpense);
 
+  // Chart colors for dark mode
+  const chartGridColor = isDark ? '#374151' : '#f0f0f0';
+  const chartAxisColor = isDark ? '#4b5563' : '#e5e7eb';
+  const chartTickColor = isDark ? '#9ca3af' : '#6b7280';
+  const tooltipBg = isDark ? '#1f2937' : '#ffffff';
+  const tooltipBorder = isDark ? '#374151' : '#e5e7eb';
+  const tooltipLabelColor = isDark ? '#f9fafb' : '#111827';
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-500 mt-1">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Dashboard</h1>
+        <p className="text-gray-500 dark:text-gray-400 mt-1">
           Bienvenido, {user?.name}
         </p>
       </div>
 
       {/* Financial Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <p className="text-sm text-gray-500">Saldo Actual</p>
-          <p className={`text-2xl font-bold mt-1 ${balance >= 0 ? 'text-gray-900' : 'text-red-600'}`}>
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+          <p className="text-sm text-gray-500 dark:text-gray-400">Saldo Actual</p>
+          <p className={`text-2xl font-bold mt-1 ${balance >= 0 ? 'text-gray-900 dark:text-gray-100' : 'text-red-600 dark:text-red-400'}`}>
             {loading ? '...' : formatCLP(balance)}
           </p>
           {!loading && summary && (
-            <p className="text-xs text-gray-400 mt-1">
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
               Ingresos: {formatCLP(summary.income_total)} &minus; Egresos: {formatCLP(summary.expense_total)}
             </p>
           )}
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <p className="text-sm text-gray-500">Ingresos del Mes</p>
-          <p className="text-2xl font-bold text-green-600 mt-1">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+          <p className="text-sm text-gray-500 dark:text-gray-400">Ingresos del Mes</p>
+          <p className="text-2xl font-bold text-green-600 dark:text-green-400 mt-1">
             {loading ? '...' : formatCLP(monthIncome)}
           </p>
           {!loading && (
             <p className={`text-xs mt-1 ${incomeDelta.color}`}>{incomeDelta.text}</p>
           )}
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <p className="text-sm text-gray-500">Egresos del Mes</p>
-          <p className="text-2xl font-bold text-red-600 mt-1">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+          <p className="text-sm text-gray-500 dark:text-gray-400">Egresos del Mes</p>
+          <p className="text-2xl font-bold text-red-600 dark:text-red-400 mt-1">
             {loading ? '...' : formatCLP(monthExpense)}
           </p>
           {!loading && (
@@ -116,67 +126,67 @@ export default function Dashboard() {
 
       {/* Pending Counters */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl border border-gray-200 p-6" data-testid="pending-approval-card">
-          <p className="text-sm text-gray-500">Pendientes de Aprobaci&oacute;n</p>
-          <p className="text-2xl font-bold text-yellow-600 mt-1" data-testid="pending-approval-count">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6" data-testid="pending-approval-card">
+          <p className="text-sm text-gray-500 dark:text-gray-400">Pendientes de Aprobaci&oacute;n</p>
+          <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400 mt-1" data-testid="pending-approval-count">
             {loading ? '...' : pendingApproval}
           </p>
           {!loading && (
-            <p className="text-xs text-gray-400 mt-1">Solicitudes esperando aprobaci&oacute;n</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Solicitudes esperando aprobaci&oacute;n</p>
           )}
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-6" data-testid="pending-execution-card">
-          <p className="text-sm text-gray-500">Pendientes de Ejecuci&oacute;n</p>
-          <p className="text-2xl font-bold text-blue-600 mt-1" data-testid="pending-execution-count">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6" data-testid="pending-execution-card">
+          <p className="text-sm text-gray-500 dark:text-gray-400">Pendientes de Ejecuci&oacute;n</p>
+          <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1" data-testid="pending-execution-count">
             {loading ? '...' : pendingExecution}
           </p>
           {!loading && (
-            <p className="text-xs text-gray-400 mt-1">Aprobadas, esperando ejecuci&oacute;n</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Aprobadas, esperando ejecuci&oacute;n</p>
           )}
         </div>
       </div>
 
       {/* 6-Month Bar Chart */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6" data-testid="monthly-chart">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Flujo Mensual (6 meses)</h2>
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6" data-testid="monthly-chart">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Flujo Mensual (6 meses)</h2>
         {chartLoading ? (
-          <div className="text-center py-12 text-gray-400">Cargando gr&aacute;fico...</div>
+          <div className="text-center py-12 text-gray-400 dark:text-gray-500">Cargando gr&aacute;fico...</div>
         ) : chartData.length > 0 ? (
           <ResponsiveContainer width="100%" height={320}>
             <BarChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+              <CartesianGrid strokeDasharray="3 3" stroke={chartGridColor} />
               <XAxis
                 dataKey="label"
-                tick={{ fontSize: 12, fill: '#6b7280' }}
-                axisLine={{ stroke: '#e5e7eb' }}
+                tick={{ fontSize: 12, fill: chartTickColor }}
+                axisLine={{ stroke: chartAxisColor }}
               />
               <YAxis
                 tickFormatter={formatChartCLP}
-                tick={{ fontSize: 12, fill: '#6b7280' }}
-                axisLine={{ stroke: '#e5e7eb' }}
+                tick={{ fontSize: 12, fill: chartTickColor }}
+                axisLine={{ stroke: chartAxisColor }}
                 width={70}
               />
               <Tooltip
                 formatter={(value) => formatCLP(value)}
-                labelStyle={{ fontWeight: 600, color: '#111827' }}
-                contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb' }}
+                labelStyle={{ fontWeight: 600, color: tooltipLabelColor }}
+                contentStyle={{ borderRadius: '8px', border: `1px solid ${tooltipBorder}`, backgroundColor: tooltipBg, color: tooltipLabelColor }}
               />
               <Legend
-                wrapperStyle={{ fontSize: '13px' }}
+                wrapperStyle={{ fontSize: '13px', color: chartTickColor }}
               />
               <Bar dataKey="income" name="Ingresos" fill="#22c55e" radius={[4, 4, 0, 0]} />
               <Bar dataKey="expense" name="Egresos" fill="#ef4444" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         ) : (
-          <div className="text-center py-12 text-gray-400">No hay datos para mostrar</div>
+          <div className="text-center py-12 text-gray-400 dark:text-gray-500">No hay datos para mostrar</div>
         )}
       </div>
 
       {/* Info */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-2">Informaci&oacute;n del Usuario</h2>
-        <div className="space-y-2 text-sm text-gray-600">
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Informaci&oacute;n del Usuario</h2>
+        <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
           <p><span className="font-medium">Nombre:</span> {user?.name}</p>
           <p><span className="font-medium">Correo:</span> {user?.email}</p>
           <p><span className="font-medium">Rol:</span> {user?.role}</p>

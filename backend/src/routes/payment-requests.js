@@ -100,8 +100,8 @@ router.get('/', (req, res) => {
   const sortDirection = sort_order === 'asc' ? 'ASC' : 'DESC';
   query += ` ORDER BY pr.${sortColumn} ${sortDirection}`;
 
-  // Pagination
-  const limit = Math.min(parseInt(limitParam) || 50, 200);
+  // Pagination - allow up to 10000 for exports
+  const limit = Math.min(parseInt(limitParam) || 50, 10000);
   const offset = ((parseInt(page) || 1) - 1) * limit;
   query += ' LIMIT ? OFFSET ?';
   params.push(limit, offset);
