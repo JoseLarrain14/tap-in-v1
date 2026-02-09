@@ -514,6 +514,11 @@ router.post('/:id/execute', requireRole('secretaria'), upload.single('comprobant
     return res.status(400).json({ error: 'Solo se pueden ejecutar solicitudes aprobadas' });
   }
 
+  // Comprobante is required for execution
+  if (!req.file) {
+    return res.status(400).json({ error: 'El comprobante de pago es obligatorio para ejecutar la solicitud' });
+  }
+
   const comment = req.body.comment;
 
   db.prepare(`

@@ -133,12 +133,14 @@ export default function SolicitudDetail() {
   }
 
   async function handleExecute() {
+    if (!executeFile) {
+      setFeedback({ type: 'error', message: 'Debe adjuntar un comprobante de pago para ejecutar la solicitud' });
+      return;
+    }
     try {
       setActionLoading(true);
       const formData = new FormData();
-      if (executeFile) {
-        formData.append('comprobante', executeFile);
-      }
+      formData.append('comprobante', executeFile);
       formData.append('comment', 'Pago ejecutado');
       await api.upload(`/payment-requests/${id}/execute`, formData);
       setFeedback({ type: 'success', message: 'Pago ejecutado exitosamente' });
@@ -535,10 +537,15 @@ export default function SolicitudDetail() {
                   Archivo seleccionado: {executeFile.name} ({(executeFile.size / 1024).toFixed(1)} KB)
                 </p>
               )}
+              {!executeFile && (
+                <p className="mt-1 text-xs text-red-500">
+                  * El comprobante es obligatorio para ejecutar el pago
+                </p>
+              )}
             </div>
             <button
               onClick={handleExecute}
-              disabled={actionLoading}
+              disabled={actionLoading || !executeFile}
               className="w-full px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
             >
               {actionLoading ? 'Procesando...' : 'Marcar como Ejecutado'}

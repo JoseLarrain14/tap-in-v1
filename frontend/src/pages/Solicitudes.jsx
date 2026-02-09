@@ -639,9 +639,9 @@ export default function Solicitudes() {
                         {canExecute && req.status === 'aprobado' && (
                           <div onClick={e => e.stopPropagation()}>
                             <button
-                              onClick={() => handleExecute(req.id)}
+                              onClick={() => navigate(`/solicitudes/${req.id}`)}
                               className="text-xs px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
-                              disabled={actionLoading}
+                              title="Requiere adjuntar comprobante"
                             >
                               Ejecutar
                             </button>
@@ -723,13 +723,13 @@ export default function Solicitudes() {
                         </button>
                       </div>
                     )}
-                    {/* Execute button - ONLY for secretaria, ONLY on approved */}
+                    {/* Execute button - ONLY for secretaria, ONLY on approved - links to detail page for comprobante */}
                     {canExecute && req.status === 'aprobado' && (
                       <div onClick={(e) => e.stopPropagation()}>
                         <button
-                          onClick={() => handleExecute(req.id)}
+                          onClick={() => navigate(`/solicitudes/${req.id}`)}
                           className="px-2.5 py-1 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700 transition-colors"
-                          disabled={actionLoading}
+                          title="Requiere adjuntar comprobante"
                         >
                           Ejecutar
                         </button>
@@ -906,12 +906,12 @@ export default function Solicitudes() {
 
             {canExecute && selectedRequest.status === 'aprobado' && (
               <div className="border-t border-gray-100 pt-4">
+                <p className="text-xs text-gray-500 mb-2 text-center">Se requiere adjuntar comprobante para ejecutar</p>
                 <button
-                  onClick={() => handleExecute(selectedRequest.id)}
-                  disabled={actionLoading}
-                  className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
+                  onClick={() => { setShowDetailModal(false); navigate(`/solicitudes/${selectedRequest.id}`); }}
+                  className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
                 >
-                  {actionLoading ? 'Procesando...' : 'Marcar como Ejecutado'}
+                  Ir a Ejecutar con Comprobante
                 </button>
               </div>
             )}
