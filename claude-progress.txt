@@ -1,5 +1,42 @@
 === Tap In V1 - Development Progress ===
 
+## Session 34 - 2026-02-09
+
+### Completed Features:
+- Feature #111: Category dropdown populated from database ✅
+- Feature #112: Income list reflects backend data changes ✅
+- Feature #113: Dashboard metrics match API response ✅
+
+### Verification Details:
+- Feature #111: Category dropdowns in income/expense forms loaded from API
+  - Income form loads categories from GET /api/categories (filtered to ingreso type)
+  - Expense form loads categories from GET /api/categories (filtered to egreso type)
+  - Created new category as Presidente, verified it appears in dropdown dynamically
+  - Both forms use categories.map() from API data, no hardcoded values
+  - Verified via API tests and Playwright browser automation with screenshots
+
+- Feature #112: Income list reflects backend data changes
+  - Created income via API (type:ingreso, amount:99123, desc:F112_VERIFY_SEARCH)
+  - Refreshed page, searched for test income - found in table with correct data
+  - Edited income via API (desc:F112_EDITED_SEARCH, amount:88123)
+  - Refreshed and searched - showed updated description and amount
+  - Deleted income via API, refreshed and searched - "Sin resultados" shown
+  - Full CRUD cycle verified through search-based UI verification
+
+- Feature #113: Dashboard metrics match API response
+  - API returns: balance=4107043, month_income=4057043, month_expense=400000, pending_approval=15, pending_execution=8
+  - UI shows: $4.107.043, $4.057.043, $400.000, 15, 8 - all matching exactly
+  - Used data-testid selectors for pending counts verification
+  - Sub-text "Ingresos: $4.507.043 − Egresos: $400.000" also matches
+  - No mock data patterns found in Dashboard.jsx
+
+### Current Status: 113/265 features passing (42.6%)
+
+### What should be worked on next:
+- Continue UI-Backend Integration features
+- More data synchronization features
+- Additional dashboard and reporting features
+
 ## Session 33 - 2026-02-09
 
 ### Completed Features:
