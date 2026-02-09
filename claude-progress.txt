@@ -1,5 +1,51 @@
 === Tap In V1 - Development Progress ===
 
+## Session 35 - 2026-02-09
+
+### Completed Features:
+- Feature #114: Pipeline Kanban shows correct cards per column ✅
+- Feature #115: Payment request state transitions update UI immediately ✅
+- Feature #116: User list reflects backend changes ✅
+
+### Verification Details:
+- Feature #114: Pipeline Kanban shows correct cards per column
+  - All 5 columns rendered: borrador (9), pendiente (15), aprobado (8), rechazado (7), ejecutado (8)
+  - Created test data in all statuses to verify correct column placement
+  - Card counts in column headers match API totals exactly
+  - Added fix: clear status filter when switching from table to kanban view
+  - Verified via Playwright screenshot and API verification script
+  - No mock data, no console errors
+
+- Feature #115: Payment request state transitions update UI immediately
+  - Implemented optimistic UI updates in Solicitudes.jsx handlers (approve/reject/execute)
+  - Card moves from Pendiente to Aprobado immediately on approve click (14→13, 8→9)
+  - Added CSS animation (animate-card-enter) for smooth visual transition
+  - No full page reload required - SPA update confirmed
+  - Success feedback message appears inline
+  - Background sync ensures data consistency after optimistic update
+  - Also updated SolicitudDetail.jsx with optimistic updates
+  - Added @keyframes card-enter animation in index.css
+
+- Feature #116: User list reflects backend changes
+  - API returns 8 users, UI shows 8 rows - count matches exactly
+  - All 8 users verified: name, email, role all match between API and UI
+  - Invited new user (F116 Test User) via API, refreshed page - user appeared (8→9)
+  - Data persists in SQLite database (not in-memory)
+  - No mock data patterns found
+
+### Changes Made:
+- frontend/src/pages/Solicitudes.jsx: Added useRef import, recentlyTransitioned state, optimistic updates in handlers, CSS animation class on cards, clear status filter on kanban switch
+- frontend/src/pages/SolicitudDetail.jsx: Added optimistic updates in approve/reject/execute/submit handlers
+- frontend/src/index.css: Added @keyframes card-enter animation and .animate-card-enter class
+
+### Current Status: ~112/265 features passing (~42.3%)
+
+### What should be worked on next:
+- More UI-Backend integration features
+- Reporting and export features
+- Accessibility and UX improvements
+- Additional validation and error handling
+
 ## Session 34 - 2026-02-09
 
 ### Completed Features:

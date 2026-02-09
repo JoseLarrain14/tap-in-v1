@@ -310,7 +310,7 @@ export default function Ingresos() {
           <h1 className="text-2xl font-bold text-gray-900">Ingresos</h1>
           <p className="text-gray-500 mt-1">Registro de ingresos del CPP</p>
         </div>
-        {!loading && (
+        {!loading && !pageError && (
           <div className="flex items-center gap-3">
             <button
               onClick={handleExport}
@@ -470,7 +470,7 @@ export default function Ingresos() {
         )}
       </div>}
 
-      {!loading && transactions.length === 0 && (
+      {!loading && !pageError && transactions.length === 0 && (
         <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
           <div className="text-4xl mb-3">{hasActiveFilters ? '🔍' : '💰'}</div>
           <h3 className="text-lg font-semibold text-gray-900 mb-1">
