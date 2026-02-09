@@ -1,5 +1,48 @@
 === Tap In V1 - Development Progress ===
 
+## Session 36 - 2026-02-09
+
+### Completed Features:
+- Feature #104: Network error shows user-friendly message ✅
+- Feature #107: Duplicate email rejected on user invitation ✅
+
+### Verification Details:
+- Feature #104: Network error shows user-friendly message
+  - Created NetworkError component (frontend/src/components/NetworkError.jsx) with:
+    - Orange-themed card with 🔌 icon and "Sin conexión al servidor" heading
+    - User-friendly message: "No se pudo conectar con el servidor"
+    - "Reintentar ahora" button with refresh icon
+    - Auto-retry countdown (10 seconds)
+  - Updated api.js to detect proxy errors (502-504) as network errors
+  - Updated all pages (Dashboard, Ingresos, Solicitudes, Notificaciones, Configuracion, SolicitudDetail) to:
+    - Track isNetworkError state
+    - Show NetworkError component for network errors
+    - Show standard error UI for other errors
+    - Hide empty states when there's a page error
+  - Verified with Playwright: error display when server down, recovery when retry clicked
+  - Screenshots: feat104-network-error-clean.png, feat104-recovery.png
+
+- Feature #107: Duplicate email rejected on user invitation
+  - Backend already returns 409 "Ya existe un usuario con ese email" for duplicates
+  - Added inviteError state and inline error display within invite modal (data-testid="invite-error")
+  - Error clears when modal reopens
+  - Verified: duplicate email presidente@tapin.cl shows red error banner in modal
+  - Verified: no duplicate user created (user count unchanged)
+  - Verified: unique email feat107_unique_test@tapin.cl invites successfully
+  - Screenshots: feat107-duplicate-error.png, feat107-success.png
+
+### Changes Made:
+- frontend/src/components/NetworkError.jsx: New reusable network error component
+- frontend/src/lib/api.js: Detect 502-504 proxy errors as network errors
+- frontend/src/pages/Dashboard.jsx: NetworkError integration
+- frontend/src/pages/Ingresos.jsx: NetworkError integration, hide empty state on error
+- frontend/src/pages/Solicitudes.jsx: NetworkError integration
+- frontend/src/pages/Notificaciones.jsx: NetworkError integration
+- frontend/src/pages/Configuracion.jsx: NetworkError + inviteError inline in modal
+- frontend/src/pages/SolicitudDetail.jsx: NetworkError integration
+
+### Current Status: 109+/265 features passing (~41%)
+
 ## Session 35 - 2026-02-09
 
 ### Completed Features:
