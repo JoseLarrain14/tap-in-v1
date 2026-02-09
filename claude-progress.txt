@@ -1,5 +1,46 @@
 === Tap In V1 - Development Progress ===
 
+## Session 33 - 2026-02-09
+
+### Completed Features:
+- Feature #99: Negative amount rejected in income form ✅
+- Feature #100: Invalid email format rejected on login ✅
+- Feature #101: API returns proper error for invalid endpoint ✅
+
+### Verification Details:
+- Feature #99: Income form validation improved
+  - Negative amount (-5000) → shows "El monto debe ser un número positivo" ✅
+  - Zero (0) → shows "El monto debe ser un número positivo" ✅
+  - Valid amount (5000) → accepted, income created successfully ✅
+  - Edit form also validates amount (added validation to handleEditSubmit)
+  - Both frontend validation and backend validation (amount > 0) protect against invalid values
+  - Verified via Playwright browser automation with screenshots
+
+- Feature #100: Login form validates email format (already implemented)
+  - Invalid email 'notanemail' → "Ingrese un correo electrónico válido" ✅
+  - Partial email 'user@' → "Ingrese un correo electrónico válido" ✅
+  - Regex /\S+@\S+\.\S+/ validates email format client-side
+  - Form submission blocked until valid email entered
+  - Zero console errors during testing
+  - Verified via Playwright browser automation with screenshots
+
+- Feature #101: API returns proper error for invalid endpoint
+  - GET /api/nonexistent → 404 with JSON {"error":"...","message":"..."} ✅
+  - POST /api/invalid-endpoint → 404 with JSON {"error":"...","message":"..."} ✅
+  - Added `message` field to 404 handler alongside existing `error` field
+  - Verified via curl and browser
+
+### Changes Made:
+- frontend/src/pages/Ingresos.jsx: Already had validation from Feature #97 commit
+- backend/src/index.js: Added `message` field to 404 catch-all handler
+
+### Current Status: ~97/265 features passing (~36.6%)
+
+### What should be worked on next:
+- More error handling features
+- Additional validation features
+- UI/UX improvements
+
 ## Session 32 - 2026-02-09
 
 ### Completed Features:
