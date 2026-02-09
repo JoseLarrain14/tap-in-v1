@@ -1,5 +1,48 @@
 === Tap In V1 - Development Progress ===
 
+## Session 43 - 2026-02-09
+
+### Completed Features:
+- Feature #141: Direct access to /dashboard requires auth ✅
+- Feature #142: Direct access to /ingresos loads income page ✅
+- Feature #143: Direct access to /egresos loads pipeline ✅
+
+### Verification Details:
+- Feature #141: Direct access to /dashboard requires auth
+  - Navigated to /dashboard without token → redirected to /login ✅
+  - Login page displayed correctly ✅
+  - Entered presidente credentials and submitted → redirected back to /dashboard ✅
+  - Dashboard content loaded: heading, welcome message, financial cards ✅
+  - Zero console errors ✅
+  - ProtectedRoute saves attempted path via state={{ from: location.pathname }}
+  - Login.jsx reads from state and navigates back after successful auth
+
+- Feature #142: Direct access to /ingresos loads income page
+  - Authenticated user navigated directly to /ingresos ✅
+  - Income page loaded: heading "Ingresos", subtitle "Registro de ingresos del CPP" ✅
+  - Data loaded from API: GET /api/transactions?type=ingreso → 200 OK ✅
+  - 33 income records displayed with pagination (15 per page) ✅
+  - "Ingresos" nav item highlighted in sidebar (primary color background) ✅
+  - Search, filter, and action buttons present ✅
+  - Zero console errors ✅
+
+- Feature #143: Direct access to /egresos loads pipeline
+  - Navigated to /egresos → redirected to /solicitudes (pipeline page) ✅
+  - "Solicitudes de Pago" heading with pipeline subtitle displayed ✅
+  - Kanban view renders with 5 columns: Borrador(11), Pendiente(14), Aprobado(9), Rechazado(7), Ejecutado(9) ✅
+  - Kanban/Tabla toggle buttons present ✅
+  - Real payment request data loaded from API ✅
+  - "Egresos" nav item highlighted in sidebar ✅
+  - Zero console errors ✅
+
+### Current Status: 141/265 features passing (~53.2%)
+
+### What should be worked on next:
+- More URL & Direct Access features
+- State & Persistence features
+- UI/UX improvements
+- Remaining security/access control features
+
 ## Session 42 - 2026-02-09
 
 ### Completed Features:
