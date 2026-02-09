@@ -2,24 +2,68 @@
 [Database] SQLite connected at C:\Users\josel\CPP\backend\data\tapin.db
 [Database] Schema initialized successfully
 [Database] Default data already exists, skipping seed
-node:events:485
-      throw er; // Unhandled 'error' event
-      ^
-
-Error: listen EADDRINUSE: address already in use :::3001
-    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
-    at listenInCluster (node:net:1997:12)
-    at Server.listen (node:net:2102:7)
-    at app.listen (C:\Users\josel\CPP\backend\node_modules\express\lib\application.js:635:24)
-    at startServer (C:\Users\josel\CPP\backend\src\index.js:51:22)
-Emitted 'error' event on Server instance at:
-    at emitErrorNT (node:net:1976:8)
-    at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
-  code: 'EADDRINUSE',
-  errno: -4091,
-  syscall: 'listen',
-  address: '::',
-  port: 3001
-}
-
-Node.js v24.2.0
+[Server] Tap In V1 backend running on http://localhost:3001
+[Server] Health check: http://localhost:3001/api/health
+[0mPOST /api/invalid-endpoint [33m404[0m 5.000 ms - 58[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [3]
+[SQL] SELECT COUNT(*) as unread_count FROM notifications WHERE user_id = ? AND organization_id = ? AND is_read = 0 [3,1]
+[0mGET /api/notifications/unread-count [36m304[0m 26.732 ms - -[0m
+[0mGET /api/health [32m200[0m 4.570 ms - 385[0m
+[0mPOST /api/invalid-endpoint [33m404[0m 0.938 ms - 58[0m
+[SQL] SELECT id, organization_id, email, password_hash, name, role, is_active FROM users WHERE email = ? ["presidente@tapin.cl"]
+[0mPOST /api/auth/login [32m200[0m 130.729 ms - 369[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [3]
+[SQL] SELECT COUNT(*) as unread_count FROM notifications WHERE user_id = ? AND organization_id = ? AND is_read = 0 [3,1]
+[0mGET /api/notifications/unread-count [36m304[0m 5.873 ms - -[0m
+[SQL] SELECT id, organization_id, email, password_hash, name, role, is_active FROM users WHERE email = ? ["presidente@tapin.cl"]
+[0mPOST /api/auth/login [32m200[0m 91.986 ms - 369[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [1]
+[SQL] SELECT t.*, c.name as category_name, u.name as created_by_name, eu.name as edited_by_name
+    FROM transactions t
+    LE [1,"ingreso","%F263_%","%F263_%","%F263_%",50,0]
+[SQL] SELECT COUNT(*) as total FROM transactions t
+    WHERE t.organization_id = ? AND t.deleted_at IS NULL
+   AND t.type = ?  [1,"ingreso","%F263_%","%F263_%","%F263_%"]
+[0mGET /api/transactions?type=ingreso&search=F263_ [32m200[0m 9.002 ms - 1671[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [3]
+[SQL] SELECT u.id, u.email, u.name, u.role, u.organization_id, u.is_active, o.name as organization_name, o.school_name FROM us [3]
+[0mGET /api/auth/me [36m304[0m 5.069 ms - -[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [3]
+[SQL] SELECT u.id, u.email, u.name, u.role, u.organization_id, u.is_active, o.name as organization_name, o.school_name FROM us [3]
+[0mGET /api/auth/me [32m200[0m 4.083 ms - 189[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [3]
+[SQL] SELECT t.*, c.name as category_name, u.name as created_by_name, eu.name as edited_by_name
+    FROM transactions t
+    LE [1,"ingreso",50,0]
+[SQL] SELECT COUNT(*) as total FROM transactions t
+    WHERE t.organization_id = ? AND t.deleted_at IS NULL
+   AND t.type = ? [1,"ingreso"]
+[0mGET /api/transactions?type=ingreso&sort_by=date&sort_order=desc [36m304[0m 10.989 ms - -[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [3]
+[SQL] SELECT * FROM categories WHERE organization_id = ? ORDER BY type ASC, name ASC [1]
+[0mGET /api/categories [36m304[0m 3.590 ms - -[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [3]
+[SQL] SELECT COUNT(*) as unread_count FROM notifications WHERE user_id = ? AND organization_id = ? AND is_read = 0 [3,1]
+[0mGET /api/notifications/unread-count [36m304[0m 2.529 ms - -[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [3]
+[SQL] SELECT t.*, c.name as category_name, u.name as created_by_name, eu.name as edited_by_name
+    FROM transactions t
+    LE [1,"ingreso",50,0]
+[SQL] SELECT COUNT(*) as total FROM transactions t
+    WHERE t.organization_id = ? AND t.deleted_at IS NULL
+   AND t.type = ? [1,"ingreso"]
+[0mGET /api/transactions?type=ingreso&sort_by=date&sort_order=desc [32m200[0m 8.027 ms - 20817[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [3]
+[SQL] SELECT * FROM categories WHERE organization_id = ? ORDER BY type ASC, name ASC [1]
+[0mGET /api/categories [32m200[0m 2.814 ms - 1657[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [3]
+[SQL] SELECT COUNT(*) as unread_count FROM notifications WHERE user_id = ? AND organization_id = ? AND is_read = 0 [3,1]
+[0mGET /api/notifications/unread-count [32m200[0m 2.902 ms - 18[0m
+[0mGET /api/health [32m200[0m 1.244 ms - 386[0m
+[0mGET /api/health [32m200[0m 1.523 ms - 386[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [3]
+[SQL] SELECT COUNT(*) as unread_count FROM notifications WHERE user_id = ? AND organization_id = ? AND is_read = 0 [3,1]
+[0mGET /api/notifications/unread-count [36m304[0m 2.709 ms - -[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [3]
+[SQL] SELECT COUNT(*) as unread_count FROM notifications WHERE user_id = ? AND organization_id = ? AND is_read = 0 [3,1]
+[0mGET /api/notifications/unread-count [36m304[0m 4.788 ms - -[0m

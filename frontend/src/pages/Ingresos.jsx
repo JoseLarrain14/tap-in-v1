@@ -4,6 +4,7 @@ import { api } from '../lib/api';
 import * as XLSX from 'xlsx';
 import { SkeletonTable, SkeletonLine } from '../components/Skeleton';
 import Spinner from '../components/Spinner';
+import NetworkError from '../components/NetworkError';
 
 export default function Ingresos() {
   const { user } = useAuth();
@@ -42,6 +43,8 @@ export default function Ingresos() {
     payer_rut: ''
   });
   const [error, setError] = useState('');
+  const [pageError, setPageError] = useState(null);
+  const [isNetworkError, setIsNetworkError] = useState(false);
   const [editError, setEditError] = useState('');
   const [saving, setSaving] = useState(false);
   const [editSaving, setEditSaving] = useState(false);
@@ -83,7 +86,8 @@ export default function Ingresos() {
       setCategories((catRes.categories || catRes || []).filter(c => c.type === 'ingreso'));
     } catch (err) {
       console.error('Error loading data:', err);
-      setError(err.message || 'Error al cargar datos');
+      setPageError(err.message || 'Error al cargar datos');
+      setIsNetworkError(!!err.isNetworkError);
     } finally {
       setLoading(false);
     }
@@ -225,7 +229,9 @@ export default function Ingresos() {
       loadData();
     } catch (err) {
       if (err.fields) setFormErrors(err.fields);
-      setError(err.message || 'Error al registrar ingreso');
+      setError(err.isNetworkError
+        ? 'No se pudo conectar con el servidor. Verifique su conexión e intente nuevamente.'
+        : (err.message || 'Error al registrar ingreso'));
     } finally {
       setSaving(false);
     }
@@ -346,8 +352,29 @@ export default function Ingresos() {
         </div>
       )}
 
+      {/* Page Error Display */}
+      {pageError && isNetworkError && (
+        <NetworkError
+          message={pageError}
+          onRetry={async () => { setPageError(null); setIsNetworkError(false); await loadData(); }}
+        />
+      )}
+      {pageError && !isNetworkError && (
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6 text-center">
+          <div className="text-3xl mb-2">⚠️</div>
+          <h3 className="text-lg font-semibold text-red-800 dark:text-red-300 mb-1">Error al cargar datos</h3>
+          <p className="text-red-600 dark:text-red-400 text-sm mb-3">{pageError}</p>
+          <button
+            onClick={() => { setPageError(null); loadData(); }}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
+          >
+            Reintentar
+          </button>
+        </div>
+      )}
+
       {/* Filter Bar */}
-      {!loading && <div className="bg-white rounded-xl border border-gray-200 p-4" data-testid="filter-bar">
+      {!loading && !pageError && <div className="bg-white rounded-xl border border-gray-200 p-4" data-testid="filter-bar">
         <div className="flex items-center gap-3 flex-wrap">
           {/* Search */}
           <div className="flex-1 min-w-[200px]">

@@ -36,6 +36,11 @@ async function startServer() {
   app.use('/api/notifications', require('./routes/notifications'));
   app.use('/api/debug/schema', require('./routes/debug-schema'));
 
+  // Test endpoint for 500 error simulation (development only)
+  app.get('/api/debug/error500', (req, res) => {
+    res.status(500).json({ error: 'Error interno del servidor' });
+  });
+
   // 404 handler
   app.use((req, res) => {
     const msg = `Ruta no encontrada: ${req.method} ${req.path}`;

@@ -23,12 +23,28 @@ async function request(endpoint, options = {}) {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${API_BASE}${endpoint}`, {
-    ...options,
-    headers,
-  });
+  let response;
+  try {
+    response = await fetch(`${API_BASE}${endpoint}`, {
+      ...options,
+      headers,
+    });
+  } catch (networkError) {
+    // Network error - server unreachable
+    const err = new Error('No se pudo conectar con el servidor. Verifique su conexión e intente nuevamente.');
+    err.isNetworkError = true;
+    throw err;
+  }
 
-  const data = await response.json();
+  let data;
+  try {
+    data = await response.json();
+  } catch (parseError) {
+    // Response was not JSON
+    const err = new Error('El servidor respondió de forma inesperada. Intente nuevamente.');
+    err.status = response.status;
+    throw err;
+  }
 
   // For 401 on non-login endpoints, clear token and redirect
   if (response.status === 401 && !endpoint.startsWith('/auth/login')) {
@@ -56,13 +72,27 @@ async function uploadRequest(endpoint, formData) {
   }
   // Do NOT set Content-Type for FormData — browser sets it with boundary
 
-  const response = await fetch(`${API_BASE}${endpoint}`, {
-    method: 'POST',
-    headers,
-    body: formData,
-  });
+  let response;
+  try {
+    response = await fetch(`${API_BASE}${endpoint}`, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+  } catch (networkError) {
+    const err = new Error('No se pudo conectar con el servidor. Verifique su conexión e intente nuevamente.');
+    err.isNetworkError = true;
+    throw err;
+  }
 
-  const data = await response.json();
+  let data;
+  try {
+    data = await response.json();
+  } catch (parseError) {
+    const err = new Error('El servidor respondió de forma inesperada. Intente nuevamente.');
+    err.status = response.status;
+    throw err;
+  }
 
   if (response.status === 401 && !endpoint.startsWith('/auth/login')) {
     removeToken();

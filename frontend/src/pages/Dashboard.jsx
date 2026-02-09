@@ -4,6 +4,7 @@ import { api } from '../lib/api';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useTheme } from '../lib/ThemeContext';
 import { SkeletonCard, SkeletonLine } from '../components/Skeleton';
+import NetworkError from '../components/NetworkError';
 
 function formatCLP(amount) {
   return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(amount || 0);
@@ -34,6 +35,8 @@ export default function Dashboard() {
   const [chartData, setChartData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [chartLoading, setChartLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
+  const [isNetworkError, setIsNetworkError] = useState(false);
 
   useEffect(() => {
     loadDashboard();
@@ -47,6 +50,8 @@ export default function Dashboard() {
       setSummary(data);
     } catch (err) {
       console.error('Error loading dashboard:', err);
+      setLoadError(err.message || 'Error al cargar el dashboard');
+      setIsNetworkError(!!err.isNetworkError);
     } finally {
       setLoading(false);
     }
@@ -91,6 +96,27 @@ export default function Dashboard() {
           Bienvenido, {user?.name}
         </p>
       </div>
+
+      {/* Error Display */}
+      {loadError && isNetworkError && (
+        <NetworkError
+          message={loadError}
+          onRetry={async () => { setLoadError(null); setIsNetworkError(false); await loadDashboard(); await loadChartData(); }}
+        />
+      )}
+      {loadError && !isNetworkError && (
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6 text-center">
+          <div className="text-3xl mb-2">⚠️</div>
+          <h3 className="text-lg font-semibold text-red-800 dark:text-red-300 mb-1">Error al cargar datos</h3>
+          <p className="text-red-600 dark:text-red-400 text-sm mb-3">{loadError}</p>
+          <button
+            onClick={() => { setLoadError(null); loadDashboard(); loadChartData(); }}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
+          >
+            Reintentar
+          </button>
+        </div>
+      )}
 
       {/* Financial Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -220,6 +246,31 @@ export default function Dashboard() {
           <div className="text-center py-12 text-gray-400 dark:text-gray-500">No hay datos para mostrar</div>
         )}
       </div>
+
+      {/* Getting Started - shown when no data exists */}
+      {!loading && summary && balance === 0 && monthIncome === 0 && monthExpense === 0 && pendingApproval === 0 && pendingExecution === 0 && (
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-8 text-center">
+          <div className="text-4xl mb-3">🚀</div>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">¡Bienvenido a Tap In!</h3>
+          <p className="text-gray-500 dark:text-gray-400 mb-4">
+            Tu CPP aún no tiene movimientos registrados. Comienza registrando ingresos o creando solicitudes de pago.
+          </p>
+          <div className="flex gap-3 justify-center flex-wrap">
+            <a
+              href="/ingresos"
+              className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
+            >
+              Registrar primer ingreso
+            </a>
+            <a
+              href="/solicitudes"
+              className="px-4 py-2 bg-black dark:bg-white dark:text-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
+            >
+              Crear primera solicitud
+            </a>
+          </div>
+        </div>
+      )}
 
       {/* Info */}
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">

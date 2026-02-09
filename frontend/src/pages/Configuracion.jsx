@@ -3,6 +3,7 @@ import { useAuth } from '../lib/AuthContext';
 import { api } from '../lib/api';
 import { SkeletonTable } from '../components/Skeleton';
 import Spinner from '../components/Spinner';
+import NetworkError from '../components/NetworkError';
 
 const ROLE_LABELS = {
   delegado: 'Delegado',
@@ -31,6 +32,7 @@ export default function Configuracion() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isNetworkError, setIsNetworkError] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [feedback, setFeedback] = useState(null);
@@ -63,6 +65,7 @@ export default function Configuracion() {
       setUsers(data.users || []);
     } catch (err) {
       setError(err.message);
+      setIsNetworkError(!!err.isNetworkError);
     } finally {
       setLoading(false);
     }
@@ -75,6 +78,7 @@ export default function Configuracion() {
       setCategories(data.categories || []);
     } catch (err) {
       setError(err.message);
+      setIsNetworkError(!!err.isNetworkError);
     } finally {
       setCategoriesLoading(false);
     }

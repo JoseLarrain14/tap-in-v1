@@ -1,0 +1,436 @@
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - heading "Tap In" [level=1] [ref=e7]
+        - paragraph [ref=e8]: CPP Demo
+      - button "Colapsar sidebar" [ref=e9]:
+        - img [ref=e10]
+    - navigation [ref=e12]:
+      - link "📊 Dashboard" [ref=e13] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e14]: 📊
+        - generic [ref=e15]: Dashboard
+      - link "💰 Ingresos" [ref=e16] [cursor=pointer]:
+        - /url: /ingresos
+        - generic [ref=e17]: 💰
+        - generic [ref=e18]: Ingresos
+      - link "📋 Egresos" [ref=e19] [cursor=pointer]:
+        - /url: /solicitudes
+        - generic [ref=e20]: 📋
+        - generic [ref=e21]: Egresos
+      - link "📈 Reportes" [ref=e22] [cursor=pointer]:
+        - /url: /reportes
+        - generic [ref=e23]: 📈
+        - generic [ref=e24]: Reportes
+      - link "🔔 19 Notificaciones 19" [ref=e70] [cursor=pointer]:
+        - /url: /notificaciones
+        - generic [ref=e26]:
+          - text: 🔔
+          - generic [ref=e71]: "19"
+        - generic [ref=e27]:
+          - text: Notificaciones
+          - generic [ref=e72]: "19"
+      - link "⚙️ Configuración" [ref=e28] [cursor=pointer]:
+        - /url: /configuracion
+        - generic [ref=e29]: ⚙️
+        - generic [ref=e30]: Configuración
+    - button "Cambiar a modo oscuro" [ref=e32]:
+      - img [ref=e33]
+      - generic [ref=e35]: Modo oscuro
+    - generic [ref=e36]:
+      - generic [ref=e37]:
+        - generic [ref=e38]: M
+        - generic [ref=e39]:
+          - paragraph [ref=e40]: María González
+          - paragraph [ref=e41]: presidente
+      - button "Cerrar sesión" [ref=e42]
+  - main [ref=e43]:
+    - generic [ref=e44]:
+      - generic [ref=e45]:
+        - generic [ref=e46]:
+          - heading "Solicitudes de Pago" [level=1] [ref=e47]
+          - paragraph [ref=e48]: Pipeline completo de solicitudes de egreso
+        - generic [ref=e49]:
+          - generic [ref=e50]:
+            - button "Kanban" [ref=e51]:
+              - generic [ref=e52]:
+                - img [ref=e53]
+                - text: Kanban
+            - button "Tabla" [ref=e57]:
+              - generic [ref=e58]:
+                - img [ref=e59]
+                - text: Tabla
+          - button "Excel" [ref=e63]:
+            - img [ref=e64]
+            - text: Excel
+          - button "+ Nueva Solicitud" [ref=e68]
+      - generic [ref=e73]:
+        - generic [ref=e74]:
+          - generic [ref=e76]:
+            - heading "Borrador" [level=3] [ref=e77]
+            - generic [ref=e78]: "8"
+          - generic [ref=e79]:
+            - generic [ref=e80] [cursor=pointer]:
+              - generic [ref=e81]:
+                - generic [ref=e82]: "#31"
+                - generic [ref=e83]: $50.000
+              - paragraph [ref=e84]: TEST_F74_UPLOAD - Compra de materiales para verificar adjuntos
+              - paragraph [ref=e85]: Proveedor Test F74
+              - generic [ref=e87]: Carlos López
+            - generic [ref=e88] [cursor=pointer]:
+              - generic [ref=e89]:
+                - generic [ref=e90]: "#28"
+                - generic [ref=e91]: $75.000
+              - paragraph [ref=e92]: TEST_F74_ATTACHMENT - Compra de materiales para test de adjuntos
+              - paragraph [ref=e93]: Proveedor Test F74
+              - generic [ref=e95]: Carlos López
+            - generic [ref=e96] [cursor=pointer]:
+              - generic [ref=e97]:
+                - generic [ref=e98]: "#21"
+                - generic [ref=e99]: $50.000
+              - paragraph [ref=e100]: FEAT64_TEST_REJECTION_1770568835703
+              - paragraph [ref=e101]: Test Beneficiary FEAT64
+              - generic [ref=e103]: Carlos López
+            - generic [ref=e104] [cursor=pointer]:
+              - generic [ref=e105]:
+                - generic [ref=e106]: "#17"
+                - generic [ref=e107]: $15.000
+              - paragraph [ref=e108]: FEAT57_TEST_MATERIALES
+              - paragraph [ref=e109]: Proveedor F57
+              - generic [ref=e111]: María González
+            - generic [ref=e112] [cursor=pointer]:
+              - generic [ref=e113]:
+                - generic [ref=e114]: "#12"
+                - generic [ref=e115]: $30.000
+              - paragraph [ref=e116]: F28_BORR_UNIQUE
+              - paragraph [ref=e117]: Vendor Borrador
+              - generic [ref=e119]: María González
+            - generic [ref=e120] [cursor=pointer]:
+              - generic [ref=e121]:
+                - generic [ref=e122]: "#8"
+                - generic [ref=e123]: $30.000
+              - paragraph [ref=e124]: TEST28_BORRADOR
+              - paragraph [ref=e125]: Vendor Borrador
+              - generic [ref=e127]: María González
+            - generic [ref=e128] [cursor=pointer]:
+              - generic [ref=e129]:
+                - generic [ref=e130]: "#4"
+                - generic [ref=e131]: $30.000
+              - paragraph [ref=e132]: FEATURE25_EDITED_BY_OWNER
+              - paragraph [ref=e133]: Updated Beneficiary
+              - generic [ref=e135]: Carlos López
+            - generic [ref=e136] [cursor=pointer]:
+              - generic [ref=e137]:
+                - generic [ref=e138]: "#3"
+                - generic [ref=e139]: $50.000
+              - paragraph [ref=e140]: TEST_DRAFT_24
+              - paragraph [ref=e141]: Test Beneficiary
+              - generic [ref=e143]: Carlos López
+        - generic [ref=e144]:
+          - generic [ref=e146]:
+            - heading "Pendiente de Aprobación" [level=3] [ref=e147]
+            - generic [ref=e148]: "13"
+          - generic [ref=e149]:
+            - generic [ref=e150] [cursor=pointer]:
+              - generic [ref=e151]:
+                - generic [ref=e152]: "#40"
+                - generic [ref=e153]: $12.345
+              - paragraph [ref=e154]: F94_IMMUTABLE_TEST
+              - paragraph [ref=e155]: Test Vendor F94
+              - generic [ref=e156]:
+                - generic [ref=e157]: María González
+                - button "✓" [ref=e159]
+            - generic [ref=e160] [cursor=pointer]:
+              - generic [ref=e161]:
+                - generic [ref=e162]: "#37"
+                - generic [ref=e163]: $40.000
+              - paragraph [ref=e164]: FEAT84_PIPELINE_4
+              - paragraph [ref=e165]: Vendor FEAT84_4
+              - generic [ref=e166]:
+                - generic [ref=e167]: María González
+                - button "✓" [ref=e169]
+            - generic [ref=e170] [cursor=pointer]:
+              - generic [ref=e171]:
+                - generic [ref=e172]: "#38"
+                - generic [ref=e173]: $50.000
+              - paragraph [ref=e174]: FEAT84_PIPELINE_5
+              - paragraph [ref=e175]: Vendor FEAT84_5
+              - generic [ref=e176]:
+                - generic [ref=e177]: María González
+                - button "✓" [ref=e179]
+            - generic [ref=e180] [cursor=pointer]:
+              - generic [ref=e181]:
+                - generic [ref=e182]: "#30"
+                - generic [ref=e183]: $20.000
+              - paragraph [ref=e184]: FEAT82_DESCRIPTION_EDITED
+              - paragraph [ref=e185]: Beneficiary Updated FEAT82
+              - generic [ref=e186]:
+                - generic [ref=e187]: Carlos López
+                - button "✓" [ref=e189]
+            - generic [ref=e190] [cursor=pointer]:
+              - generic [ref=e191]:
+                - generic [ref=e192]: "#29"
+                - generic [ref=e193]: $75.000
+              - paragraph [ref=e194]: TEST_F74_ATTACHMENT - Compra de materiales para test de adjuntos
+              - paragraph [ref=e195]: Proveedor Test F74
+              - generic [ref=e196]:
+                - generic [ref=e197]: Carlos López
+                - button "✓" [ref=e199]
+            - generic [ref=e200] [cursor=pointer]:
+              - generic [ref=e201]:
+                - generic [ref=e202]: "#24"
+                - generic [ref=e203]: $25.000
+              - paragraph [ref=e204]: Feature 62 test - Compra materiales escolares
+              - paragraph [ref=e205]: Librería Test
+              - generic [ref=e206]:
+                - generic [ref=e207]: Carlos López
+                - button "✓" [ref=e209]
+            - generic [ref=e210] [cursor=pointer]:
+              - generic [ref=e211]:
+                - generic [ref=e212]: "#20"
+                - generic [ref=e213]: $30.000
+              - paragraph [ref=e214]: Feature 61 test payment request 3
+              - paragraph [ref=e215]: Test Beneficiary 3
+              - generic [ref=e216]:
+                - generic [ref=e217]: Carlos López
+                - button "✓" [ref=e219]
+            - generic [ref=e220] [cursor=pointer]:
+              - generic [ref=e221]:
+                - generic [ref=e222]: "#15"
+                - generic [ref=e223]: $100.000
+              - paragraph [ref=e224]: Compra materiales taller
+              - paragraph [ref=e225]: Proveedor ABC
+              - generic [ref=e226]:
+                - generic [ref=e227]: Carlos López
+                - button "✓" [ref=e229]
+            - generic [ref=e230] [cursor=pointer]:
+              - generic [ref=e231]:
+                - generic [ref=e232]: "#14"
+                - generic [ref=e233]: $50.000
+              - paragraph [ref=e234]: TEST_F39_Compra materiales
+              - paragraph [ref=e235]: Proveedor XYZ
+              - generic [ref=e236]:
+                - generic [ref=e237]: María González
+                - button "✓" [ref=e239]
+            - generic [ref=e240] [cursor=pointer]:
+              - generic [ref=e241]:
+                - generic [ref=e242]: "#7"
+                - generic [ref=e243]: $50.000
+              - paragraph [ref=e244]: TEST28_PENDIENTE
+              - paragraph [ref=e245]: Vendor Pendiente
+              - generic [ref=e246]:
+                - generic [ref=e247]: María González
+                - button "✓" [ref=e249]
+            - generic [ref=e250] [cursor=pointer]:
+              - generic [ref=e251]:
+                - generic [ref=e252]: "#9"
+                - generic [ref=e253]: $20.000
+              - paragraph [ref=e254]: TEST28_RECHAZADO
+              - paragraph [ref=e255]: Vendor Rechazado
+              - generic [ref=e256]:
+                - generic [ref=e257]: María González
+                - button "✓" [ref=e259]
+            - generic [ref=e260] [cursor=pointer]:
+              - generic [ref=e261]:
+                - generic [ref=e262]: "#5"
+                - generic [ref=e263]: $10.000
+              - paragraph [ref=e264]: FEAT17_TEST_DELEGADO
+              - paragraph [ref=e265]: Test Beneficiary
+              - generic [ref=e266]:
+                - generic [ref=e267]: Carlos López
+                - button "✓" [ref=e269]
+            - generic [ref=e270] [cursor=pointer]:
+              - generic [ref=e271]:
+                - generic [ref=e272]: "#1"
+                - generic [ref=e273]: $50.000
+              - paragraph [ref=e274]: TEST_FEATURE21_payment
+              - paragraph [ref=e275]: Proveedor Test
+              - generic [ref=e276]:
+                - generic [ref=e277]: María González
+                - button "✓" [ref=e279]
+        - generic [ref=e280]:
+          - generic [ref=e282]:
+            - heading "Aprobado" [level=3] [ref=e283]
+            - generic [ref=e284]: "6"
+          - generic [ref=e285]:
+            - generic [ref=e286] [cursor=pointer]:
+              - generic [ref=e287]:
+                - generic [ref=e288]: "#35"
+                - generic [ref=e289]: $20.000
+              - paragraph [ref=e290]: FEAT84_PIPELINE_2
+              - paragraph [ref=e291]: Vendor FEAT84_2
+              - generic [ref=e293]: María González
+            - generic [ref=e294] [cursor=pointer]:
+              - generic [ref=e295]:
+                - generic [ref=e296]: "#32"
+                - generic [ref=e297]: $35.000
+              - paragraph [ref=e298]: FEAT83_PRESIDENTE_CREATE - Gasto creado por presidente
+              - paragraph [ref=e299]: Proveedor Presidente FEAT83
+              - generic [ref=e301]: María González
+            - generic [ref=e302] [cursor=pointer]:
+              - generic [ref=e303]:
+                - generic [ref=e304]: "#26"
+                - generic [ref=e305]: $30.000
+              - paragraph [ref=e306]: F63_TEST_Aprobacion_Notificacion
+              - paragraph [ref=e307]: Proveedor F63
+              - generic [ref=e309]: Carlos López
+            - generic [ref=e310] [cursor=pointer]:
+              - generic [ref=e311]:
+                - generic [ref=e312]: "#18"
+                - generic [ref=e313]: $10.000
+              - paragraph [ref=e314]: Feature 61 test payment request 1
+              - paragraph [ref=e315]: Test Beneficiary 1
+              - generic [ref=e317]: Carlos López
+            - generic [ref=e318] [cursor=pointer]:
+              - generic [ref=e319]:
+                - generic [ref=e320]: "#19"
+                - generic [ref=e321]: $20.000
+              - paragraph [ref=e322]: Feature 61 test payment request 2
+              - paragraph [ref=e323]: Test Beneficiary 2
+              - generic [ref=e325]: Carlos López
+            - generic [ref=e326] [cursor=pointer]:
+              - generic [ref=e327]:
+                - generic [ref=e328]: "#2"
+                - generic [ref=e329]: $75.000
+              - paragraph [ref=e330]: TEST_F21_verify
+              - paragraph [ref=e331]: Test Vendor
+              - generic [ref=e333]: María González
+        - generic [ref=e334]:
+          - generic [ref=e336]:
+            - heading "Rechazado" [level=3] [ref=e337]
+            - generic [ref=e338]: "6"
+          - generic [ref=e339]:
+            - generic [ref=e340] [cursor=pointer]:
+              - generic [ref=e341]:
+                - generic [ref=e342]: "#36"
+                - generic [ref=e343]: $30.000
+              - paragraph [ref=e344]: FEAT84_PIPELINE_3
+              - paragraph [ref=e345]: Vendor FEAT84_3
+              - generic [ref=e347]: María González
+            - generic [ref=e348] [cursor=pointer]:
+              - generic [ref=e349]:
+                - generic [ref=e350]: "#33"
+                - generic [ref=e351]: $50.000
+              - paragraph [ref=e352]: TEST_F80_REJECT_CHECK
+              - paragraph [ref=e353]: Test Beneficiary F80
+              - generic [ref=e355]: Carlos López
+            - generic [ref=e356] [cursor=pointer]:
+              - generic [ref=e357]:
+                - generic [ref=e358]: "#23"
+                - generic [ref=e359]: $50.000
+              - paragraph [ref=e360]: FEAT64_TEST_REJECTION_1770568905832
+              - paragraph [ref=e361]: Test Beneficiary FEAT64
+              - generic [ref=e363]: Carlos López
+            - generic [ref=e364] [cursor=pointer]:
+              - generic [ref=e365]:
+                - generic [ref=e366]: "#22"
+                - generic [ref=e367]: $50.000
+              - paragraph [ref=e368]: FEAT64_TEST_REJECTION_1770568878181
+              - paragraph [ref=e369]: Test Beneficiary FEAT64
+              - generic [ref=e371]: Carlos López
+            - generic [ref=e372] [cursor=pointer]:
+              - generic [ref=e373]:
+                - generic [ref=e374]: "#13"
+                - generic [ref=e375]: $20.000
+              - paragraph [ref=e376]: F28_RECH_UNIQUE
+              - paragraph [ref=e377]: Vendor Rechazado
+              - generic [ref=e379]: María González
+            - generic [ref=e380] [cursor=pointer]:
+              - generic [ref=e381]:
+                - generic [ref=e382]: "#10"
+                - generic [ref=e383]: $10.000
+              - paragraph [ref=e384]: DEBUG_CREATE
+              - paragraph [ref=e385]: Debug Vendor
+              - generic [ref=e387]: María González
+        - generic [ref=e388]:
+          - generic [ref=e390]:
+            - heading "Ejecutado" [level=3] [ref=e391]
+            - generic [ref=e392]: "8"
+          - generic [ref=e393]:
+            - generic [ref=e394] [cursor=pointer]:
+              - generic [ref=e395]:
+                - generic [ref=e396]: "#41"
+                - generic [ref=e397]: $50.000
+              - paragraph [ref=e398]: TEST_COMPROBANTE_95_1770602152195
+              - paragraph [ref=e399]: Test Vendor Feature95
+              - generic [ref=e401]: María González
+            - generic [ref=e402] [cursor=pointer]:
+              - generic [ref=e403]:
+                - generic [ref=e404]: "#39"
+                - generic [ref=e405]: $75.000
+              - paragraph [ref=e406]: TEST_F81_EXECUTED_CHECK
+              - paragraph [ref=e407]: Test Beneficiary F81
+              - generic [ref=e409]: Carlos López
+            - generic [ref=e410] [cursor=pointer]:
+              - generic [ref=e411]:
+                - generic [ref=e412]: "#34"
+                - generic [ref=e413]: $10.000
+              - paragraph [ref=e414]: FEAT84_PIPELINE_1
+              - paragraph [ref=e415]: Vendor FEAT84_1
+              - generic [ref=e417]: María González
+            - generic [ref=e418] [cursor=pointer]:
+              - generic [ref=e419]:
+                - generic [ref=e420]: "#27"
+                - generic [ref=e421]: $55.000
+              - paragraph [ref=e422]: FEAT76_E2E_EDITED_1770570020707
+              - paragraph [ref=e423]: Proveedor E2E Editado
+              - generic [ref=e425]: Carlos López
+            - generic [ref=e426] [cursor=pointer]:
+              - generic [ref=e427]:
+                - generic [ref=e428]: "#25"
+                - generic [ref=e429]: $75.000
+              - paragraph [ref=e430]: FEAT65_EXEC_TEST_1770569095706
+              - paragraph [ref=e431]: Test Vendor FEAT65
+              - generic [ref=e433]: Carlos López
+            - generic [ref=e434] [cursor=pointer]:
+              - generic [ref=e435]:
+                - generic [ref=e436]: "#16"
+                - generic [ref=e437]: $85.000
+              - paragraph [ref=e438]: FEAT52_APPROVE_TEST - Compra materiales didácticos
+              - paragraph [ref=e439]: Librería Test FEAT52
+              - generic [ref=e441]: Carlos López
+            - generic [ref=e442] [cursor=pointer]:
+              - generic [ref=e443]:
+                - generic [ref=e444]: "#11"
+                - generic [ref=e445]: $50.000
+              - paragraph [ref=e446]: F28_PEND_UNIQUE
+              - paragraph [ref=e447]: Vendor Pendiente
+              - generic [ref=e449]: María González
+            - generic [ref=e450] [cursor=pointer]:
+              - generic [ref=e451]:
+                - generic [ref=e452]: "#6"
+                - generic [ref=e453]: $25.000
+              - paragraph [ref=e454]: FEATURE20_TEST_EXECUTE
+              - paragraph [ref=e455]: Test F20 Vendor
+              - generic [ref=e457]: María González
+      - generic [ref=e459]:
+        - heading "Nueva Solicitud de Pago" [level=2] [ref=e460]
+        - generic [ref=e461]:
+          - generic [ref=e462]:
+            - generic [ref=e463]: Monto (CLP) *
+            - spinbutton [ref=e464]
+            - paragraph [ref=e478]: El monto es requerido
+          - generic [ref=e465]:
+            - generic [ref=e466]: Categoría *
+            - combobox [ref=e467]:
+              - option "Seleccionar categoría" [selected]
+              - option "Eventos"
+              - option "Infraestructura"
+              - option "Otro"
+              - option "Servicios"
+              - option "Suministros"
+              - option "Transporte"
+            - paragraph [ref=e479]: La categoría es requerida
+          - generic [ref=e468]:
+            - generic [ref=e469]: Descripción *
+            - textbox "Compra de materiales..." [ref=e470]
+            - paragraph [ref=e480]: La descripción es requerida
+          - generic [ref=e471]:
+            - generic [ref=e472]: Beneficiario *
+            - textbox "Proveedor XYZ" [ref=e473]
+            - paragraph [ref=e481]: El beneficiario es requerido
+          - generic [ref=e474]:
+            - button "Cancelar" [ref=e475]
+            - button "Guardar Borrador" [ref=e476]
+            - button "Enviar" [ref=e477]

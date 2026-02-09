@@ -1,4 +1,0 @@
-This is a test attachment file for Feature 74 verification.
-Created: 2026-02-09
-Purpose: Verify attachment upload and download functionality.
-Content: TEST_F74_ATTACHMENT_CONTENT_12345

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/AuthContext';
 import { api } from '../lib/api';
+import NetworkError from '../components/NetworkError';
 
 const TYPE_ICONS = {
   solicitud_creada: '📝',
@@ -17,6 +18,7 @@ export default function Notificaciones() {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isNetworkError, setIsNetworkError] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
   async function loadNotifications() {
@@ -27,6 +29,7 @@ export default function Notificaciones() {
       setUnreadCount(data.unread_count || 0);
     } catch (err) {
       setError(err.message);
+      setIsNetworkError(!!err.isNetworkError);
     } finally {
       setLoading(false);
     }
@@ -102,8 +105,24 @@ export default function Notificaciones() {
         <div className="text-center py-12 text-gray-400">Cargando notificaciones...</div>
       )}
 
-      {error && (
-        <div className="text-center py-12 text-red-500">{error}</div>
+      {error && isNetworkError && (
+        <NetworkError
+          message={error}
+          onRetry={async () => { setError(null); setIsNetworkError(false); await loadNotifications(); }}
+        />
+      )}
+      {error && !isNetworkError && (
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6 text-center">
+          <div className="text-3xl mb-2">⚠️</div>
+          <h3 className="text-lg font-semibold text-red-800 dark:text-red-300 mb-1">Error al cargar datos</h3>
+          <p className="text-red-600 dark:text-red-400 text-sm mb-3">{error}</p>
+          <button
+            onClick={() => { setError(null); loadNotifications(); }}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
+          >
+            Reintentar
+          </button>
+        </div>
       )}
 
       {!loading && !error && notifications.length === 0 && (
