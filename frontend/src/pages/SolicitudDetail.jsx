@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/AuthContext';
 import { api } from '../lib/api';
@@ -42,6 +42,7 @@ export default function SolicitudDetail() {
   const [actionLoading, setActionLoading] = useState(false);
   const [feedback, setFeedback] = useState(null);
   const [rejectComment, setRejectComment] = useState('');
+  const [rejectConfirm, setRejectConfirm] = useState(false);
   const [executeFile, setExecuteFile] = useState(null);
   const [attachments, setAttachments] = useState([]);
   const [uploadFile, setUploadFile] = useState(null);
@@ -50,6 +51,7 @@ export default function SolicitudDetail() {
   const [showEditForm, setShowEditForm] = useState(false);
   const [editData, setEditData] = useState({ amount: '', description: '', beneficiary: '', category_id: '' });
   const [categories, setCategories] = useState([]);
+  const actionRef = useRef(false);
 
   useEffect(() => {
     loadDetail();
@@ -83,6 +85,9 @@ export default function SolicitudDetail() {
   }
 
   async function handleApprove() {
+    // Prevent double-click: ref guard blocks re-entry before React re-renders
+    if (actionRef.current) return;
+    actionRef.current = true;
     try {
       setActionLoading(true);
       await api.post(`/payment-requests/${id}/approve`, {});
@@ -94,6 +99,7 @@ export default function SolicitudDetail() {
     } catch (err) {
       setFeedback({ type: 'error', message: err.message });
     } finally {
+      actionRef.current = false;
       setActionLoading(false);
     }
   }
@@ -103,6 +109,9 @@ export default function SolicitudDetail() {
       setFeedback({ type: 'error', message: 'El comentario es obligatorio al rechazar' });
       return;
     }
+    // Prevent double-click: ref guard blocks re-entry before React re-renders
+    if (actionRef.current) return;
+    actionRef.current = true;
     try {
       setActionLoading(true);
       await api.post(`/payment-requests/${id}/reject`, { comment: rejectComment });
@@ -115,6 +124,7 @@ export default function SolicitudDetail() {
     } catch (err) {
       setFeedback({ type: 'error', message: err.message });
     } finally {
+      actionRef.current = false;
       setActionLoading(false);
     }
   }
@@ -124,6 +134,9 @@ export default function SolicitudDetail() {
       setFeedback({ type: 'error', message: 'Debe adjuntar un comprobante de pago para ejecutar la solicitud' });
       return;
     }
+    // Prevent double-click: ref guard blocks re-entry before React re-renders
+    if (actionRef.current) return;
+    actionRef.current = true;
     try {
       setActionLoading(true);
       const formData = new FormData();
@@ -139,11 +152,15 @@ export default function SolicitudDetail() {
     } catch (err) {
       setFeedback({ type: 'error', message: err.message });
     } finally {
+      actionRef.current = false;
       setActionLoading(false);
     }
   }
 
   async function handleSubmit() {
+    // Prevent double-click: ref guard blocks re-entry before React re-renders
+    if (actionRef.current) return;
+    actionRef.current = true;
     try {
       setActionLoading(true);
       await api.post(`/payment-requests/${id}/submit`, {});
@@ -155,6 +172,7 @@ export default function SolicitudDetail() {
     } catch (err) {
       setFeedback({ type: 'error', message: err.message });
     } finally {
+      actionRef.current = false;
       setActionLoading(false);
     }
   }

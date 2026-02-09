@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../lib/AuthContext';
 import { api } from '../lib/api';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
@@ -31,16 +31,20 @@ export default function Dashboard() {
   const [loadError, setLoadError] = useState(null);
   const [isNetworkError, setIsNetworkError] = useState(false);
 
+  var isMountedRef = useRef(true);
   useEffect(() => {
+    isMountedRef.current = true;
     loadDashboard();
     loadChartData();
     loadCategoryData();
+    return function() { isMountedRef.current = false; };
   }, []);
 
   async function loadDashboard() {
     try {
       setLoading(true);
       const data = await api.get('/dashboard/summary');
+      if (!isMountedRef.current) return;
       setSummary(data);
     } catch (err) {
       console.error('Error loading dashboard:', err);
@@ -55,6 +59,7 @@ export default function Dashboard() {
     try {
       setChartLoading(true);
       const data = await api.get('/dashboard/chart');
+      if (!isMountedRef.current) return;
       setChartData(data.months || []);
     } catch (err) {
       console.error('Error loading chart data:', err);
@@ -67,6 +72,7 @@ export default function Dashboard() {
     try {
       setCategoryLoading(true);
       const data = await api.get('/dashboard/categories');
+      if (!isMountedRef.current) return;
       setCategoryData(data.categories || []);
     } catch (err) {
       console.error('Error loading category data:', err);

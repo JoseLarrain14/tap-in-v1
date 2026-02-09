@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../lib/AuthContext';
 import { api } from '../lib/api';
 import * as XLSX from 'xlsx';
@@ -9,6 +10,7 @@ import { formatCLP, formatDate } from '../lib/formatters';
 
 export default function Ingresos() {
   const { user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [transactions, setTransactions] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -17,20 +19,42 @@ export default function Ingresos() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [deleting, setDeleting] = useState(false);
-  // Filter state
-  const [filterCategory, setFilterCategory] = useState('');
-  const [filterFrom, setFilterFrom] = useState('');
-  const [filterTo, setFilterTo] = useState('');
-  const [filterSearch, setFilterSearch] = useState('');
-  const [showFilters, setShowFilters] = useState(false);
-  // Sort state
-  const [sortBy, setSortBy] = useState('date');
-  const [sortOrder, setSortOrder] = useState('desc');
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
+  // Filter state - initialize from URL params
+  const [filterCategory, setFilterCategory] = useState(searchParams.get('category') || '');
+  const [filterFrom, setFilterFrom] = useState(searchParams.get('from') || '');
+  const [filterTo, setFilterTo] = useState(searchParams.get('to') || '');
+  const [filterSearch, setFilterSearch] = useState(searchParams.get('search') || '');
+  const [showFilters, setShowFilters] = useState(!!(searchParams.get('from') || searchParams.get('to')));
+  // Sort state - initialize from URL params
+  const [sortBy, setSortBy] = useState(searchParams.get('sort_by') || 'date');
+  const [sortOrder, setSortOrder] = useState(searchParams.get('sort_order') || 'desc');
+  // Pagination state - initialize from URL params
+  const [currentPage, setCurrentPage] = useState(parseInt(searchParams.get('page')) || 1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalRecords, setTotalRecords] = useState(0);
   const pageSize = 15;
+
+  // Update URL search params when filters change
+  const updateUrlParams = useCallback((overrides = {}) => {
+    const params = new URLSearchParams();
+    const cat = overrides.category !== undefined ? overrides.category : filterCategory;
+    const from = overrides.from !== undefined ? overrides.from : filterFrom;
+    const to = overrides.to !== undefined ? overrides.to : filterTo;
+    const search = overrides.search !== undefined ? overrides.search : filterSearch;
+    const sb = overrides.sort_by !== undefined ? overrides.sort_by : sortBy;
+    const so = overrides.sort_order !== undefined ? overrides.sort_order : sortOrder;
+    const pg = overrides.page !== undefined ? overrides.page : currentPage;
+
+    if (cat) params.set('category', cat);
+    if (from) params.set('from', from);
+    if (to) params.set('to', to);
+    if (search) params.set('search', search);
+    if (sb && sb !== 'date') params.set('sort_by', sb);
+    if (so && so !== 'desc') params.set('sort_order', so);
+    if (pg && pg > 1) params.set('page', pg.toString());
+
+    setSearchParams(params, { replace: true });
+  }, [filterCategory, filterFrom, filterTo, filterSearch, sortBy, sortOrder, currentPage, setSearchParams]);
 
   const [form, setForm] = useState({
     amount: '',
@@ -55,6 +79,11 @@ export default function Ingresos() {
   const [saving, setSaving] = useState(false);
   const [editSaving, setEditSaving] = useState(false);
   const [formErrors, setFormErrors] = useState({});
+  const [formSubmitted, setFormSubmitted] = useState(false);
+  const [editFormSubmitted, setEditFormSubmitted] = useState(false);
+  const isMountedRef = useRef(true);
+  const submittingRef = useRef(false);
+  const editSubmittingRef = useRef(false);
 
   const hasActiveFilters = filterCategory || filterFrom || filterTo || filterSearch;
 
@@ -81,7 +110,9 @@ export default function Ingresos() {
   }
 
   useEffect(() => {
+    isMountedRef.current = true;
     loadData();
+    return function() { isMountedRef.current = false; };
   }, []);
 
   async function loadData(filterOverrides = {}, { silent = false } = {}) {
@@ -91,6 +122,7 @@ export default function Ingresos() {
         api.get(`/transactions?${buildFilterQuery(filterOverrides)}`),
         api.get('/categories')
       ]);
+      if (!isMountedRef.current) return;
       setTransactions(txRes.transactions || []);
       if (txRes.pagination) {
         setTotalPages(txRes.pagination.pages || 1);
@@ -113,6 +145,7 @@ export default function Ingresos() {
   function applyFilters() {
     setCurrentPage(1);
     loadData({ page: 1 });
+    updateUrlParams({ page: 1 });
   }
 
   function clearFilters() {
@@ -122,6 +155,7 @@ export default function Ingresos() {
     setFilterSearch('');
     setCurrentPage(1);
     loadData({ category: '', from: '', to: '', search: '', page: 1 });
+    updateUrlParams({ category: '', from: '', to: '', search: '', page: 1 });
   }
 
   function handleSort(column) {
@@ -133,12 +167,14 @@ export default function Ingresos() {
     setSortOrder(newOrder);
     setCurrentPage(1);
     loadData({ sort_by: column, sort_order: newOrder, page: 1 });
+    updateUrlParams({ sort_by: column, sort_order: newOrder, page: 1 });
   }
 
   function goToPage(page) {
     if (page < 1 || page > totalPages) return;
     setCurrentPage(page);
     loadData({ page });
+    updateUrlParams({ page });
   }
 
   function SortArrow({ column }) {
@@ -225,10 +261,14 @@ export default function Ingresos() {
     e.preventDefault();
     setError('');
 
+    // Prevent double-click and back-resubmit: ref guard + submitted flag
+    if (submittingRef.current || formSubmitted) return;
+
     const errors = validateIncomeForm(form);
     setFormErrors(errors);
     if (Object.keys(errors).length > 0) return;
 
+    submittingRef.current = true;
     setSaving(true);
 
     try {
@@ -243,6 +283,7 @@ export default function Ingresos() {
       };
 
       await api.post('/transactions', payload);
+      setFormSubmitted(true);
       setShowModal(false);
       setForm({
         amount: '',
@@ -259,6 +300,7 @@ export default function Ingresos() {
         ? 'No se pudo conectar con el servidor. Verifique su conexión e intente nuevamente.'
         : (err.message || 'Error al registrar ingreso'));
     } finally {
+      submittingRef.current = false;
       setSaving(false);
     }
   }
@@ -288,12 +330,16 @@ export default function Ingresos() {
       payer_rut: tx.payer_rut || ''
     });
     setEditError('');
+    setEditFormSubmitted(false);
     setShowEditModal(true);
   }
 
   async function handleEditSubmit(e) {
     e.preventDefault();
     setEditError('');
+
+    // Prevent double-click and back-resubmit: ref guard + submitted flag
+    if (editSubmittingRef.current || editFormSubmitted) return;
 
     // Validate amount
     const amt = parseFloat(editForm.amount);
@@ -302,6 +348,7 @@ export default function Ingresos() {
       return;
     }
 
+    editSubmittingRef.current = true;
     setEditSaving(true);
 
     try {
@@ -315,12 +362,14 @@ export default function Ingresos() {
       };
 
       await api.put(`/transactions/${editingTransaction.id}`, payload);
+      setEditFormSubmitted(true);
       setShowEditModal(false);
       setEditingTransaction(null);
       loadData({}, { silent: true });
     } catch (err) {
       setEditError(err.message || 'Error al actualizar ingreso');
     } finally {
+      editSubmittingRef.current = false;
       setEditSaving(false);
     }
   }
@@ -348,7 +397,7 @@ export default function Ingresos() {
               {exporting ? 'Exportando...' : 'Exportar Excel'}
             </button>
             <button
-              onClick={() => { setShowModal(true); setFormErrors({}); }}
+              onClick={() => { setShowModal(true); setFormErrors({}); setFormSubmitted(false); setError(''); }}
               className="px-4 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium text-sm"
             >
               + Registrar Ingreso
@@ -512,7 +561,7 @@ export default function Ingresos() {
             </button>
           ) : (
             <button
-              onClick={() => { setShowModal(true); setFormErrors({}); }}
+              onClick={() => { setShowModal(true); setFormErrors({}); setFormSubmitted(false); setError(''); }}
               className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium"
             >
               Registrar primer ingreso

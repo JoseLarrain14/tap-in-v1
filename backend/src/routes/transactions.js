@@ -143,6 +143,19 @@ router.post('/', requireActive, (req, res) => {
     }
   }
 
+  // Deduplication: reject if same user created same type+amount+description within last 5 seconds
+  const recentDup = db.prepare(`
+    SELECT id FROM transactions
+    WHERE organization_id = ? AND type = ? AND amount = ? AND description IS ? AND created_by = ?
+      AND deleted_at IS NULL
+      AND created_at > datetime('now', '-5 seconds')
+    LIMIT 1
+  `).get(orgId, type, amount, description || null, userId);
+
+  if (recentDup) {
+    return res.status(409).json({ error: 'Registro duplicado detectado. Por favor espere unos segundos antes de intentar nuevamente.' });
+  }
+
   const result = db.prepare(`
     INSERT INTO transactions (organization_id, type, amount, category_id, description, date, payer_name, payer_rut, beneficiary, source, created_by, period_year)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'manual', ?, ?)

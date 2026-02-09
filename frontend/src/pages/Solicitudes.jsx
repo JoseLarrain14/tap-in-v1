@@ -65,6 +65,7 @@ export default function Solicitudes() {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [rejectComment, setRejectComment] = useState('');
+  const [rejectConfirm, setRejectConfirm] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
   const actionRef = useRef(false);
   const isMountedRef = useRef(true);
@@ -317,11 +318,16 @@ export default function Solicitudes() {
     }
   }
 
-  async function handleReject(id) {
+  function showRejectConfirmation(id) {
     if (!rejectComment.trim()) {
       setFeedback({ type: 'error', message: 'El comentario es obligatorio al rechazar' });
       return;
     }
+    const req = requests.find(r => r.id === id);
+    setRejectConfirm({ id, request: req });
+  }
+
+  async function handleReject(id) {
     // Prevent double-click: ref guard blocks re-entry before React re-renders
     if (actionRef.current) return;
     actionRef.current = true;
@@ -341,6 +347,7 @@ export default function Solicitudes() {
       }), 600);
       setFeedback({ type: 'success', message: 'Solicitud rechazada' });
       setRejectComment('');
+      setRejectConfirm(null);
       setShowDetailModal(false);
       // Background sync
       loadRequests({}, { silent: true });
@@ -1024,7 +1031,7 @@ export default function Solicitudes() {
                     rows={2}
                   />
                   <button
-                    onClick={() => handleReject(selectedRequest.id)}
+                    onClick={() => showRejectConfirmation(selectedRequest.id)}
                     disabled={actionLoading}
                     className="mt-2 w-full px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-50"
                   >
@@ -1063,6 +1070,46 @@ export default function Solicitudes() {
                 </p>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Reject Confirmation Modal */}
+      {rejectConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+            <div className="text-center">
+              <div className="text-4xl mb-3">⚠️</div>
+              <h2 className="text-lg font-semibold text-gray-900 mb-2">Confirmar rechazo</h2>
+              <p className="text-gray-600 text-sm mb-1">
+                ¿Estás seguro de rechazar esta solicitud?
+              </p>
+              {rejectConfirm.request && (
+                <p className="text-gray-800 font-medium text-sm mb-2">
+                  {rejectConfirm.request.description} — {formatCLP(rejectConfirm.request.amount)}
+                </p>
+              )}
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4 text-left">
+                <p className="text-xs font-medium text-red-700 mb-1">Motivo de rechazo:</p>
+                <p className="text-sm text-red-800">{rejectComment}</p>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setRejectConfirm(null)}
+                  disabled={actionLoading}
+                  className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={() => handleReject(rejectConfirm.id)}
+                  disabled={actionLoading}
+                  className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium disabled:opacity-50"
+                >
+                  {actionLoading ? <><Spinner size={16} className="inline mr-1.5" />Rechazando...</> : 'Confirmar Rechazo'}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
