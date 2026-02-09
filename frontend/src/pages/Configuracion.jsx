@@ -55,6 +55,7 @@ export default function Configuracion() {
     name: '',
     role: 'delegado',
   });
+  const [inviteError, setInviteError] = useState('');
 
   const isPresidente = user?.role === 'presidente';
 
@@ -91,15 +92,17 @@ export default function Configuracion() {
 
   async function handleInvite(e) {
     e.preventDefault();
+    setInviteError('');
     try {
       setActionLoading(true);
       const result = await api.post('/users/invite', inviteForm);
       setFeedback({ type: 'success', message: result.message || 'Usuario invitado exitosamente' });
       setShowInviteModal(false);
       setInviteForm({ email: '', name: '', role: 'delegado' });
+      setInviteError('');
       loadUsers();
     } catch (err) {
-      setFeedback({ type: 'error', message: err.message });
+      setInviteError(err.message || 'Error al invitar usuario');
     } finally {
       setActionLoading(false);
     }
@@ -251,7 +254,7 @@ export default function Configuracion() {
             <h2 className="text-lg font-medium text-gray-900">Usuarios del CPP</h2>
             {isPresidente && (
               <button
-                onClick={() => setShowInviteModal(true)}
+                onClick={() => { setInviteError(''); setShowInviteModal(true); }}
                 className="px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
               >
                 + Invitar Usuario
@@ -507,6 +510,11 @@ export default function Configuracion() {
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Invitar Usuario</h2>
+            {inviteError && (
+              <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm" data-testid="invite-error">
+                {inviteError}
+              </div>
+            )}
             <form onSubmit={handleInvite} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Nombre completo</label>
