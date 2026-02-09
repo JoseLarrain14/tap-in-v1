@@ -1,5 +1,39 @@
 === Tap In V1 - Development Progress ===
 
+## Session 38 - 2026-02-09
+
+### Completed Features:
+- Feature #129: API error messages displayed in Spanish ✅
+- Feature #130: Payment request list shows creator name ✅
+
+### Verification Details:
+
+- Feature #129: All API error messages verified in Spanish
+  - Frontend validation: "El correo electrónico es requerido", "La contraseña es requerida" ✅
+  - Server auth error: "Credenciales inválidas" ✅
+  - Permission error: "No tiene permisos para esta acción" (delegado trying to invite) ✅
+  - Category validation: "Nombre y tipo son requeridos" ✅
+  - Payment request validation: "El monto es requerido", "La descripción es requerida", "El beneficiario es requerido" ✅
+  - Transaction validation: "El tipo es requerido", "La fecha es requerida" ✅
+  - Auth middleware: "Token de autenticación requerido" ✅
+  - No English error messages found in codebase (comprehensive grep of backend and frontend)
+  - All user-facing strings in Spanish throughout the application
+
+- Feature #130: Payment request pipeline shows creator name
+  - Kanban view: Each card displays creator name at bottom (e.g., "Carlos López", "María González") ✅
+  - Table view: "Creado por" column present in table header and populated for all rows ✅
+  - Backend API: Returns `created_by_name` field via SQL JOIN with users table ✅
+  - Multiple users verified: Carlos López (delegado), María González (presidente) ✅
+  - No mock data patterns found (grep for globalThis, devStore, mockData, etc.) ✅
+  - Zero console errors ✅
+
+### Current Status: 125/265 features passing (~47.2%)
+
+### What should be worked on next:
+- Continue with more UI-Backend integration features
+- More pipeline/workflow verification features
+- Additional role-based access control features
+
 ## Session 37 - 2026-02-09
 
 ### Completed Features:
