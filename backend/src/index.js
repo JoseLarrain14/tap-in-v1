@@ -3,6 +3,7 @@ const cors = require('cors');
 const morgan = require('morgan');
 const path = require('path');
 const { initializeDatabase, initializeSchema, seedDefaultData, closeDb } = require('./database');
+const { startScheduler, stopScheduler, checkPendingReminders } = require('./scheduler');
 
 async function startServer() {
   // Initialize database (async for sql.js)
@@ -41,6 +42,12 @@ async function startServer() {
     res.status(500).json({ error: 'Error interno del servidor' });
   });
 
+  // Trigger pending reminders check (development/testing)
+  app.post('/api/debug/check-reminders', (req, res) => {
+    const result = checkPendingReminders();
+    res.json(result);
+  });
+
   // 404 handler
   app.use((req, res) => {
     const msg = `Ruta no encontrada: ${req.method} ${req.path}`;
@@ -69,11 +76,15 @@ async function startServer() {
   const server = app.listen(PORT, () => {
     console.log(`[Server] Tap In V1 backend running on http://localhost:${PORT}`);
     console.log(`[Server] Health check: http://localhost:${PORT}/api/health`);
+
+    // Start the reminder scheduler after server is listening
+    startScheduler();
   });
 
   // Graceful shutdown
   process.on('SIGINT', () => {
     console.log('\n[Server] Shutting down gracefully...');
+    stopScheduler();
     closeDb();
     server.close(() => {
       process.exit(0);
@@ -82,6 +93,7 @@ async function startServer() {
 
   process.on('SIGTERM', () => {
     console.log('\n[Server] Received SIGTERM...');
+    stopScheduler();
     closeDb();
     server.close(() => {
       process.exit(0);

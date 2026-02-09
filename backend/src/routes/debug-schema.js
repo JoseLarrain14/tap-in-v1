@@ -41,4 +41,33 @@ router.get('/', (req, res) => {
   res.json(result);
 });
 
+// POST /api/debug/schema/simulate-age - Set a payment request's updated_at to simulate aging
+// Development only - used for testing reminder notifications
+router.post('/simulate-age', (req, res) => {
+  const db = getDb();
+  const { payment_request_id, days_ago } = req.body;
+
+  if (!payment_request_id || !days_ago) {
+    return res.status(400).json({ error: 'payment_request_id and days_ago are required' });
+  }
+
+  const pr = db.prepare('SELECT id, status, updated_at FROM payment_requests WHERE id = ?').get(payment_request_id);
+  if (!pr) {
+    return res.status(404).json({ error: 'Payment request not found' });
+  }
+
+  db.prepare(
+    "UPDATE payment_requests SET updated_at = datetime('now', ? || ' days') WHERE id = ?"
+  ).run(-Math.abs(days_ago), payment_request_id);
+
+  const updated = db.prepare('SELECT id, status, updated_at FROM payment_requests WHERE id = ?').get(payment_request_id);
+  res.json({
+    success: true,
+    payment_request_id: payment_request_id,
+    old_updated_at: pr.updated_at,
+    new_updated_at: updated.updated_at,
+    simulated_days_ago: days_ago
+  });
+});
+
 module.exports = router;
