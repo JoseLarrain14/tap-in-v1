@@ -1,0 +1,8 @@
+COMPROBANTE DE TRANSFERENCIA
+===========================
+Fecha: 08/02/2026
+Monto: $85,000 CLP
+Beneficiario: Libreria Test FEAT52
+Banco: Banco Test
+N. Operacion: 12345678
+Estado: Completada

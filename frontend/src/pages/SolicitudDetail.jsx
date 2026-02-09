@@ -64,10 +64,27 @@ export default function SolicitudDetail() {
   const [rejectComment, setRejectComment] = useState('');
   const [executeFile, setExecuteFile] = useState(null);
   const [attachments, setAttachments] = useState([]);
+  const [uploadFile, setUploadFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(null);
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [editData, setEditData] = useState({ amount: '', description: '', beneficiary: '', category_id: '' });
+  const [categories, setCategories] = useState([]);
 
   useEffect(() => {
     loadDetail();
+    loadCategories();
   }, [id]);
+
+  async function loadCategories() {
+    try {
+      const data = await api.get('/categories');
+      const cats = (data.categories || data || []).filter(c => c.type === 'egreso');
+      setCategories(cats);
+    } catch (err) {
+      // Categories are optional
+    }
+  }
 
   async function loadDetail() {
     try {
@@ -147,6 +164,65 @@ export default function SolicitudDetail() {
     }
   }
 
+  async function handleUploadAttachment() {
+    if (!uploadFile) return;
+    try {
+      setUploading(true);
+      setUploadProgress('Subiendo archivo...');
+      const formData = new FormData();
+      formData.append('file', uploadFile);
+      formData.append('attachment_type', 'respaldo');
+      await api.upload(`/payment-requests/${id}/attachments`, formData);
+      setFeedback({ type: 'success', message: `Archivo "${uploadFile.name}" adjuntado exitosamente` });
+      setUploadFile(null);
+      setUploadProgress(null);
+      // Reset file input
+      const fileInput = document.getElementById('attachment-upload-input');
+      if (fileInput) fileInput.value = '';
+      loadDetail();
+    } catch (err) {
+      setFeedback({ type: 'error', message: err.message || 'Error al subir archivo' });
+      setUploadProgress(null);
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  function openEditForm() {
+    if (!request) return;
+    setEditData({
+      amount: request.amount.toString(),
+      description: request.description || '',
+      beneficiary: request.beneficiary || '',
+      category_id: request.category_id ? request.category_id.toString() : '',
+    });
+    setShowEditForm(true);
+  }
+
+  async function handleEdit(e) {
+    e.preventDefault();
+    if (!editData.amount || !editData.description || !editData.beneficiary) {
+      setFeedback({ type: 'error', message: 'Monto, descripcion y beneficiario son requeridos' });
+      return;
+    }
+    try {
+      setActionLoading(true);
+      await api.put(`/payment-requests/${id}`, {
+        amount: parseInt(editData.amount),
+        description: editData.description,
+        beneficiary: editData.beneficiary,
+        category_id: editData.category_id ? parseInt(editData.category_id) : undefined,
+      });
+      setShowEditForm(false);
+      setFeedback({ type: 'success', message: 'Solicitud editada exitosamente' });
+      loadDetail();
+    } catch (err) {
+      setFeedback({ type: 'error', message: err.message });
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
   const canApproveReject = user?.role === 'presidente';
   const canExecute = user?.role === 'secretaria';
   const canSubmitDraft = request?.status === 'borrador' && request?.created_by === user?.id;
@@ -207,9 +283,20 @@ export default function SolicitudDetail() {
             Creada por {request.created_by_name} el {formatDate(request.created_at)}
           </p>
         </div>
-        <span className={`inline-flex px-3 py-1.5 rounded-full text-sm font-medium ${STATUS_COLORS[request.status]}`}>
-          {STATUS_LABELS[request.status]}
-        </span>
+        <div className="flex items-center gap-3">
+          {canEditDraft && !showEditForm && (
+            <button
+              onClick={openEditForm}
+              data-testid="edit-draft-btn"
+              className="px-4 py-1.5 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
+            >
+              Editar
+            </button>
+          )}
+          <span className={`inline-flex px-3 py-1.5 rounded-full text-sm font-medium ${STATUS_COLORS[request.status]}`}>
+            {STATUS_LABELS[request.status]}
+          </span>
+        </div>
       </div>
 
       {/* Feedback */}
@@ -231,6 +318,80 @@ export default function SolicitudDetail() {
         </div>
       )}
 
+      {/* Edit Form (inline, replaces detail card when editing) */}
+      {showEditForm && canEditDraft && (
+        <div className="bg-white rounded-xl border border-gray-200 p-6" data-testid="edit-form">
+          <h2 className="text-lg font-medium text-gray-900 mb-4">Editar Solicitud</h2>
+          <form onSubmit={handleEdit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Monto (CLP)</label>
+              <input
+                type="number"
+                required
+                min="1"
+                data-testid="edit-amount"
+                value={editData.amount}
+                onChange={(e) => setEditData({ ...editData, amount: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Descripcion</label>
+              <input
+                type="text"
+                required
+                data-testid="edit-description"
+                value={editData.description}
+                onChange={(e) => setEditData({ ...editData, description: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Beneficiario</label>
+              <input
+                type="text"
+                required
+                data-testid="edit-beneficiary"
+                value={editData.beneficiary}
+                onChange={(e) => setEditData({ ...editData, beneficiary: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Categoria</label>
+              <select
+                data-testid="edit-category"
+                value={editData.category_id}
+                onChange={(e) => setEditData({ ...editData, category_id: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none"
+              >
+                <option value="">Sin categoria</option>
+                {categories.map(c => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowEditForm(false)}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={actionLoading}
+                data-testid="save-edit-btn"
+                className="flex-1 px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors disabled:opacity-50"
+              >
+                {actionLoading ? 'Guardando...' : 'Guardar Cambios'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
       {/* Detail Card */}
       <div className="bg-white rounded-xl border border-gray-200 p-6">
         <h2 className="text-lg font-medium text-gray-900 mb-4">Detalles de la Solicitud</h2>
@@ -238,30 +399,30 @@ export default function SolicitudDetail() {
           <div className="space-y-3">
             <div>
               <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Monto</p>
-              <p className="text-lg font-semibold text-gray-900 mt-0.5">{formatCLP(request.amount)}</p>
+              <p className="text-lg font-semibold text-gray-900 mt-0.5" data-testid="detail-amount">{formatCLP(request.amount)}</p>
             </div>
             <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</p>
-              <p className="text-sm text-gray-900 mt-0.5">{request.description || '-'}</p>
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Descripcion</p>
+              <p className="text-sm text-gray-900 mt-0.5" data-testid="detail-description">{request.description || '-'}</p>
             </div>
             <div>
               <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Beneficiario</p>
-              <p className="text-sm text-gray-900 mt-0.5">{request.beneficiary || '-'}</p>
+              <p className="text-sm text-gray-900 mt-0.5" data-testid="detail-beneficiary">{request.beneficiary || '-'}</p>
             </div>
           </div>
           <div className="space-y-3">
             <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Categoría</p>
-              <p className="text-sm text-gray-900 mt-0.5">{request.category_name || 'Sin categoría'}</p>
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Categoria</p>
+              <p className="text-sm text-gray-900 mt-0.5" data-testid="detail-category">{request.category_name || 'Sin categoria'}</p>
             </div>
             <div>
               <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</p>
-              <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${STATUS_COLORS[request.status]}`}>
+              <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${STATUS_COLORS[request.status]}`} data-testid="detail-status">
                 {STATUS_LABELS[request.status]}
               </span>
             </div>
             <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha de Creación</p>
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha de Creacion</p>
               <p className="text-sm text-gray-900 mt-0.5">{formatDate(request.created_at)}</p>
             </div>
           </div>
@@ -385,6 +546,46 @@ export default function SolicitudDetail() {
           </div>
         </div>
       )}
+
+      {/* Upload Attachment Section */}
+      <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <h2 className="text-lg font-medium text-gray-900 mb-4">Adjuntar Documento</h2>
+        <div className="space-y-3">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Documento de respaldo (imagen o PDF)
+            </label>
+            <input
+              id="attachment-upload-input"
+              type="file"
+              accept=".jpg,.jpeg,.png,.gif,.pdf,.webp"
+              onChange={(e) => setUploadFile(e.target.files[0] || null)}
+              className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 file:cursor-pointer"
+            />
+            {uploadFile && (
+              <p className="mt-1 text-xs text-gray-500">
+                Archivo seleccionado: {uploadFile.name} ({(uploadFile.size / 1024).toFixed(1)} KB)
+              </p>
+            )}
+          </div>
+          {uploadProgress && (
+            <div className="flex items-center gap-2 text-sm text-blue-600">
+              <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              {uploadProgress}
+            </div>
+          )}
+          <button
+            onClick={handleUploadAttachment}
+            disabled={!uploadFile || uploading}
+            className="px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {uploading ? 'Subiendo...' : 'Adjuntar Archivo'}
+          </button>
+        </div>
+      </div>
 
       {/* Attachments section */}
       {attachments.length > 0 && (

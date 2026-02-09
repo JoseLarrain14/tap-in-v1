@@ -586,6 +586,37 @@ router.post('/:id/execute', requireRole('secretaria'), upload.single('comprobant
   res.json(updated);
 });
 
+// POST /api/payment-requests/:id/attachments - Upload attachment to a payment request
+router.post('/:id/attachments', upload.single('file'), (req, res) => {
+  const db = getDb();
+  const orgId = req.user.organization_id;
+  const userId = req.user.id;
+
+  const request = db.prepare(
+    'SELECT id, status FROM payment_requests WHERE id = ? AND organization_id = ?'
+  ).get(req.params.id, orgId);
+
+  if (!request) {
+    return res.status(404).json({ error: 'Solicitud no encontrada' });
+  }
+
+  if (!req.file) {
+    return res.status(400).json({ error: 'No se proporcionó ningún archivo' });
+  }
+
+  const relativePath = '/uploads/' + req.file.filename;
+  const attachmentType = req.body.attachment_type || 'respaldo';
+
+  const result = db.prepare(`
+    INSERT INTO attachments (organization_id, entity_type, entity_id, file_name, file_path, file_type, file_size, attachment_type, uploaded_by)
+    VALUES (?, 'payment_request', ?, ?, ?, ?, ?, ?, ?)
+  `).run(orgId, req.params.id, req.file.originalname, relativePath, req.file.mimetype, req.file.size, attachmentType, userId);
+
+  const attachment = db.prepare('SELECT a.*, u.name as uploaded_by_name FROM attachments a LEFT JOIN users u ON a.uploaded_by = u.id WHERE a.id = ?').get(result.lastInsertRowid);
+
+  res.status(201).json({ message: 'Archivo adjuntado exitosamente', attachment });
+});
+
 // GET /api/payment-requests/:id/attachments - Get attachments for a payment request
 router.get('/:id/attachments', (req, res) => {
   const db = getDb();
