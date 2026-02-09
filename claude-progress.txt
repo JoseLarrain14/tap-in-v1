@@ -1,5 +1,112 @@
 === Tap In V1 - Development Progress ===
 
+## Session 41 - 2026-02-09
+
+### Completed Features:
+- Feature #127: Real-time unread notification count ✅
+- Feature #128: Reminder notification after 3 days ✅
+
+### Verification Details:
+- Feature #127: Real-time unread notification count
+  - Logged in as delegado, noted initial unread count (12)
+  - Created new notification via API (presidente creates for delegado)
+  - After 30s poll, badge auto-updated from 12 → 13
+  - Navigated to Notificaciones page, new notification visible at top
+  - Marked as read, badge decreased from 13 → 12 immediately
+  - Custom event 'notifications-updated' dispatched to sync sidebar
+  - Zero console errors, no mock data patterns
+
+- Feature #128: Reminder notification after 3 days
+  - Created scheduler.js module with checkPendingReminders()
+  - Queries payment_requests with status='pendiente' and updated_at > 3 days ago
+  - Creates 'recordatorio' type notifications for all active presidentes
+  - Prevents duplicate reminders (checks if already reminded within 3 days)
+  - Scheduler starts on server boot + runs every hour via setInterval
+  - Graceful shutdown stops scheduler interval
+  - Test: Created PR #51, simulated 4 days aging via debug endpoint
+  - Triggered check, reminder notification #86 created for presidente
+  - Verified in UI: 🔔 "Recordatorio: solicitud pendiente" visible
+  - Duplicate check: Running again creates 0 new reminders
+  - Data persists after full server restart
+  - Zero console errors
+
+### Files Created/Modified:
+- backend/src/scheduler.js (NEW): Periodic reminder check logic
+- backend/src/index.js: Integrated scheduler startup/shutdown
+- backend/src/routes/debug-schema.js: Added simulate-age debug endpoint
+
+### Current Status: 130/265 features passing (49.1%)
+
+### What should be worked on next:
+- More UI-Backend integration features
+- Export/reporting features
+- Additional notification types and filtering
+- User management features
+
+## Session 40 - 2026-02-09
+
+### Completed Features:
+- Feature #134: Sidebar collapse state persists in localStorage ✅
+- Feature #135: Pipeline view preference persists ✅
+- Feature #136: Filter state resets on page change ✅
+
+### Verification Details:
+- Feature #134: Collapsed sidebar, opened new tab - sidebar stayed collapsed.
+  Expanded sidebar, closed and reopened tab - sidebar stayed expanded.
+  Uses localStorage key 'sidebar_collapsed' in Layout.jsx.
+
+- Feature #135: Switched from Kanban to Table view on Solicitudes (Egresos) page.
+  Navigated to Dashboard and back - Table view still selected.
+  Full page refresh - Table view still persisted.
+  Uses localStorage key 'solicitudes_view' in Solicitudes.jsx.
+
+- Feature #136: Applied category filter ("Donación") and date filter ("2026-02-08") on Ingresos page.
+  Navigated to Dashboard via client-side navigation.
+  Navigated back to Ingresos - all filters cleared: category back to "Todas las categorías",
+  date filters hidden, search empty, showing all 32 records.
+  Filters use React useState (not localStorage), so they reset on component unmount/remount.
+
+### Changes Made:
+- None - all three features were already implemented. Verification only.
+
+### Current Status: 136/265 features passing (~51.3%)
+
+### What should be worked on next:
+- Continue with remaining State & Persistence features
+- UI polish and accessibility features
+- More testing of edge cases
+
+## Session 39 - 2026-02-09
+
+### Completed Features:
+- Feature #131: Refresh mid-form preserves nothing (intentional) ✅
+- Feature #132: Session survives multiple tab navigation ✅
+- Feature #133: Logout in one tab affects other tabs ✅
+
+### Verification Details:
+- Feature #131: Opened income creation form, filled fields (Monto, Categoría, Descripción, Pagador),
+  refreshed page without submitting. Form modal closed, all fields cleared, zero orphan records in database.
+  Forms use pure useState with no auto-save or localStorage persistence - refresh clears everything by design.
+
+- Feature #132: Logged in as presidente, opened second tab to same app.
+  Tab 1 on Ingresos, Tab 2 on Egresos (Solicitudes). Both tabs show authenticated state,
+  work independently with full data. JWT stored in localStorage is shared across tabs.
+
+- Feature #133: Added storage event listener to AuthContext.jsx.
+  When logout happens in Tab 1 (removeToken from localStorage), the storage event fires in Tab 2.
+  The listener detects token removal (e.key === 'token' && e.newValue === null) and sets user to null.
+  ProtectedRoute then redirects to /login. Verified both tabs redirect to login after logout in one tab.
+
+### Changes Made:
+- frontend/src/lib/AuthContext.jsx: Added useEffect with window storage event listener for cross-tab logout
+
+### Current Status: 132/265 features passing (~49.8%)
+
+### What should be worked on next:
+- Continue with State & Persistence features
+- UI polish and accessibility features
+- More testing of edge cases
+
 ## Session 38 - 2026-02-09
 
 ### Completed Features:
