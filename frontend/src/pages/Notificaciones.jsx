@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/AuthContext';
 import { api } from '../lib/api';
 import NetworkError from '../components/NetworkError';
+import { formatRelativeDate } from '../lib/formatters';
 
 const TYPE_ICONS = {
   solicitud_creada: '📝',
@@ -67,21 +68,6 @@ export default function Notificaciones() {
     }
   }
 
-  function formatDate(dateStr) {
-    if (!dateStr) return '';
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diffMs = now - date;
-    const diffMin = Math.floor(diffMs / 60000);
-    const diffHrs = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-
-    if (diffMin < 1) return 'Hace un momento';
-    if (diffMin < 60) return `Hace ${diffMin} min`;
-    if (diffHrs < 24) return `Hace ${diffHrs} h`;
-    if (diffDays < 7) return `Hace ${diffDays} d`;
-    return date.toLocaleDateString('es-CL');
-  }
 
   return (
     <div className="space-y-6">
@@ -162,7 +148,7 @@ export default function Notificaciones() {
                   )}
                 </div>
                 <div className="flex items-center gap-3 mt-1">
-                  <p className="text-xs text-gray-400">{formatDate(n.created_at)}</p>
+                  <p className="text-xs text-gray-400">{formatRelativeDate(n.created_at)}</p>
                   {n.reference_type === 'payment_request' && n.reference_id && (
                     <button
                       onClick={() => navigate(`/solicitudes/${n.reference_id}`)}

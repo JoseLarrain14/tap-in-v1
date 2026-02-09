@@ -6,6 +6,7 @@ import * as XLSX from 'xlsx';
 import { SkeletonTable, SkeletonKanban, SkeletonLine } from '../components/Skeleton';
 import Spinner from '../components/Spinner';
 import NetworkError from '../components/NetworkError';
+import { formatCLP } from '../lib/formatters';
 
 const STATUS_LABELS = {
   borrador: 'Borrador',
@@ -50,14 +51,6 @@ const KANBAN_COLUMN_BG = {
 const KANBAN_COLUMNS = ['borrador', 'pendiente', 'aprobado', 'rechazado', 'ejecutado'];
 
 const VIEW_KEY = 'solicitudes_view';
-
-function formatCLP(amount) {
-  return new Intl.NumberFormat('es-CL', {
-    style: 'currency',
-    currency: 'CLP',
-    minimumFractionDigits: 0,
-  }).format(amount);
-}
 
 export default function Solicitudes() {
   const { user } = useAuth();

@@ -1,5 +1,39 @@
 === Tap In V1 - Development Progress ===
 
+## Session 37 - 2026-02-09
+
+### Completed Features:
+- Feature #117: Notification list matches API data ✅
+- Feature #118: Dashboard chart data from API ✅
+- Feature #119: Income table pagination works with backend ✅
+
+### Verification Details:
+- Feature #117: Notification list matches API data
+  - API /notifications returns 41 notifications, 24 unread
+  - Browser shows all 41 notifications with matching titles, messages, read/unread status
+  - Already implemented - verification only
+
+- Feature #118: Dashboard chart data from API
+  - Bar chart already existed using Recharts for 6-month income/expense data
+  - Added PieChart/donut chart for category distribution (Suministros, Eventos)
+  - Fixed Recharts v3 animation bug with isAnimationActive={false}
+  - Both charts verified in browser with correct data from API
+
+- Feature #119: Income table pagination works with backend
+  - Backend already supported page/limit params, frontend didn't use them
+  - Added pagination state (currentPage, totalPages, totalRecords, pageSize=15)
+  - Updated buildFilterQuery to include page/limit params
+  - Added goToPage function and pagination UI controls
+  - Verified: Page 1 shows 1-15 of 30, Page 2 shows 16-30 of 30
+  - Different records on each page, navigation works both directions
+  - Previous/Next buttons correctly disabled at boundaries
+
+### Changes Made:
+- frontend/src/pages/Dashboard.jsx: Added PieChart, Pie, Cell imports, categoryData state, loadCategoryData(), CATEGORY_COLORS, donut chart section
+- frontend/src/pages/Ingresos.jsx: Added pagination state, updated buildFilterQuery with page/limit, goToPage function, pagination UI controls
+
+### Current Status: 122/265 features passing (46.0%)
+
 ## Session 36 - 2026-02-09
 
 ### Completed Features:

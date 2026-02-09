@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../lib/AuthContext';
 import { api } from '../lib/api';
 import * as XLSX from 'xlsx';
+import { formatCLP, formatDate, formatDateTime } from '../lib/formatters';
 
 export default function Reportes() {
   const { user } = useAuth();
@@ -47,12 +48,13 @@ export default function Reportes() {
       }
 
       const rows = data.map(tx => ({
-        'Fecha': tx.date,
+        'Fecha': formatDate(tx.date),
         'Descripcion': tx.description || '',
         'Categoria': tx.category_name || 'Sin categoria',
         'Pagador': tx.payer_name || '',
         'RUT Pagador': tx.payer_rut || '',
         'Monto (CLP)': tx.amount,
+        'Monto Formateado': formatCLP(tx.amount),
         'Registrado por': tx.created_by_name || '',
       }));
 
@@ -106,9 +108,10 @@ export default function Reportes() {
         'Beneficiario': req.beneficiary || '',
         'Categoria': req.category_name || 'Sin categoria',
         'Monto (CLP)': req.amount,
+        'Monto Formateado': formatCLP(req.amount),
         'Estado': STATUS_LABELS[req.status] || req.status,
         'Creado por': req.created_by_name || '',
-        'Fecha creacion': req.created_at || '',
+        'Fecha creacion': formatDateTime(req.created_at),
       }));
 
       const ws = XLSX.utils.json_to_sheet(rows);
@@ -174,12 +177,13 @@ export default function Reportes() {
 
       if (ingresos.length > 0) {
         const ingRows = ingresos.map(tx => ({
-          'Fecha': tx.date,
+          'Fecha': formatDate(tx.date),
           'Descripcion': tx.description || '',
           'Categoria': tx.category_name || 'Sin categoria',
           'Pagador': tx.payer_name || '',
           'RUT Pagador': tx.payer_rut || '',
           'Monto (CLP)': tx.amount,
+          'Monto Formateado': formatCLP(tx.amount),
           'Registrado por': tx.created_by_name || '',
         }));
         const ws = XLSX.utils.json_to_sheet(ingRows);
@@ -193,9 +197,10 @@ export default function Reportes() {
           'Beneficiario': req.beneficiary || '',
           'Categoria': req.category_name || 'Sin categoria',
           'Monto (CLP)': req.amount,
+          'Monto Formateado': formatCLP(req.amount),
           'Estado': STATUS_LABELS[req.status] || req.status,
           'Creado por': req.created_by_name || '',
-          'Fecha creacion': req.created_at || '',
+          'Fecha creacion': formatDateTime(req.created_at),
         }));
         const ws = XLSX.utils.json_to_sheet(solRows);
         XLSX.utils.book_append_sheet(wb, ws, 'Solicitudes');

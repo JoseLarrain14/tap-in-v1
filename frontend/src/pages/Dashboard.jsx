@@ -5,10 +5,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import { useTheme } from '../lib/ThemeContext';
 import { SkeletonCard, SkeletonLine } from '../components/Skeleton';
 import NetworkError from '../components/NetworkError';
-
-function formatCLP(amount) {
-  return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(amount || 0);
-}
+import { formatCLP, formatChartCLP } from '../lib/formatters';
 
 function getDeltaText(current, previous) {
   if (!previous || previous === 0) {
@@ -20,12 +17,6 @@ function getDeltaText(current, previous) {
   if (diff > 0) return { text: `+${pct}% vs mes anterior`, color: 'text-green-600' };
   if (diff < 0) return { text: `${pct}% vs mes anterior`, color: 'text-red-600' };
   return { text: 'Sin cambio vs mes anterior', color: 'text-gray-500' };
-}
-
-function formatChartCLP(value) {
-  if (value >= 1000000) return '$' + (value / 1000000).toFixed(1) + 'M';
-  if (value >= 1000) return '$' + Math.round(value / 1000) + 'K';
-  return '$' + value;
 }
 
 export default function Dashboard() {

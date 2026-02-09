@@ -5,6 +5,7 @@ import * as XLSX from 'xlsx';
 import { SkeletonTable, SkeletonLine } from '../components/Skeleton';
 import Spinner from '../components/Spinner';
 import NetworkError from '../components/NetworkError';
+import { formatCLP, formatDate } from '../lib/formatters';
 
 export default function Ingresos() {
   const { user } = useAuth();
@@ -323,10 +324,6 @@ export default function Ingresos() {
     }
   }
 
-  function formatCLP(amount) {
-    return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(amount);
-  }
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -545,7 +542,7 @@ export default function Ingresos() {
             <tbody className="divide-y divide-gray-100">
               {transactions.map(tx => (
                 <tr key={tx.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 text-sm text-gray-600">{tx.date}</td>
+                  <td className="px-6 py-4 text-sm text-gray-600">{formatDate(tx.date)}</td>
                   <td className="px-6 py-4 text-sm text-gray-900">{tx.description || '-'}</td>
                   <td className="px-6 py-4 text-sm text-gray-600">{tx.category_name || '-'}</td>
                   <td className="px-6 py-4 text-sm text-gray-600">{tx.payer_name || '-'}</td>

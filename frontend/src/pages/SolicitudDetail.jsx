@@ -4,6 +4,7 @@ import { useAuth } from '../lib/AuthContext';
 import { api } from '../lib/api';
 import Spinner from '../components/Spinner';
 import NetworkError from '../components/NetworkError';
+import { formatCLP, formatDateTime } from '../lib/formatters';
 
 const STATUS_LABELS = {
   borrador: 'Borrador',
@@ -28,30 +29,6 @@ const EVENT_ICONS = {
   rechazado: '❌',
   ejecutado: '💸',
 };
-
-function formatCLP(amount) {
-  return new Intl.NumberFormat('es-CL', {
-    style: 'currency',
-    currency: 'CLP',
-    minimumFractionDigits: 0,
-  }).format(amount);
-}
-
-function formatDate(dateStr) {
-  if (!dateStr) return '-';
-  try {
-    const d = new Date(dateStr);
-    return d.toLocaleDateString('es-CL', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  } catch {
-    return dateStr;
-  }
-}
 
 export default function SolicitudDetail() {
   const { id } = useParams();
@@ -305,7 +282,7 @@ export default function SolicitudDetail() {
             Solicitud #{request.id}
           </h1>
           <p className="text-sm text-gray-500 mt-1">
-            Creada por {request.created_by_name} el {formatDate(request.created_at)}
+            Creada por {request.created_by_name} el {formatDateTime(request.created_at)}
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -448,7 +425,7 @@ export default function SolicitudDetail() {
             </div>
             <div>
               <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha de Creacion</p>
-              <p className="text-sm text-gray-900 mt-0.5">{formatDate(request.created_at)}</p>
+              <p className="text-sm text-gray-900 mt-0.5">{formatDateTime(request.created_at)}</p>
             </div>
           </div>
         </div>
@@ -493,7 +470,7 @@ export default function SolicitudDetail() {
                       )}
                     </div>
                     <p className="text-sm text-gray-600 mt-1">
-                      {event.user_name || 'Sistema'} — {formatDate(event.created_at)}
+                      {event.user_name || 'Sistema'} — {formatDateTime(event.created_at)}
                     </p>
                     {event.comment && (
                       <p className="text-sm text-gray-700 mt-1 bg-gray-50 rounded-lg px-3 py-2 border border-gray-100">

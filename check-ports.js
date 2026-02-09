@@ -1,9 +1,9 @@
 const http = require('http');
-const ports = [5173, 5180, 5181, 5182, 5183];
-ports.forEach(p => {
+[5173, 5174, 5175, 5176, 3001].forEach(p => {
   const req = http.get('http://localhost:' + p, r => {
-    console.log('Port ' + p + ': OPEN (status ' + r.statusCode + ')');
-    r.resume();
+    let d = '';
+    r.on('data', c => d += c);
+    r.on('end', () => console.log('Port ' + p + ': OPEN (status ' + r.statusCode + ') body: ' + d.substring(0, 150)));
   });
   req.on('error', () => console.log('Port ' + p + ': closed'));
   req.setTimeout(2000, () => { console.log('Port ' + p + ': timeout'); req.destroy(); });

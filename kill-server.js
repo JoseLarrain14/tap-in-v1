@@ -1,23 +1,18 @@
 const { execSync } = require('child_process');
 try {
-  // On Windows, find and kill processes on port 3001
-  const result = execSync('wmic process where "commandline like \'%index.js%\'" get processid /format:list', { encoding: 'utf8' });
-  console.log('WMIC result:', result);
-  const pids = result.match(/ProcessId=(\d+)/g);
-  if (pids) {
-    pids.forEach(p => {
-      const pid = p.split('=')[1];
-      console.log('Killing PID:', pid);
-      try { execSync(`taskkill /F /PID ${pid}`); } catch(e) { console.log('Kill error:', e.message); }
-    });
+  const result = execSync('netstat -ano | findstr :3001 | findstr LISTENING', { encoding: 'utf8' });
+  const lines = result.trim().split('\n');
+  const pids = new Set();
+  for (const line of lines) {
+    const parts = line.trim().split(/\s+/);
+    const pid = parts[parts.length - 1];
+    if (pid && pid !== '0') pids.add(pid);
   }
+  for (const pid of pids) {
+    console.log('Killing PID:', pid);
+    try { execSync('taskkill /F /PID ' + pid, { encoding: 'utf8' }); console.log('Killed:', pid); } catch(e) { console.log('Kill error:', e.message); }
+  }
+  if (pids.size === 0) console.log('No process found on port 3001');
 } catch(e) {
-  // Fallback: kill all node processes
-  console.log('Trying taskkill /F /IM node.exe...');
-  try {
-    execSync('taskkill /F /IM node.exe', { encoding: 'utf8' });
-    console.log('Killed all node.exe processes');
-  } catch(e2) {
-    console.log('Result:', e2.message);
-  }
+  console.log('No LISTENING process on port 3001 or error:', e.message);
 }

@@ -4,66 +4,572 @@
 [Database] Default data already exists, skipping seed
 [Server] Tap In V1 backend running on http://localhost:3001
 [Server] Health check: http://localhost:3001/api/health
-[0mPOST /api/invalid-endpoint [33m404[0m 5.000 ms - 58[0m
-[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [3]
-[SQL] SELECT COUNT(*) as unread_count FROM notifications WHERE user_id = ? AND organization_id = ? AND is_read = 0 [3,1]
-[0mGET /api/notifications/unread-count [36m304[0m 26.732 ms - -[0m
-[0mGET /api/health [32m200[0m 4.570 ms - 385[0m
-[0mPOST /api/invalid-endpoint [33m404[0m 0.938 ms - 58[0m
+[0mGET /api/health [32m200[0m 10.120 ms - 385[0m
+[0mGET /api/health [32m200[0m 2.431 ms - 385[0m
+[SQL] SELECT id, organization_id, email, password_hash, name, role, is_active FROM users WHERE email = ? ["wrong@test.cl"]
+[0mPOST /api/auth/login [33m401[0m 4.918 ms - 35[0m
+[0mGET /api/health [32m200[0m 2.179 ms - 384[0m
 [SQL] SELECT id, organization_id, email, password_hash, name, role, is_active FROM users WHERE email = ? ["presidente@tapin.cl"]
-[0mPOST /api/auth/login [32m200[0m 130.729 ms - 369[0m
-[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [3]
-[SQL] SELECT COUNT(*) as unread_count FROM notifications WHERE user_id = ? AND organization_id = ? AND is_read = 0 [3,1]
-[0mGET /api/notifications/unread-count [36m304[0m 5.873 ms - -[0m
+[0mPOST /api/auth/login [32m200[0m 154.628 ms - 369[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [1]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+    FROM transactions
+    WHERE organization_id = ? AND type = 'ingreso' AND de [1]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+    FROM transactions
+    WHERE organization_id = ? AND type = 'egreso' AND del [1]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+    FROM transactions
+    WHERE organization_id = ? AND type = 'ingreso' AND de [1,"2026-02-01","2026-03-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+    FROM transactions
+    WHERE organization_id = ? AND type = 'egreso' AND del [1,"2026-02-01","2026-03-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+    FROM transactions
+    WHERE organization_id = ? AND type = 'ingreso' AND de [1,"2026-01-01","2026-02-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+    FROM transactions
+    WHERE organization_id = ? AND type = 'egreso' AND del [1,"2026-01-01","2026-02-01"]
+[SQL] SELECT COUNT(*) as count
+    FROM payment_requests
+    WHERE organization_id = ? AND status = 'pendiente' [1]
+[SQL] SELECT COUNT(*) as count
+    FROM payment_requests
+    WHERE organization_id = ? AND status = 'aprobado' [1]
+[0mGET /api/dashboard/summary [32m200[0m 8.299 ms - 205[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [1]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'ingreso' AN [1,"2025-09-01","2025-10-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'egreso' AND [1,"2025-09-01","2025-10-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'ingreso' AN [1,"2025-10-01","2025-11-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'egreso' AND [1,"2025-10-01","2025-11-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'ingreso' AN [1,"2025-11-01","2025-12-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'egreso' AND [1,"2025-11-01","2025-12-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'ingreso' AN [1,"2025-12-01","2026-01-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'egreso' AND [1,"2025-12-01","2026-01-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'ingreso' AN [1,"2026-01-01","2026-02-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'egreso' AND [1,"2026-01-01","2026-02-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'ingreso' AN [1,"2026-02-01","2026-03-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'egreso' AND [1,"2026-02-01","2026-03-01"]
+[0mGET /api/dashboard/chart [32m200[0m 47.108 ms - 401[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [1]
+[SQL] SELECT c.name, COALESCE(SUM(t.amount), 0) as total
+    FROM categories c
+    LEFT JOIN transactions t ON t.category_id = [1]
+[0mGET /api/dashboard/categories [32m200[0m 5.159 ms - 86[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [1]
+[SQL] SELECT COUNT(*) as unread_count FROM notifications WHERE user_id = ? AND organization_id = ? AND is_read = 0 [1,1]
+[0mGET /api/notifications/unread-count [32m200[0m 3.306 ms - 19[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [1]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+    FROM transactions
+    WHERE organization_id = ? AND type = 'ingreso' AND de [1]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+    FROM transactions
+    WHERE organization_id = ? AND type = 'egreso' AND del [1]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+    FROM transactions
+    WHERE organization_id = ? AND type = 'ingreso' AND de [1,"2026-02-01","2026-03-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+    FROM transactions
+    WHERE organization_id = ? AND type = 'egreso' AND del [1,"2026-02-01","2026-03-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+    FROM transactions
+    WHERE organization_id = ? AND type = 'ingreso' AND de [1,"2026-01-01","2026-02-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+    FROM transactions
+    WHERE organization_id = ? AND type = 'egreso' AND del [1,"2026-01-01","2026-02-01"]
+[SQL] SELECT COUNT(*) as count
+    FROM payment_requests
+    WHERE organization_id = ? AND status = 'pendiente' [1]
+[SQL] SELECT COUNT(*) as count
+    FROM payment_requests
+    WHERE organization_id = ? AND status = 'aprobado' [1]
+[0mGET /api/dashboard/summary [32m200[0m 6.192 ms - 205[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [1]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'ingreso' AN [1,"2025-09-01","2025-10-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'egreso' AND [1,"2025-09-01","2025-10-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'ingreso' AN [1,"2025-10-01","2025-11-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'egreso' AND [1,"2025-10-01","2025-11-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'ingreso' AN [1,"2025-11-01","2025-12-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'egreso' AND [1,"2025-11-01","2025-12-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'ingreso' AN [1,"2025-12-01","2026-01-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'egreso' AND [1,"2025-12-01","2026-01-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'ingreso' AN [1,"2026-01-01","2026-02-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'egreso' AND [1,"2026-01-01","2026-02-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'ingreso' AN [1,"2026-02-01","2026-03-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'egreso' AND [1,"2026-02-01","2026-03-01"]
+[0mGET /api/dashboard/chart [32m200[0m 13.396 ms - 401[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [1]
+[SQL] SELECT c.name, COALESCE(SUM(t.amount), 0) as total
+    FROM categories c
+    LEFT JOIN transactions t ON t.category_id = [1]
+[0mGET /api/dashboard/categories [32m200[0m 2.659 ms - 86[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [1]
+[SQL] SELECT COUNT(*) as unread_count FROM notifications WHERE user_id = ? AND organization_id = ? AND is_read = 0 [1,1]
+[0mGET /api/notifications/unread-count [32m200[0m 2.612 ms - 19[0m
+[SQL] SELECT id, organization_id, email, password_hash, name, role, is_active FROM users WHERE email = ? ["wrong@test.cl"]
+[0mPOST /api/auth/login [33m401[0m 1.853 ms - 35[0m
 [SQL] SELECT id, organization_id, email, password_hash, name, role, is_active FROM users WHERE email = ? ["presidente@tapin.cl"]
-[0mPOST /api/auth/login [32m200[0m 91.986 ms - 369[0m
+[0mPOST /api/auth/login [32m200[0m 150.339 ms - 369[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [1]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+    FROM transactions
+    WHERE organization_id = ? AND type = 'ingreso' AND de [1]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+    FROM transactions
+    WHERE organization_id = ? AND type = 'egreso' AND del [1]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+    FROM transactions
+    WHERE organization_id = ? AND type = 'ingreso' AND de [1,"2026-02-01","2026-03-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+    FROM transactions
+    WHERE organization_id = ? AND type = 'egreso' AND del [1,"2026-02-01","2026-03-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+    FROM transactions
+    WHERE organization_id = ? AND type = 'ingreso' AND de [1,"2026-01-01","2026-02-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+    FROM transactions
+    WHERE organization_id = ? AND type = 'egreso' AND del [1,"2026-01-01","2026-02-01"]
+[SQL] SELECT COUNT(*) as count
+    FROM payment_requests
+    WHERE organization_id = ? AND status = 'pendiente' [1]
+[SQL] SELECT COUNT(*) as count
+    FROM payment_requests
+    WHERE organization_id = ? AND status = 'aprobado' [1]
+[0mGET /api/dashboard/summary [32m200[0m 13.024 ms - 205[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [1]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'ingreso' AN [1,"2025-09-01","2025-10-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'egreso' AND [1,"2025-09-01","2025-10-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'ingreso' AN [1,"2025-10-01","2025-11-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'egreso' AND [1,"2025-10-01","2025-11-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'ingreso' AN [1,"2025-11-01","2025-12-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'egreso' AND [1,"2025-11-01","2025-12-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'ingreso' AN [1,"2025-12-01","2026-01-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'egreso' AND [1,"2025-12-01","2026-01-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'ingreso' AN [1,"2026-01-01","2026-02-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'egreso' AND [1,"2026-01-01","2026-02-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'ingreso' AN [1,"2026-02-01","2026-03-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'egreso' AND [1,"2026-02-01","2026-03-01"]
+[0mGET /api/dashboard/chart [32m200[0m 23.041 ms - 401[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [1]
+[SQL] SELECT c.name, COALESCE(SUM(t.amount), 0) as total
+    FROM categories c
+    LEFT JOIN transactions t ON t.category_id = [1]
+[0mGET /api/dashboard/categories [36m304[0m 3.406 ms - -[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [1]
+[SQL] SELECT COUNT(*) as unread_count FROM notifications WHERE user_id = ? AND organization_id = ? AND is_read = 0 [1,1]
+[0mGET /api/notifications/unread-count [36m304[0m 7.651 ms - -[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [1]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+    FROM transactions
+    WHERE organization_id = ? AND type = 'ingreso' AND de [1]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+    FROM transactions
+    WHERE organization_id = ? AND type = 'egreso' AND del [1]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+    FROM transactions
+    WHERE organization_id = ? AND type = 'ingreso' AND de [1,"2026-02-01","2026-03-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+    FROM transactions
+    WHERE organization_id = ? AND type = 'egreso' AND del [1,"2026-02-01","2026-03-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+    FROM transactions
+    WHERE organization_id = ? AND type = 'ingreso' AND de [1,"2026-01-01","2026-02-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+    FROM transactions
+    WHERE organization_id = ? AND type = 'egreso' AND del [1,"2026-01-01","2026-02-01"]
+[SQL] SELECT COUNT(*) as count
+    FROM payment_requests
+    WHERE organization_id = ? AND status = 'pendiente' [1]
+[SQL] SELECT COUNT(*) as count
+    FROM payment_requests
+    WHERE organization_id = ? AND status = 'aprobado' [1]
+[0mGET /api/dashboard/summary [32m200[0m 11.486 ms - 205[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [1]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'ingreso' AN [1,"2025-09-01","2025-10-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'egreso' AND [1,"2025-09-01","2025-10-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'ingreso' AN [1,"2025-10-01","2025-11-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'egreso' AND [1,"2025-10-01","2025-11-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'ingreso' AN [1,"2025-11-01","2025-12-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'egreso' AND [1,"2025-11-01","2025-12-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'ingreso' AN [1,"2025-12-01","2026-01-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'egreso' AND [1,"2025-12-01","2026-01-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'ingreso' AN [1,"2026-01-01","2026-02-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'egreso' AND [1,"2026-01-01","2026-02-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'ingreso' AN [1,"2026-02-01","2026-03-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'egreso' AND [1,"2026-02-01","2026-03-01"]
+[0mGET /api/dashboard/chart [32m200[0m 7.505 ms - 401[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [1]
+[SQL] SELECT c.name, COALESCE(SUM(t.amount), 0) as total
+    FROM categories c
+    LEFT JOIN transactions t ON t.category_id = [1]
+[0mGET /api/dashboard/categories [32m200[0m 2.721 ms - 86[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [1]
+[SQL] SELECT COUNT(*) as unread_count FROM notifications WHERE user_id = ? AND organization_id = ? AND is_read = 0 [1,1]
+[0mGET /api/notifications/unread-count [32m200[0m 2.971 ms - 19[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [1]
+[SQL] SELECT pr.*,
+      c.name as category_name,
+      cu.name as created_by_name,
+      au.name as approved_by_name,
+      r [1,50,0]
+[SQL] SELECT COUNT(*) as total FROM payment_requests pr WHERE pr.organization_id = ? [1]
+[0mGET /api/payment-requests?sort_by=created_at&sort_order=desc [32m200[0m 14.512 ms - 31305[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [1]
+[SQL] SELECT * FROM categories WHERE organization_id = ? ORDER BY type ASC, name ASC [1]
+[0mGET /api/categories [32m200[0m 2.921 ms - 1657[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [1]
+[SQL] SELECT id, organization_id, email, name, role, is_active, created_at, updated_at
+    FROM users
+    WHERE organization_i [1]
+[0mGET /api/users [32m200[0m 2.916 ms - 1946[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [1]
+[SQL] SELECT pr.*,
+      c.name as category_name,
+      cu.name as created_by_name,
+      au.name as approved_by_name,
+      r [1,50,0]
+[SQL] SELECT COUNT(*) as total FROM payment_requests pr WHERE pr.organization_id = ? [1]
+[0mGET /api/payment-requests?sort_by=created_at&sort_order=desc [32m200[0m 9.302 ms - 31305[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [1]
+[SQL] SELECT * FROM categories WHERE organization_id = ? ORDER BY type ASC, name ASC [1]
+[0mGET /api/categories [32m200[0m 2.492 ms - 1657[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [1]
+[SQL] SELECT id, organization_id, email, name, role, is_active, created_at, updated_at
+    FROM users
+    WHERE organization_i [1]
+[0mGET /api/users [32m200[0m 2.071 ms - 1946[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [1]
+[SQL] SELECT u.id, u.email, u.name, u.role, u.organization_id, u.is_active, o.name as organization_name, o.school_name FROM us [1]
+[0mGET /api/auth/me [32m200[0m 7.566 ms - 196[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [1]
+[SQL] SELECT u.id, u.email, u.name, u.role, u.organization_id, u.is_active, o.name as organization_name, o.school_name FROM us [1]
+[0mGET /api/auth/me [32m200[0m 4.822 ms - 196[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [1]
+[SQL] SELECT pr.*,
+      c.name as category_name,
+      cu.name as created_by_name,
+      au.name as approved_by_name,
+      r [1,50,0]
+[SQL] SELECT COUNT(*) as total FROM payment_requests pr WHERE pr.organization_id = ? [1]
+[0mGET /api/payment-requests?sort_by=created_at&sort_order=desc [32m200[0m 8.994 ms - 31305[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [1]
+[SQL] SELECT * FROM categories WHERE organization_id = ? ORDER BY type ASC, name ASC [1]
+[0mGET /api/categories [36m304[0m 5.153 ms - -[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [1]
+[SQL] SELECT id, organization_id, email, name, role, is_active, created_at, updated_at
+    FROM users
+    WHERE organization_i [1]
+[0mGET /api/users [32m200[0m 2.826 ms - 1946[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [1]
+[SQL] SELECT COUNT(*) as unread_count FROM notifications WHERE user_id = ? AND organization_id = ? AND is_read = 0 [1,1]
+[0mGET /api/notifications/unread-count [36m304[0m 5.465 ms - -[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [1]
+[SQL] SELECT pr.*,
+      c.name as category_name,
+      cu.name as created_by_name,
+      au.name as approved_by_name,
+      r [1,50,0]
+[SQL] SELECT COUNT(*) as total FROM payment_requests pr WHERE pr.organization_id = ? [1]
+[0mGET /api/payment-requests?sort_by=created_at&sort_order=desc [36m304[0m 13.771 ms - -[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [1]
+[SQL] SELECT * FROM categories WHERE organization_id = ? ORDER BY type ASC, name ASC [1]
+[0mGET /api/categories [36m304[0m 2.365 ms - -[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [1]
+[SQL] SELECT id, organization_id, email, name, role, is_active, created_at, updated_at
+    FROM users
+    WHERE organization_i [1]
+[0mGET /api/users [32m200[0m 4.512 ms - 1946[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [1]
+[SQL] SELECT COUNT(*) as unread_count FROM notifications WHERE user_id = ? AND organization_id = ? AND is_read = 0 [1,1]
+[0mGET /api/notifications/unread-count [32m200[0m 2.396 ms - 19[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [1]
+[SQL] SELECT COUNT(*) as unread_count FROM notifications WHERE user_id = ? AND organization_id = ? AND is_read = 0 [1,1]
+[0mGET /api/notifications/unread-count [36m304[0m 3.580 ms - -[0m
+[SQL] SELECT id, organization_id, email, password_hash, name, role, is_active FROM users WHERE email = ? ["presidente@tapin.cl"]
+[0mPOST /api/auth/login [32m200[0m 149.085 ms - 369[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [1]
+[0mPOST /api/payment-requests/47/execute [33m403[0m 3.781 ms - 47[0m
+[0mPOST /api/auth/login [33m400[0m 0.295 ms - 46[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [1]
+[SQL] SELECT u.id, u.email, u.name, u.role, u.organization_id, u.is_active, o.name as organization_name, o.school_name FROM us [1]
+[0mGET /api/auth/me [36m304[0m 5.590 ms - -[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [1]
+[SQL] SELECT u.id, u.email, u.name, u.role, u.organization_id, u.is_active, o.name as organization_name, o.school_name FROM us [1]
+[0mGET /api/auth/me [32m200[0m 4.262 ms - 196[0m
 [SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [1]
 [SQL] SELECT t.*, c.name as category_name, u.name as created_by_name, eu.name as edited_by_name
     FROM transactions t
-    LE [1,"ingreso","%F263_%","%F263_%","%F263_%",50,0]
-[SQL] SELECT COUNT(*) as total FROM transactions t
-    WHERE t.organization_id = ? AND t.deleted_at IS NULL
-   AND t.type = ?  [1,"ingreso","%F263_%","%F263_%","%F263_%"]
-[0mGET /api/transactions?type=ingreso&search=F263_ [32m200[0m 9.002 ms - 1671[0m
-[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [3]
-[SQL] SELECT u.id, u.email, u.name, u.role, u.organization_id, u.is_active, o.name as organization_name, o.school_name FROM us [3]
-[0mGET /api/auth/me [36m304[0m 5.069 ms - -[0m
-[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [3]
-[SQL] SELECT u.id, u.email, u.name, u.role, u.organization_id, u.is_active, o.name as organization_name, o.school_name FROM us [3]
-[0mGET /api/auth/me [32m200[0m 4.083 ms - 189[0m
-[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [3]
-[SQL] SELECT t.*, c.name as category_name, u.name as created_by_name, eu.name as edited_by_name
-    FROM transactions t
-    LE [1,"ingreso",50,0]
+    LE [1,"ingreso",15,0]
 [SQL] SELECT COUNT(*) as total FROM transactions t
     WHERE t.organization_id = ? AND t.deleted_at IS NULL
    AND t.type = ? [1,"ingreso"]
-[0mGET /api/transactions?type=ingreso&sort_by=date&sort_order=desc [36m304[0m 10.989 ms - -[0m
-[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [3]
+[0mGET /api/transactions?type=ingreso&sort_by=date&sort_order=desc&page=1&limit=15 [32m200[0m 8.597 ms - 7919[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [1]
 [SQL] SELECT * FROM categories WHERE organization_id = ? ORDER BY type ASC, name ASC [1]
-[0mGET /api/categories [36m304[0m 3.590 ms - -[0m
-[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [3]
-[SQL] SELECT COUNT(*) as unread_count FROM notifications WHERE user_id = ? AND organization_id = ? AND is_read = 0 [3,1]
-[0mGET /api/notifications/unread-count [36m304[0m 2.529 ms - -[0m
-[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [3]
+[0mGET /api/categories [36m304[0m 3.742 ms - -[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [1]
+[SQL] SELECT COUNT(*) as unread_count FROM notifications WHERE user_id = ? AND organization_id = ? AND is_read = 0 [1,1]
+[0mGET /api/notifications/unread-count [36m304[0m 2.841 ms - -[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [1]
 [SQL] SELECT t.*, c.name as category_name, u.name as created_by_name, eu.name as edited_by_name
     FROM transactions t
-    LE [1,"ingreso",50,0]
+    LE [1,"ingreso",15,0]
 [SQL] SELECT COUNT(*) as total FROM transactions t
     WHERE t.organization_id = ? AND t.deleted_at IS NULL
    AND t.type = ? [1,"ingreso"]
-[0mGET /api/transactions?type=ingreso&sort_by=date&sort_order=desc [32m200[0m 8.027 ms - 20817[0m
-[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [3]
+[0mGET /api/transactions?type=ingreso&sort_by=date&sort_order=desc&page=1&limit=15 [32m200[0m 5.724 ms - 7919[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [1]
 [SQL] SELECT * FROM categories WHERE organization_id = ? ORDER BY type ASC, name ASC [1]
-[0mGET /api/categories [32m200[0m 2.814 ms - 1657[0m
+[0mGET /api/categories [32m200[0m 2.810 ms - 1657[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [1]
+[SQL] SELECT COUNT(*) as unread_count FROM notifications WHERE user_id = ? AND organization_id = ? AND is_read = 0 [1,1]
+[0mGET /api/notifications/unread-count [32m200[0m 2.129 ms - 19[0m
+[0mGET /api/users [33m401[0m 0.424 ms - 45[0m
+[SQL] SELECT id, organization_id, email, password_hash, name, role, is_active FROM users WHERE email = ? ["delegado@tapin.cl"]
+[0mPOST /api/auth/login [32m200[0m 154.071 ms - 356[0m
+[0mGET /api/health [32m200[0m 1.252 ms - 387[0m
+[SQL] SELECT id, organization_id, email, password_hash, name, role, is_active FROM users WHERE email = ? ["secretaria@tapin.cl"]
+[0mPOST /api/auth/login [32m200[0m 148.073 ms - 366[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [2]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+    FROM transactions
+    WHERE organization_id = ? AND type = 'ingreso' AND de [1]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+    FROM transactions
+    WHERE organization_id = ? AND type = 'egreso' AND del [1]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+    FROM transactions
+    WHERE organization_id = ? AND type = 'ingreso' AND de [1,"2026-02-01","2026-03-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+    FROM transactions
+    WHERE organization_id = ? AND type = 'egreso' AND del [1,"2026-02-01","2026-03-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+    FROM transactions
+    WHERE organization_id = ? AND type = 'ingreso' AND de [1,"2026-01-01","2026-02-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+    FROM transactions
+    WHERE organization_id = ? AND type = 'egreso' AND del [1,"2026-01-01","2026-02-01"]
+[SQL] SELECT COUNT(*) as count
+    FROM payment_requests
+    WHERE organization_id = ? AND status = 'pendiente' [1]
+[SQL] SELECT COUNT(*) as count
+    FROM payment_requests
+    WHERE organization_id = ? AND status = 'aprobado' [1]
+[0mGET /api/dashboard/summary [36m304[0m 5.081 ms - -[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [2]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'ingreso' AN [1,"2025-09-01","2025-10-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'egreso' AND [1,"2025-09-01","2025-10-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'ingreso' AN [1,"2025-10-01","2025-11-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'egreso' AND [1,"2025-10-01","2025-11-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'ingreso' AN [1,"2025-11-01","2025-12-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'egreso' AND [1,"2025-11-01","2025-12-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'ingreso' AN [1,"2025-12-01","2026-01-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'egreso' AND [1,"2025-12-01","2026-01-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'ingreso' AN [1,"2026-01-01","2026-02-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'egreso' AND [1,"2026-01-01","2026-02-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'ingreso' AN [1,"2026-02-01","2026-03-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'egreso' AND [1,"2026-02-01","2026-03-01"]
+[0mGET /api/dashboard/chart [36m304[0m 9.171 ms - -[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [2]
+[SQL] SELECT c.name, COALESCE(SUM(t.amount), 0) as total
+    FROM categories c
+    LEFT JOIN transactions t ON t.category_id = [1]
+[0mGET /api/dashboard/categories [36m304[0m 4.390 ms - -[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [2]
+[SQL] SELECT COUNT(*) as unread_count FROM notifications WHERE user_id = ? AND organization_id = ? AND is_read = 0 [2,1]
+[0mGET /api/notifications/unread-count [32m200[0m 2.516 ms - 19[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [2]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+    FROM transactions
+    WHERE organization_id = ? AND type = 'ingreso' AND de [1]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+    FROM transactions
+    WHERE organization_id = ? AND type = 'egreso' AND del [1]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+    FROM transactions
+    WHERE organization_id = ? AND type = 'ingreso' AND de [1,"2026-02-01","2026-03-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+    FROM transactions
+    WHERE organization_id = ? AND type = 'egreso' AND del [1,"2026-02-01","2026-03-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+    FROM transactions
+    WHERE organization_id = ? AND type = 'ingreso' AND de [1,"2026-01-01","2026-02-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+    FROM transactions
+    WHERE organization_id = ? AND type = 'egreso' AND del [1,"2026-01-01","2026-02-01"]
+[SQL] SELECT COUNT(*) as count
+    FROM payment_requests
+    WHERE organization_id = ? AND status = 'pendiente' [1]
+[SQL] SELECT COUNT(*) as count
+    FROM payment_requests
+    WHERE organization_id = ? AND status = 'aprobado' [1]
+[0mGET /api/dashboard/summary [32m200[0m 4.624 ms - 205[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [2]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'ingreso' AN [1,"2025-09-01","2025-10-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'egreso' AND [1,"2025-09-01","2025-10-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'ingreso' AN [1,"2025-10-01","2025-11-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'egreso' AND [1,"2025-10-01","2025-11-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'ingreso' AN [1,"2025-11-01","2025-12-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'egreso' AND [1,"2025-11-01","2025-12-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'ingreso' AN [1,"2025-12-01","2026-01-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'egreso' AND [1,"2025-12-01","2026-01-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'ingreso' AN [1,"2026-01-01","2026-02-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'egreso' AND [1,"2026-01-01","2026-02-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'ingreso' AN [1,"2026-02-01","2026-03-01"]
+[SQL] SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE organization_id = ? AND type = 'egreso' AND [1,"2026-02-01","2026-03-01"]
+[0mGET /api/dashboard/chart [32m200[0m 9.918 ms - 401[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [2]
+[SQL] SELECT c.name, COALESCE(SUM(t.amount), 0) as total
+    FROM categories c
+    LEFT JOIN transactions t ON t.category_id = [1]
+[0mGET /api/dashboard/categories [32m200[0m 2.600 ms - 86[0m
+[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [2]
+[SQL] SELECT COUNT(*) as unread_count FROM notifications WHERE user_id = ? AND organization_id = ? AND is_read = 0 [2,1]
+[0mGET /api/notifications/unread-count [32m200[0m 2.842 ms - 19[0m
 [SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [3]
-[SQL] SELECT COUNT(*) as unread_count FROM notifications WHERE user_id = ? AND organization_id = ? AND is_read = 0 [3,1]
-[0mGET /api/notifications/unread-count [32m200[0m 2.902 ms - 18[0m
-[0mGET /api/health [32m200[0m 1.244 ms - 386[0m
-[0mGET /api/health [32m200[0m 1.523 ms - 386[0m
-[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [3]
-[SQL] SELECT COUNT(*) as unread_count FROM notifications WHERE user_id = ? AND organization_id = ? AND is_read = 0 [3,1]
-[0mGET /api/notifications/unread-count [36m304[0m 2.709 ms - -[0m
-[SQL] SELECT id, organization_id, email, name, role, is_active FROM users WHERE id = ? [3]
-[SQL] SELECT COUNT(*) as unread_count FROM notifications WHERE user_id = ? AND organization_id = ? AND is_read = 0 [3,1]
-[0mGET /api/notifications/unread-count [36m304[0m 4.788 ms - -[0m
+[0mPOST /api/users/invite [33m403[0m 2.890 ms - 47[0m
