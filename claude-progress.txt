@@ -1,5 +1,46 @@
 === Tap In V1 - Development Progress ===
 
+## Session 32 - 2026-02-09
+
+### Completed Features:
+- Feature #95: Comprobante required for execution ✅
+- Feature #263: All three roles can register income ✅
+
+### Verification Details:
+
+- Feature #95: Comprobante required for execution
+  - Backend: Added validation in POST /api/payment-requests/:id/execute to require req.file
+  - Returns 400 "El comprobante de pago es obligatorio para ejecutar la solicitud" when no file
+  - Frontend (SolicitudDetail.jsx): Added client-side validation, disabled button without file
+  - Shows red text "* El comprobante es obligatorio para ejecutar el pago" when no file selected
+  - Frontend (Solicitudes.jsx): Changed inline execute buttons to redirect to detail page
+  - Detail modal shows "Ir a Ejecutar con Comprobante" with redirect
+  - Verified end-to-end: button disabled without file, enabled with file, execution succeeds with comprobante
+  - Comprobante appears in Documentos Adjuntos section after execution
+  - Zero console errors
+
+- Feature #263: All three roles can register income
+  - No code changes needed - all three roles already have permission
+  - Backend POST /api/transactions uses requireActive (not requireRole) - all roles allowed
+  - Frontend "+ Registrar Ingreso" button visible for all roles
+  - Verified via API: delegado, presidente, secretaria all created income (201 success)
+  - Verified via UI: delegado sees "+ Registrar Ingreso" button and all F263 records
+  - created_by correctly attributed: Carlos López, María González, Ana Martínez
+  - Data persisted after server restart (SQLite database)
+  - Zero console errors, no mock data patterns
+
+### Changes Made:
+- backend/src/routes/payment-requests.js: Added comprobante file requirement validation
+- frontend/src/pages/SolicitudDetail.jsx: Client-side file validation, disabled button, helper text
+- frontend/src/pages/Solicitudes.jsx: Changed execute buttons to redirect to detail page
+
+### Current Status: ~95/265 features passing (~35.8%)
+
+### What should be worked on next:
+- More workflow completeness features
+- Reporting and export features
+- Additional security/access control features
+
 ## Session 31 - 2026-02-09
 
 ### Completed Features:
