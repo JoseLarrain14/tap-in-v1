@@ -1,5 +1,42 @@
 === Tap In V1 - Development Progress ===
 
+## Session 47 - 2026-02-09
+
+### Completed Features:
+- Feature #157: Delete confirmation prevents accidental deletion ✅
+- Feature #158: Reject action requires confirmation ✅
+
+### Verification Details:
+- Feature #157: Delete confirmation in Ingresos page
+  - Already implemented with modal: warning icon, record description + amount, Cancel/Eliminar buttons
+  - Created test record DELETE_CONFIRM_TEST_157 ($12,345)
+  - Clicked Eliminar → confirmation dialog appeared ✅
+  - Clicked Cancel → dialog dismissed, record still exists ✅
+  - Clicked Eliminar again, confirmed → record deleted, shows "Sin resultados" ✅
+  - Zero console errors ✅
+
+- Feature #158: Reject confirmation in Solicitudes/SolicitudDetail
+  - Added showRejectConfirmation() + confirmation modal to SolicitudDetail.jsx
+  - Solicitudes.jsx already had reject confirm from another agent (Features #154-156)
+  - Flow: enter comment → click "Rechazar Solicitud" → confirmation dialog appears
+  - Dialog shows: warning icon, request description + amount, rejection reason in red box
+  - Clicked "Rechazar" without comment → error "El comentario es obligatorio" ✅
+  - Entered comment, clicked "Rechazar Solicitud" → confirmation dialog appeared ✅
+  - Clicked "Cancelar" → dialog dismissed, request still "Pendiente" ✅
+  - Clicked "Rechazar" again, confirmed → request changed to "Rechazado" with comment ✅
+  - Event history shows rejection with comment ✅
+  - Zero console errors ✅
+
+### Changes Made:
+- frontend/src/pages/SolicitudDetail.jsx: Added showRejectConfirmation(), reject confirmation modal, setRejectConfirm state management
+
+### Current Status: ~155/265 features passing (~58.5%)
+
+### What should be worked on next:
+- More Double-Action & Idempotency features
+- Additional UI polish features
+- Remaining payment workflow features
+
 ## Session 46 - 2026-02-09
 
 ### Completed Features:
