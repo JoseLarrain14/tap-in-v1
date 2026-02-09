@@ -109,7 +109,10 @@ export default function SolicitudDetail() {
     try {
       setActionLoading(true);
       await api.post(`/payment-requests/${id}/approve`, {});
+      // Optimistic update - update local state immediately
+      setRequest(prev => prev ? { ...prev, status: 'aprobado' } : prev);
       setFeedback({ type: 'success', message: 'Solicitud aprobada exitosamente' });
+      // Background sync for complete data
       loadDetail();
     } catch (err) {
       setFeedback({ type: 'error', message: err.message });
@@ -126,8 +129,11 @@ export default function SolicitudDetail() {
     try {
       setActionLoading(true);
       await api.post(`/payment-requests/${id}/reject`, { comment: rejectComment });
+      // Optimistic update
+      setRequest(prev => prev ? { ...prev, status: 'rechazado', rejection_comment: rejectComment } : prev);
       setFeedback({ type: 'success', message: 'Solicitud rechazada' });
       setRejectComment('');
+      // Background sync
       loadDetail();
     } catch (err) {
       setFeedback({ type: 'error', message: err.message });
@@ -147,8 +153,11 @@ export default function SolicitudDetail() {
       formData.append('comprobante', executeFile);
       formData.append('comment', 'Pago ejecutado');
       await api.upload(`/payment-requests/${id}/execute`, formData);
+      // Optimistic update
+      setRequest(prev => prev ? { ...prev, status: 'ejecutado' } : prev);
       setFeedback({ type: 'success', message: 'Pago ejecutado exitosamente' });
       setExecuteFile(null);
+      // Background sync
       loadDetail();
     } catch (err) {
       setFeedback({ type: 'error', message: err.message });
@@ -161,7 +170,10 @@ export default function SolicitudDetail() {
     try {
       setActionLoading(true);
       await api.post(`/payment-requests/${id}/submit`, {});
+      // Optimistic update
+      setRequest(prev => prev ? { ...prev, status: 'pendiente' } : prev);
       setFeedback({ type: 'success', message: 'Solicitud enviada para aprobación' });
+      // Background sync
       loadDetail();
     } catch (err) {
       setFeedback({ type: 'error', message: err.message });

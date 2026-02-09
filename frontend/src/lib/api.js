@@ -40,7 +40,13 @@ async function request(endpoint, options = {}) {
   try {
     data = await response.json();
   } catch (parseError) {
-    // Response was not JSON
+    // Response was not JSON - likely proxy error (502/503) or server crash
+    if (response.status >= 502 && response.status <= 504) {
+      const err = new Error('No se pudo conectar con el servidor. Verifique su conexión e intente nuevamente.');
+      err.isNetworkError = true;
+      err.status = response.status;
+      throw err;
+    }
     const err = new Error('El servidor respondió de forma inesperada. Intente nuevamente.');
     err.status = response.status;
     throw err;
@@ -89,6 +95,13 @@ async function uploadRequest(endpoint, formData) {
   try {
     data = await response.json();
   } catch (parseError) {
+    // Response was not JSON - likely proxy error (502/503) or server crash
+    if (response.status >= 502 && response.status <= 504) {
+      const err = new Error('No se pudo conectar con el servidor. Verifique su conexión e intente nuevamente.');
+      err.isNetworkError = true;
+      err.status = response.status;
+      throw err;
+    }
     const err = new Error('El servidor respondió de forma inesperada. Intente nuevamente.');
     err.status = response.status;
     throw err;
