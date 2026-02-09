@@ -72,9 +72,9 @@ export default function Configuracion() {
     }
   }
 
-  async function loadCategories() {
+  async function loadCategories({ silent = false } = {}) {
     try {
-      setCategoriesLoading(true);
+      if (!silent) setCategoriesLoading(true);
       const data = await api.get('/categories');
       setCategories(data.categories || []);
     } catch (err) {
@@ -174,7 +174,7 @@ export default function Configuracion() {
         setFeedback({ type: 'success', message: 'Categor\u00eda creada exitosamente' });
       }
       setShowCategoryModal(false);
-      loadCategories();
+      loadCategories({ silent: true });
     } catch (err) {
       setCategoryError(err.message || 'Error al guardar categor\u00eda');
     } finally {
@@ -189,7 +189,7 @@ export default function Configuracion() {
       await api.delete(`/categories/${cat.id}`);
       setFeedback({ type: 'success', message: `Categor\u00eda "${cat.name}" eliminada exitosamente` });
       setDeletingCategory(null);
-      loadCategories();
+      loadCategories({ silent: true });
     } catch (err) {
       setCategoryDeleteError(err.message || 'Error al eliminar categor\u00eda');
       setDeletingCategory(null);

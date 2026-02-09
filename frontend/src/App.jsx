@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './lib/AuthContext';
 import { ThemeProvider } from './lib/ThemeContext';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -15,6 +15,7 @@ import NotFound from './pages/NotFound';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -25,7 +26,7 @@ function ProtectedRoute({ children }) {
   }
 
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
 
   return children;
@@ -33,6 +34,8 @@ function ProtectedRoute({ children }) {
 
 function PublicRoute({ children }) {
   const { user, loading } = useAuth();
+  const location = useLocation();
+  const from = location.state?.from || '/';
 
   if (loading) {
     return (
@@ -43,7 +46,7 @@ function PublicRoute({ children }) {
   }
 
   if (user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to={from} replace />;
   }
 
   return children;
@@ -61,6 +64,7 @@ function RoleRoute({ children, roles }) {
 
 function ProtectedNotFound() {
   const { user, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -71,7 +75,7 @@ function ProtectedNotFound() {
   }
 
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
 
   return <NotFound />;
@@ -95,6 +99,7 @@ function App() {
             </ProtectedRoute>
           }>
             <Route index element={<Dashboard />} />
+            <Route path="dashboard" element={<Dashboard />} />
             <Route path="ingresos" element={<Ingresos />} />
             <Route path="solicitudes" element={<Solicitudes />} />
             <Route path="solicitudes/:id" element={<SolicitudDetail />} />

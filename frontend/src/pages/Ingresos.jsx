@@ -84,9 +84,9 @@ export default function Ingresos() {
     loadData();
   }, []);
 
-  async function loadData(filterOverrides = {}) {
+  async function loadData(filterOverrides = {}, { silent = false } = {}) {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const [txRes, catRes] = await Promise.all([
         api.get(`/transactions?${buildFilterQuery(filterOverrides)}`),
         api.get('/categories')
@@ -252,7 +252,7 @@ export default function Ingresos() {
         payer_name: '',
         payer_rut: ''
       });
-      loadData();
+      loadData({}, { silent: true });
     } catch (err) {
       if (err.fields) setFormErrors(err.fields);
       setError(err.isNetworkError
@@ -268,7 +268,7 @@ export default function Ingresos() {
     try {
       await api.delete(`/transactions/${tx.id}`);
       setDeleteConfirm(null);
-      loadData();
+      loadData({}, { silent: true });
     } catch (err) {
       console.error('Error deleting transaction:', err);
       setDeleteConfirm(null);
@@ -317,7 +317,7 @@ export default function Ingresos() {
       await api.put(`/transactions/${editingTransaction.id}`, payload);
       setShowEditModal(false);
       setEditingTransaction(null);
-      loadData();
+      loadData({}, { silent: true });
     } catch (err) {
       setEditError(err.message || 'Error al actualizar ingreso');
     } finally {

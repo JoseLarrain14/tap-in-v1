@@ -112,9 +112,9 @@ export default function Solicitudes() {
     return params.toString();
   }
 
-  async function loadRequests(filterOverrides = {}) {
+  async function loadRequests(filterOverrides = {}, { silent = false } = {}) {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const qs = buildFilterQuery(filterOverrides);
       const data = await api.get(`/payment-requests?${qs}`);
       setRequests(data.payment_requests || []);
@@ -263,7 +263,7 @@ export default function Solicitudes() {
       setShowCreateModal(false);
       setNewRequest({ amount: '', description: '', beneficiary: '', category_id: '' });
       setFeedback({ type: 'success', message: asDraft ? 'Borrador guardado exitosamente' : 'Solicitud enviada exitosamente' });
-      loadRequests();
+      loadRequests({}, { silent: true });
     } catch (err) {
       setFeedback({ type: 'error', message: err.message });
     } finally {
@@ -289,7 +289,7 @@ export default function Solicitudes() {
       setFeedback({ type: 'success', message: 'Solicitud aprobada exitosamente' });
       setShowDetailModal(false);
       // Background sync to get any server-side changes
-      loadRequests();
+      loadRequests({}, { silent: true });
     } catch (err) {
       setFeedback({ type: 'error', message: err.message });
     } finally {
@@ -320,7 +320,7 @@ export default function Solicitudes() {
       setRejectComment('');
       setShowDetailModal(false);
       // Background sync
-      loadRequests();
+      loadRequests({}, { silent: true });
     } catch (err) {
       setFeedback({ type: 'error', message: err.message });
     } finally {
@@ -346,7 +346,7 @@ export default function Solicitudes() {
       setFeedback({ type: 'success', message: 'Pago ejecutado exitosamente' });
       setShowDetailModal(false);
       // Background sync
-      loadRequests();
+      loadRequests({}, { silent: true });
     } catch (err) {
       setFeedback({ type: 'error', message: err.message });
     } finally {
@@ -367,7 +367,7 @@ export default function Solicitudes() {
       });
       setShowEditModal(false);
       setFeedback({ type: 'success', message: 'Solicitud editada exitosamente' });
-      loadRequests();
+      loadRequests({}, { silent: true });
     } catch (err) {
       setFeedback({ type: 'error', message: err.message });
     } finally {
