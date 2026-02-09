@@ -22,6 +22,18 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
+  // Listen for logout in other tabs via localStorage storage event
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === 'token' && e.newValue === null) {
+        // Token was removed in another tab — log out this tab too
+        setUser(null);
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
   const login = async (email, password) => {
     const data = await api.post('/auth/login', { email, password });
     setToken(data.token);
