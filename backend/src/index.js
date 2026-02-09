@@ -44,6 +44,18 @@ async function startServer() {
 
   // Error handler
   app.use((err, req, res, next) => {
+    // Handle multer file upload errors
+    const multer = require('multer');
+    if (err instanceof multer.MulterError) {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(413).json({ error: 'El archivo excede el tamaño máximo permitido (10MB)' });
+      }
+      return res.status(400).json({ error: 'Error al subir archivo: ' + err.message });
+    }
+    // Handle custom file filter errors (wrong file type)
+    if (err.message && err.message.includes('Tipo de archivo no permitido')) {
+      return res.status(400).json({ error: err.message });
+    }
     console.error('[Error]', err.stack);
     res.status(500).json({ error: 'Error interno del servidor' });
   });

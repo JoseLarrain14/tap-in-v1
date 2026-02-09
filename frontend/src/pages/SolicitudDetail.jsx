@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/AuthContext';
 import { api } from '../lib/api';
+import Spinner from '../components/Spinner';
 
 const STATUS_LABELS = {
   borrador: 'Borrador',
@@ -387,7 +388,7 @@ export default function SolicitudDetail() {
                 data-testid="save-edit-btn"
                 className="flex-1 px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors disabled:opacity-50"
               >
-                {actionLoading ? 'Guardando...' : 'Guardar Cambios'}
+                {actionLoading ? <><Spinner size={14} className="inline mr-1" />Guardando...</> : 'Guardar Cambios'}
               </button>
             </div>
           </form>
@@ -494,7 +495,7 @@ export default function SolicitudDetail() {
             disabled={actionLoading}
             className="w-full px-4 py-2.5 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors disabled:opacity-50"
           >
-            {actionLoading ? 'Procesando...' : 'Aprobar Solicitud'}
+            {actionLoading ? <><Spinner size={14} className="inline mr-1" />Procesando...</> : 'Aprobar Solicitud'}
           </button>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -512,7 +513,7 @@ export default function SolicitudDetail() {
               disabled={actionLoading}
               className="mt-2 w-full px-4 py-2.5 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-50"
             >
-              {actionLoading ? 'Procesando...' : 'Rechazar Solicitud'}
+              {actionLoading ? <><Spinner size={14} className="inline mr-1" />Procesando...</> : 'Rechazar Solicitud'}
             </button>
           </div>
         </div>
@@ -524,12 +525,21 @@ export default function SolicitudDetail() {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Comprobante de pago (imagen o PDF)
+                Comprobante de pago (imagen o PDF, máx. 10MB)
               </label>
               <input
                 type="file"
                 accept=".jpg,.jpeg,.png,.gif,.pdf,.webp"
-                onChange={(e) => setExecuteFile(e.target.files[0] || null)}
+                onChange={(e) => {
+                  const file = e.target.files[0] || null;
+                  if (file && file.size > 10 * 1024 * 1024) {
+                    setFeedback({ type: 'error', message: 'El archivo excede el tamaño máximo permitido (10MB)' });
+                    e.target.value = '';
+                    setExecuteFile(null);
+                    return;
+                  }
+                  setExecuteFile(file);
+                }}
                 className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 file:cursor-pointer"
               />
               {executeFile && (
@@ -548,7 +558,7 @@ export default function SolicitudDetail() {
               disabled={actionLoading || !executeFile}
               className="w-full px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
             >
-              {actionLoading ? 'Procesando...' : 'Marcar como Ejecutado'}
+              {actionLoading ? <><Spinner size={14} className="inline mr-1" />Procesando...</> : 'Marcar como Ejecutado'}
             </button>
           </div>
         </div>
@@ -560,13 +570,22 @@ export default function SolicitudDetail() {
         <div className="space-y-3">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Documento de respaldo (imagen o PDF)
+              Documento de respaldo (imagen o PDF, máx. 10MB)
             </label>
             <input
               id="attachment-upload-input"
               type="file"
               accept=".jpg,.jpeg,.png,.gif,.pdf,.webp"
-              onChange={(e) => setUploadFile(e.target.files[0] || null)}
+              onChange={(e) => {
+                  const file = e.target.files[0] || null;
+                  if (file && file.size > 10 * 1024 * 1024) {
+                    setFeedback({ type: 'error', message: 'El archivo excede el tamaño máximo permitido (10MB)' });
+                    e.target.value = '';
+                    setUploadFile(null);
+                    return;
+                  }
+                  setUploadFile(file);
+                }}
               className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 file:cursor-pointer"
             />
             {uploadFile && (
@@ -638,7 +657,7 @@ export default function SolicitudDetail() {
             disabled={actionLoading}
             className="w-full px-4 py-2.5 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors disabled:opacity-50"
           >
-            {actionLoading ? 'Enviando...' : 'Enviar para Aprobación'}
+            {actionLoading ? <><Spinner size={14} className="inline mr-1" />Enviando...</> : 'Enviar para Aprobación'}
           </button>
         </div>
       )}
