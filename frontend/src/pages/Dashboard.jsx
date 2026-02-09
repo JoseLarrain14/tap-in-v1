@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../lib/AuthContext';
 import { api } from '../lib/api';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 function formatCLP(amount) {
   return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(amount || 0);
@@ -18,13 +19,22 @@ function getDeltaText(current, previous) {
   return { text: 'Sin cambio vs mes anterior', color: 'text-gray-500' };
 }
 
+function formatChartCLP(value) {
+  if (value >= 1000000) return '$' + (value / 1000000).toFixed(1) + 'M';
+  if (value >= 1000) return '$' + Math.round(value / 1000) + 'K';
+  return '$' + value;
+}
+
 export default function Dashboard() {
   const { user } = useAuth();
   const [summary, setSummary] = useState(null);
+  const [chartData, setChartData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [chartLoading, setChartLoading] = useState(true);
 
   useEffect(() => {
     loadDashboard();
+    loadChartData();
   }, []);
 
   async function loadDashboard() {
@@ -36,6 +46,18 @@ export default function Dashboard() {
       console.error('Error loading dashboard:', err);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function loadChartData() {
+    try {
+      setChartLoading(true);
+      const data = await api.get('/dashboard/chart');
+      setChartData(data.months || []);
+    } catch (err) {
+      console.error('Error loading chart data:', err);
+    } finally {
+      setChartLoading(false);
     }
   }
 
@@ -112,6 +134,43 @@ export default function Dashboard() {
             <p className="text-xs text-gray-400 mt-1">Aprobadas, esperando ejecuci&oacute;n</p>
           )}
         </div>
+      </div>
+
+      {/* 6-Month Bar Chart */}
+      <div className="bg-white rounded-xl border border-gray-200 p-6" data-testid="monthly-chart">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Flujo Mensual (6 meses)</h2>
+        {chartLoading ? (
+          <div className="text-center py-12 text-gray-400">Cargando gr&aacute;fico...</div>
+        ) : chartData.length > 0 ? (
+          <ResponsiveContainer width="100%" height={320}>
+            <BarChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+              <XAxis
+                dataKey="label"
+                tick={{ fontSize: 12, fill: '#6b7280' }}
+                axisLine={{ stroke: '#e5e7eb' }}
+              />
+              <YAxis
+                tickFormatter={formatChartCLP}
+                tick={{ fontSize: 12, fill: '#6b7280' }}
+                axisLine={{ stroke: '#e5e7eb' }}
+                width={70}
+              />
+              <Tooltip
+                formatter={(value) => formatCLP(value)}
+                labelStyle={{ fontWeight: 600, color: '#111827' }}
+                contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb' }}
+              />
+              <Legend
+                wrapperStyle={{ fontSize: '13px' }}
+              />
+              <Bar dataKey="income" name="Ingresos" fill="#22c55e" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="expense" name="Egresos" fill="#ef4444" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        ) : (
+          <div className="text-center py-12 text-gray-400">No hay datos para mostrar</div>
+        )}
       </div>
 
       {/* Info */}
