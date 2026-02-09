@@ -57,7 +57,20 @@ export default function Configuracion() {
   });
   const [inviteError, setInviteError] = useState('');
 
+  const [showDeactivated, setShowDeactivated] = useState(true);
+
   const isPresidente = user?.role === 'presidente';
+
+  // Sort users: active first, deactivated last
+  const sortedUsers = [...users].sort((a, b) => {
+    if (a.is_active && !b.is_active) return -1;
+    if (!a.is_active && b.is_active) return 1;
+    return 0;
+  });
+
+  const activeUsers = users.filter(u => u.is_active);
+  const deactivatedUsers = users.filter(u => !u.is_active);
+  const displayUsers = showDeactivated ? sortedUsers : activeUsers;
 
   async function loadUsers() {
     try {
@@ -251,15 +264,36 @@ export default function Configuracion() {
       {activeTab === 'usuarios' && (
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-medium text-gray-900">Usuarios del CPP</h2>
-            {isPresidente && (
-              <button
-                onClick={() => { setInviteError(''); setShowInviteModal(true); }}
-                className="px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
-              >
-                + Invitar Usuario
-              </button>
-            )}
+            <div className="flex items-center gap-3">
+              <h2 className="text-lg font-medium text-gray-900">Usuarios del CPP</h2>
+              <span className="text-xs text-gray-500">
+                {activeUsers.length} activo{activeUsers.length !== 1 ? 's' : ''}
+                {deactivatedUsers.length > 0 && (
+                  <> · {deactivatedUsers.length} desactivado{deactivatedUsers.length !== 1 ? 's' : ''}</>
+                )}
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              {deactivatedUsers.length > 0 && (
+                <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={showDeactivated}
+                    onChange={(e) => setShowDeactivated(e.target.checked)}
+                    className="rounded border-gray-300 text-black focus:ring-black"
+                  />
+                  Mostrar desactivados
+                </label>
+              )}
+              {isPresidente && (
+                <button
+                  onClick={() => { setInviteError(''); setShowInviteModal(true); }}
+                  className="px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
+                >
+                  + Invitar Usuario
+                </button>
+              )}
+            </div>
           </div>
 
           {loading && (
@@ -286,7 +320,7 @@ export default function Configuracion() {
             </div>
           )}
 
-          {!loading && users.length > 0 && (
+          {!loading && displayUsers.length > 0 && (
             <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
               <table className="w-full">
                 <thead>
@@ -301,12 +335,20 @@ export default function Configuracion() {
                   </tr>
                 </thead>
                 <tbody>
-                  {users.map((u) => (
-                    <tr key={u.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-3 text-sm font-medium text-gray-900">{u.name}</td>
-                      <td className="px-4 py-3 text-sm text-gray-600">{u.email}</td>
+                  {displayUsers.map((u) => (
+                    <tr key={u.id} className={`border-b border-gray-50 transition-colors ${
+                      u.is_active
+                        ? 'hover:bg-gray-50'
+                        : 'bg-gray-50/50 opacity-60'
+                    }`}>
+                      <td className={`px-4 py-3 text-sm font-medium ${u.is_active ? 'text-gray-900' : 'text-gray-400 line-through'}`}>
+                        {u.name}
+                      </td>
+                      <td className={`px-4 py-3 text-sm ${u.is_active ? 'text-gray-600' : 'text-gray-400'}`}>{u.email}</td>
                       <td className="px-4 py-3">
-                        <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${ROLE_COLORS[u.role]}`}>
+                        <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
+                          u.is_active ? ROLE_COLORS[u.role] : 'bg-gray-100 text-gray-400'
+                        }`}>
                           {ROLE_LABELS[u.role]}
                         </span>
                       </td>
@@ -321,24 +363,26 @@ export default function Configuracion() {
                         <td className="px-4 py-3 text-right">
                           {u.id !== user.id && (
                             <div className="flex items-center gap-2 justify-end">
-                              <select
-                                value={u.role}
-                                onChange={(e) => handleRoleChange(u.id, e.target.value)}
-                                disabled={actionLoading}
-                                className="px-2 py-1 border border-gray-300 rounded text-xs font-medium bg-white focus:ring-2 focus:ring-black focus:border-transparent outline-none disabled:opacity-50"
-                              >
-                                <option value="delegado">Delegado</option>
-                                <option value="presidente">Presidente</option>
-                                <option value="secretaria">Secretaria</option>
-                              </select>
                               {u.is_active ? (
-                                <button
-                                  onClick={() => handleDeactivate(u.id)}
-                                  disabled={actionLoading}
-                                  className="px-2.5 py-1 bg-red-100 text-red-700 rounded text-xs font-medium hover:bg-red-200 transition-colors disabled:opacity-50"
-                                >
-                                  Desactivar
-                                </button>
+                                <>
+                                  <select
+                                    value={u.role}
+                                    onChange={(e) => handleRoleChange(u.id, e.target.value)}
+                                    disabled={actionLoading}
+                                    className="px-2 py-1 border border-gray-300 rounded text-xs font-medium bg-white focus:ring-2 focus:ring-black focus:border-transparent outline-none disabled:opacity-50"
+                                  >
+                                    <option value="delegado">Delegado</option>
+                                    <option value="presidente">Presidente</option>
+                                    <option value="secretaria">Secretaria</option>
+                                  </select>
+                                  <button
+                                    onClick={() => handleDeactivate(u.id)}
+                                    disabled={actionLoading}
+                                    className="px-2.5 py-1 bg-red-100 text-red-700 rounded text-xs font-medium hover:bg-red-200 transition-colors disabled:opacity-50"
+                                  >
+                                    Desactivar
+                                  </button>
+                                </>
                               ) : (
                                 <button
                                   onClick={() => handleActivate(u.id)}
@@ -356,6 +400,20 @@ export default function Configuracion() {
                   ))}
                 </tbody>
               </table>
+            </div>
+          )}
+
+          {!loading && displayUsers.length === 0 && users.length > 0 && (
+            <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+              <p className="text-gray-500 text-sm">
+                Todos los usuarios están desactivados.{' '}
+                <button
+                  onClick={() => setShowDeactivated(true)}
+                  className="text-black underline font-medium hover:text-gray-700"
+                >
+                  Mostrar desactivados
+                </button>
+              </p>
             </div>
           )}
         </div>
