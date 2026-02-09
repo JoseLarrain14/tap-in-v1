@@ -172,12 +172,13 @@ export default function Ingresos() {
 
       // Build Excel data
       const rows = data.map(tx => ({
-        'Fecha': tx.date,
+        'Fecha': formatDate(tx.date),
         'Descripcion': tx.description || '',
         'Categoria': tx.category_name || 'Sin categoria',
         'Pagador': tx.payer_name || '',
         'RUT Pagador': tx.payer_rut || '',
         'Monto (CLP)': tx.amount,
+        'Monto Formateado': formatCLP(tx.amount),
         'Registrado por': tx.created_by_name || '',
       }));
 
