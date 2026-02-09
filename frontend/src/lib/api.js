@@ -38,7 +38,10 @@ async function request(endpoint, options = {}) {
   }
 
   if (!response.ok) {
-    throw new Error(data.error || 'Error en la solicitud');
+    const err = new Error(data.error || 'Error en la solicitud');
+    err.status = response.status;
+    if (data.fields) err.fields = data.fields;
+    throw err;
   }
 
   return data;
@@ -68,7 +71,10 @@ async function uploadRequest(endpoint, formData) {
   }
 
   if (!response.ok) {
-    throw new Error(data.error || 'Error en la solicitud');
+    const err = new Error(data.error || 'Error en la solicitud');
+    err.status = response.status;
+    if (data.fields) err.fields = data.fields;
+    throw err;
   }
 
   return data;

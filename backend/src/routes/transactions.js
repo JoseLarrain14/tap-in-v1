@@ -112,17 +112,25 @@ router.post('/', requireActive, (req, res) => {
 
   const { type, amount, category_id, description, date, payer_name, payer_rut, beneficiary, period_year } = req.body;
 
-  // Validate required fields
-  if (!type || !amount || !date) {
-    return res.status(400).json({ error: 'Tipo, monto y fecha son requeridos' });
+  // Validate required fields with specific field errors
+  const fieldErrors = {};
+  if (!type) fieldErrors.type = 'El tipo es requerido';
+  if (!date) fieldErrors.date = 'La fecha es requerida';
+  if (amount === undefined || amount === null || amount === '') fieldErrors.amount = 'El monto es requerido';
+
+  if (Object.keys(fieldErrors).length > 0) {
+    return res.status(400).json({
+      error: 'Campos requeridos faltantes',
+      fields: fieldErrors
+    });
   }
 
   if (!['ingreso', 'egreso'].includes(type)) {
-    return res.status(400).json({ error: 'Tipo debe ser ingreso o egreso' });
+    return res.status(400).json({ error: 'Tipo debe ser ingreso o egreso', fields: { type: 'Tipo debe ser ingreso o egreso' } });
   }
 
   if (typeof amount !== 'number' || amount <= 0) {
-    return res.status(400).json({ error: 'Monto debe ser un número positivo' });
+    return res.status(400).json({ error: 'Monto debe ser un número positivo', fields: { amount: 'Monto debe ser un número positivo' } });
   }
 
   // Validate category belongs to organization

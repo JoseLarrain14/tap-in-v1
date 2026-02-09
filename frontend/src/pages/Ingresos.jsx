@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../lib/AuthContext';
 import { api } from '../lib/api';
 import * as XLSX from 'xlsx';
+import { SkeletonTable, SkeletonLine } from '../components/Skeleton';
 
 export default function Ingresos() {
   const { user } = useAuth();
@@ -221,6 +222,7 @@ export default function Ingresos() {
       });
       loadData();
     } catch (err) {
+      if (err.fields) setFormErrors(err.fields);
       setError(err.message || 'Error al registrar ingreso');
     } finally {
       setSaving(false);
@@ -293,14 +295,6 @@ export default function Ingresos() {
     return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(amount);
   }
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-pulse text-gray-400">Cargando ingresos...</div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -308,31 +302,50 @@ export default function Ingresos() {
           <h1 className="text-2xl font-bold text-gray-900">Ingresos</h1>
           <p className="text-gray-500 mt-1">Registro de ingresos del CPP</p>
         </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handleExport}
-            disabled={exporting}
-            data-testid="export-excel-btn"
-            className="px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm disabled:opacity-50 flex items-center gap-2"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-              <polyline points="7 10 12 15 17 10"/>
-              <line x1="12" y1="15" x2="12" y2="3"/>
-            </svg>
-            {exporting ? 'Exportando...' : 'Exportar Excel'}
-          </button>
-          <button
-            onClick={() => { setShowModal(true); setFormErrors({}); }}
-            className="px-4 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium text-sm"
-          >
-            + Registrar Ingreso
-          </button>
-        </div>
+        {!loading && (
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleExport}
+              disabled={exporting}
+              data-testid="export-excel-btn"
+              className="px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm disabled:opacity-50 flex items-center gap-2"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              {exporting ? 'Exportando...' : 'Exportar Excel'}
+            </button>
+            <button
+              onClick={() => { setShowModal(true); setFormErrors({}); }}
+              className="px-4 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium text-sm"
+            >
+              + Registrar Ingreso
+            </button>
+          </div>
+        )}
       </div>
 
+      {/* Loading Skeleton */}
+      {loading && (
+        <div className="space-y-6" data-testid="loading-skeleton">
+          {/* Filter bar skeleton */}
+          <div className="bg-white rounded-xl border border-gray-200 p-4">
+            <div className="flex items-center gap-3">
+              <SkeletonLine width="w-48" height="h-9" />
+              <SkeletonLine width="w-36" height="h-9" />
+              <SkeletonLine width="w-20" height="h-9" />
+              <SkeletonLine width="w-20" height="h-9" />
+            </div>
+          </div>
+          {/* Table skeleton */}
+          <SkeletonTable rows={5} columns={6} />
+        </div>
+      )}
+
       {/* Filter Bar */}
-      <div className="bg-white rounded-xl border border-gray-200 p-4" data-testid="filter-bar">
+      {!loading && <div className="bg-white rounded-xl border border-gray-200 p-4" data-testid="filter-bar">
         <div className="flex items-center gap-3 flex-wrap">
           {/* Search */}
           <div className="flex-1 min-w-[200px]">
@@ -426,9 +439,9 @@ export default function Ingresos() {
             </div>
           </div>
         )}
-      </div>
+      </div>}
 
-      {transactions.length === 0 ? (
+      {!loading && transactions.length === 0 && (
         <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
           <div className="text-4xl mb-3">{hasActiveFilters ? '🔍' : '💰'}</div>
           <h3 className="text-lg font-semibold text-gray-900 mb-1">
@@ -455,7 +468,9 @@ export default function Ingresos() {
             </button>
           )}
         </div>
-      ) : (
+      )}
+
+      {!loading && transactions.length > 0 && (
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           <table className="w-full">
             <thead>
@@ -507,7 +522,7 @@ export default function Ingresos() {
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
+      {/* Delete Confirmation Modal - always rendered regardless of loading */}
       {deleteConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">

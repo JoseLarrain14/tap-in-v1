@@ -188,12 +188,21 @@ router.post('/', requireActive, requireRole('delegado', 'presidente'), (req, res
 
   const { amount, category_id, description, beneficiary, status: reqStatus } = req.body;
 
-  if (!amount || !description || !beneficiary) {
-    return res.status(400).json({ error: 'Monto, descripci\u00f3n y beneficiario son requeridos' });
+  // Validate required fields with specific field errors
+  const prFieldErrors = {};
+  if (amount === undefined || amount === null || amount === '') prFieldErrors.amount = 'El monto es requerido';
+  if (!description) prFieldErrors.description = 'La descripción es requerida';
+  if (!beneficiary) prFieldErrors.beneficiary = 'El beneficiario es requerido';
+
+  if (Object.keys(prFieldErrors).length > 0) {
+    return res.status(400).json({
+      error: 'Campos requeridos faltantes',
+      fields: prFieldErrors
+    });
   }
 
   if (typeof amount !== 'number' || amount <= 0) {
-    return res.status(400).json({ error: 'Monto debe ser un n\u00famero positivo' });
+    return res.status(400).json({ error: 'Monto debe ser un número positivo', fields: { amount: 'Monto debe ser un número positivo' } });
   }
 
   // Validate category belongs to organization
@@ -274,12 +283,21 @@ router.put('/:id', (req, res) => {
 
   const { amount, category_id, description, beneficiary } = req.body;
 
-  if (!amount || !description || !beneficiary) {
-    return res.status(400).json({ error: 'Monto, descripción y beneficiario son requeridos' });
+  // Validate required fields with specific field errors
+  const fieldErrors = {};
+  if (amount === undefined || amount === null || amount === '') fieldErrors.amount = 'El monto es requerido';
+  if (!description) fieldErrors.description = 'La descripción es requerida';
+  if (!beneficiary) fieldErrors.beneficiary = 'El beneficiario es requerido';
+
+  if (Object.keys(fieldErrors).length > 0) {
+    return res.status(400).json({
+      error: 'Campos requeridos faltantes',
+      fields: fieldErrors
+    });
   }
 
   if (typeof amount !== 'number' || amount <= 0) {
-    return res.status(400).json({ error: 'Monto debe ser un número positivo' });
+    return res.status(400).json({ error: 'Monto debe ser un número positivo', fields: { amount: 'Monto debe ser un número positivo' } });
   }
 
   // Validate category belongs to organization
