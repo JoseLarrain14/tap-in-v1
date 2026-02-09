@@ -263,8 +263,24 @@ export default function Configuracion() {
             <SkeletonTable rows={4} columns={isPresidente ? 5 : 4} />
           )}
 
-          {error && (
-            <div className="text-center py-12 text-red-500">{error}</div>
+          {error && isNetworkError && (
+            <NetworkError
+              message={error}
+              onRetry={async () => { setError(null); setIsNetworkError(false); await loadUsers(); await loadCategories(); }}
+            />
+          )}
+          {error && !isNetworkError && (
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6 text-center">
+              <div className="text-3xl mb-2">⚠️</div>
+              <h3 className="text-lg font-semibold text-red-800 dark:text-red-300 mb-1">Error al cargar datos</h3>
+              <p className="text-red-600 dark:text-red-400 text-sm mb-3">{error}</p>
+              <button
+                onClick={() => { setError(null); loadUsers(); loadCategories(); }}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
+              >
+                Reintentar
+              </button>
+            </div>
           )}
 
           {!loading && users.length > 0 && (

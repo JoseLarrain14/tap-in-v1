@@ -45,3 +45,26 @@ body {
 html {
   transition: background-color 0.2s ease, color 0.2s ease;
 }
+
+/* Kanban card transition animation */
+@keyframes card-enter {
+  0% {
+    opacity: 0;
+    transform: scale(0.92) translateY(-8px);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.02) translateY(0);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    box-shadow: none;
+  }
+}
+
+.animate-card-enter {
+  animation: card-enter 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}

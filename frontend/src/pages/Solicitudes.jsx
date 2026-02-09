@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/AuthContext';
 import { api } from '../lib/api';
@@ -101,6 +101,8 @@ export default function Solicitudes() {
   const [users, setUsers] = useState([]);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const hasAdvancedFilters = categoryFilter || creatorFilter || searchFilter;
+  // Track recently transitioned card IDs for CSS animation
+  const [recentlyTransitioned, setRecentlyTransitioned] = useState(new Set());
 
   function buildFilterQuery(overrides = {}) {
     const status = overrides.status !== undefined ? overrides.status : statusFilter;
@@ -280,8 +282,20 @@ export default function Solicitudes() {
     try {
       setActionLoading(true);
       await api.post(`/payment-requests/${id}/approve`, {});
+      // Optimistic UI update - move card immediately without full reload
+      setRequests(prev => prev.map(r =>
+        r.id === id ? { ...r, status: 'aprobado', approved_by_name: user?.name } : r
+      ));
+      // Trigger entry animation
+      setRecentlyTransitioned(prev => new Set([...prev, id]));
+      setTimeout(() => setRecentlyTransitioned(prev => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      }), 600);
       setFeedback({ type: 'success', message: 'Solicitud aprobada exitosamente' });
       setShowDetailModal(false);
+      // Background sync to get any server-side changes
       loadRequests();
     } catch (err) {
       setFeedback({ type: 'error', message: err.message });
@@ -298,9 +312,21 @@ export default function Solicitudes() {
     try {
       setActionLoading(true);
       await api.post(`/payment-requests/${id}/reject`, { comment: rejectComment });
+      // Optimistic UI update - move card immediately without full reload
+      setRequests(prev => prev.map(r =>
+        r.id === id ? { ...r, status: 'rechazado', rejection_comment: rejectComment, rejected_by_name: user?.name } : r
+      ));
+      // Trigger entry animation
+      setRecentlyTransitioned(prev => new Set([...prev, id]));
+      setTimeout(() => setRecentlyTransitioned(prev => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      }), 600);
       setFeedback({ type: 'success', message: 'Solicitud rechazada' });
       setRejectComment('');
       setShowDetailModal(false);
+      // Background sync
       loadRequests();
     } catch (err) {
       setFeedback({ type: 'error', message: err.message });
@@ -313,8 +339,20 @@ export default function Solicitudes() {
     try {
       setActionLoading(true);
       await api.post(`/payment-requests/${id}/execute`, {});
+      // Optimistic UI update - move card immediately
+      setRequests(prev => prev.map(r =>
+        r.id === id ? { ...r, status: 'ejecutado', executed_by_name: user?.name } : r
+      ));
+      // Trigger entry animation
+      setRecentlyTransitioned(prev => new Set([...prev, id]));
+      setTimeout(() => setRecentlyTransitioned(prev => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      }), 600);
       setFeedback({ type: 'success', message: 'Pago ejecutado exitosamente' });
       setShowDetailModal(false);
+      // Background sync
       loadRequests();
     } catch (err) {
       setFeedback({ type: 'error', message: err.message });
@@ -661,7 +699,10 @@ export default function Solicitudes() {
                     <div
                       key={req.id}
                       onClick={() => openDetail(req)}
-                      className="bg-white border border-gray-100 rounded-lg p-3 hover:border-gray-300 hover:shadow-sm transition-all cursor-pointer"
+                      className={`bg-white border border-gray-100 rounded-lg p-3 hover:border-gray-300 hover:shadow-sm transition-all duration-300 cursor-pointer ${
+                        recentlyTransitioned.has(req.id) ? 'animate-card-enter' : ''
+                      }`}
+                      data-testid={`kanban-card-${req.id}`}
                     >
                       <div className="flex items-start justify-between mb-1.5">
                         <span className="text-xs text-gray-400 font-mono">#{req.id}</span>

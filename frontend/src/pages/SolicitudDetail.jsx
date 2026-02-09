@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/AuthContext';
 import { api } from '../lib/api';
 import Spinner from '../components/Spinner';
+import NetworkError from '../components/NetworkError';
 
 const STATUS_LABELS = {
   borrador: 'Borrador',
@@ -60,6 +61,7 @@ export default function SolicitudDetail() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isNetworkError, setIsNetworkError] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [feedback, setFeedback] = useState(null);
   const [rejectComment, setRejectComment] = useState('');
@@ -97,6 +99,7 @@ export default function SolicitudDetail() {
       setAttachments(data.attachments || []);
     } catch (err) {
       setError(err.message || 'Error al cargar la solicitud');
+      setIsNetworkError(!!err.isNetworkError);
     } finally {
       setLoading(false);
     }
@@ -251,11 +254,18 @@ export default function SolicitudDetail() {
           </svg>
           Volver al Pipeline
         </button>
-        <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-          <div className="text-4xl mb-3">⚠️</div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-1">Error</h3>
-          <p className="text-gray-500">{error}</p>
-        </div>
+        {isNetworkError ? (
+          <NetworkError
+            message={error}
+            onRetry={async () => { setError(null); setIsNetworkError(false); await loadDetail(); }}
+          />
+        ) : (
+          <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
+            <div className="text-4xl mb-3">⚠️</div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-1">Error</h3>
+            <p className="text-gray-500">{error}</p>
+          </div>
+        )}
       </div>
     );
   }
