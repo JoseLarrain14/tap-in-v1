@@ -43,6 +43,7 @@ export default function Ingresos() {
   const [editError, setEditError] = useState('');
   const [saving, setSaving] = useState(false);
   const [editSaving, setEditSaving] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
 
   const hasActiveFilters = filterCategory || filterFrom || filterTo || filterSearch;
 
@@ -169,9 +170,32 @@ export default function Ingresos() {
     }
   }
 
+  function validateIncomeForm(f) {
+    const errors = {};
+    if (!f.amount && f.amount !== 0) {
+      errors.amount = 'El monto es requerido';
+    } else if (parseFloat(f.amount) <= 0) {
+      errors.amount = 'El monto debe ser un número positivo';
+    } else if (isNaN(parseFloat(f.amount))) {
+      errors.amount = 'El monto debe ser un número válido';
+    }
+    if (!f.category_id) {
+      errors.category_id = 'La categoría es requerida';
+    }
+    if (!f.date) {
+      errors.date = 'La fecha es requerida';
+    }
+    return errors;
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
+
+    const errors = validateIncomeForm(form);
+    setFormErrors(errors);
+    if (Object.keys(errors).length > 0) return;
+
     setSaving(true);
 
     try {
@@ -234,6 +258,14 @@ export default function Ingresos() {
   async function handleEditSubmit(e) {
     e.preventDefault();
     setEditError('');
+
+    // Validate amount
+    const amt = parseFloat(editForm.amount);
+    if (!editForm.amount || isNaN(amt) || amt <= 0) {
+      setEditError('El monto debe ser un número positivo');
+      return;
+    }
+
     setEditSaving(true);
 
     try {
@@ -291,7 +323,7 @@ export default function Ingresos() {
             {exporting ? 'Exportando...' : 'Exportar Excel'}
           </button>
           <button
-            onClick={() => setShowModal(true)}
+            onClick={() => { setShowModal(true); setFormErrors({}); }}
             className="px-4 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium text-sm"
           >
             + Registrar Ingreso
@@ -416,7 +448,7 @@ export default function Ingresos() {
             </button>
           ) : (
             <button
-              onClick={() => setShowModal(true)}
+              onClick={() => { setShowModal(true); setFormErrors({}); }}
               className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium"
             >
               Registrar primer ingreso
@@ -628,32 +660,39 @@ export default function Ingresos() {
               <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">{error}</div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} noValidate className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Monto (CLP) *</label>
                 <input
                   type="number"
-                  required
                   min="1"
                   value={form.amount}
-                  onChange={e => setForm({ ...form, amount: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  onChange={e => { setForm({ ...form, amount: e.target.value }); if (formErrors.amount) setFormErrors(prev => ({ ...prev, amount: '' })); }}
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 ${formErrors.amount ? 'border-red-500' : 'border-gray-300'}`}
                   placeholder="50000"
+                  data-testid="income-amount"
                 />
+                {formErrors.amount && (
+                  <p className="mt-1 text-sm text-red-600" data-testid="income-amount-error">{formErrors.amount}</p>
+                )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Categoría *</label>
                 <select
                   value={form.category_id}
-                  onChange={e => setForm({ ...form, category_id: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  onChange={e => { setForm({ ...form, category_id: e.target.value }); if (formErrors.category_id) setFormErrors(prev => ({ ...prev, category_id: '' })); }}
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 ${formErrors.category_id ? 'border-red-500' : 'border-gray-300'}`}
+                  data-testid="income-category"
                 >
-                  <option value="">Sin categoría</option>
+                  <option value="">Seleccionar categoría</option>
                   {categories.map(c => (
                     <option key={c.id} value={c.id}>{c.name}</option>
                   ))}
                 </select>
+                {formErrors.category_id && (
+                  <p className="mt-1 text-sm text-red-600" data-testid="income-category-error">{formErrors.category_id}</p>
+                )}
               </div>
 
               <div>
@@ -671,11 +710,14 @@ export default function Ingresos() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Fecha *</label>
                 <input
                   type="date"
-                  required
                   value={form.date}
-                  onChange={e => setForm({ ...form, date: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  onChange={e => { setForm({ ...form, date: e.target.value }); if (formErrors.date) setFormErrors(prev => ({ ...prev, date: '' })); }}
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 ${formErrors.date ? 'border-red-500' : 'border-gray-300'}`}
+                  data-testid="income-date"
                 />
+                {formErrors.date && (
+                  <p className="mt-1 text-sm text-red-600" data-testid="income-date-error">{formErrors.date}</p>
+                )}
               </div>
 
               <div>
