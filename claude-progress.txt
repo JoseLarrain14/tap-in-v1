@@ -1,5 +1,54 @@
 === Tap In V1 - Development Progress ===
 
+## Session 29 - 2026-02-09
+
+### Completed Features:
+- Feature #91: Dark mode toggle works ✅
+- Feature #92: Theme preference persists in localStorage ✅
+- Feature #93: Default theme follows system preference ✅
+
+### Verification Details:
+- Feature #91: Dark mode toggle
+  - ThemeToggle button in sidebar with sun/moon icons
+  - Click toggles between light and dark mode
+  - Tested both directions: light→dark and dark→light
+  - All pages styled: Dashboard, Login, Layout, NotFound, Ingresos, Reportes, Solicitudes
+  - Charts (Recharts) use dynamic colors based on isDark state
+  - Zero console errors throughout all testing
+
+- Feature #92: localStorage persistence
+  - Theme stored under key 'theme_preference' in localStorage
+  - Toggled to dark → localStorage shows "dark"
+  - Page refresh → dark mode persists (verified visually + via DOM inspection)
+  - Toggled to light → localStorage shows "light"
+  - Page refresh → light mode persists
+
+- Feature #93: System preference detection
+  - getInitialTheme() checks localStorage first, falls back to getSystemTheme()
+  - getSystemTheme() uses window.matchMedia('(prefers-color-scheme: dark)')
+  - Cleared localStorage, refreshed → app followed system preference (light)
+  - MediaQuery change listener registered for live system preference changes
+  - Listener only fires when no user preference is stored
+
+### Key Files:
+- frontend/src/lib/ThemeContext.jsx (NEW) - ThemeProvider, useTheme hook
+- frontend/src/index.css - Added @custom-variant for Tailwind v4 dark mode
+- frontend/src/App.jsx - Added ThemeProvider wrapper
+- frontend/src/components/Layout.jsx - Theme toggle button, dark: variants
+- frontend/src/pages/Dashboard.jsx - Dark: variants, chart color variables
+- frontend/src/pages/Login.jsx - Dark: variants for form/inputs
+- frontend/src/pages/NotFound.jsx - Dark: variants
+- frontend/src/pages/Ingresos.jsx - Dark: variants for income page
+- frontend/src/pages/Reportes.jsx - Dark: variants for reports page
+- frontend/src/pages/Solicitudes.jsx - Dark: variants for expenses page
+
+### Current Status: 93/265 features passing (~35.1%)
+
+### What should be worked on next:
+- More workflow completeness features
+- Reporting features
+- Additional security/access control features
+
 ## Session 28 - 2026-02-09
 
 ### Completed Features:
