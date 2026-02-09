@@ -90,6 +90,7 @@ export default function Solicitudes() {
     category_id: '',
   });
   const [categories, setCategories] = useState([]);
+  const [createFormErrors, setCreateFormErrors] = useState({});
   const [categoryFilter, setCategoryFilter] = useState('');
   const [creatorFilter, setCreatorFilter] = useState('');
   const [searchFilter, setSearchFilter] = useState('');
@@ -222,13 +223,29 @@ export default function Solicitudes() {
     localStorage.setItem(VIEW_KEY, mode);
   }
 
+  function validatePaymentForm(f) {
+    const errors = {};
+    if (!f.amount || parseInt(f.amount) <= 0) {
+      errors.amount = 'El monto es requerido';
+    }
+    if (!f.category_id) {
+      errors.category_id = 'La categoría es requerida';
+    }
+    if (!f.description || !f.description.trim()) {
+      errors.description = 'La descripción es requerida';
+    }
+    if (!f.beneficiary || !f.beneficiary.trim()) {
+      errors.beneficiary = 'El beneficiario es requerido';
+    }
+    return errors;
+  }
+
   async function handleCreate(e, asDraft = false) {
     if (e && e.preventDefault) e.preventDefault();
     // Validate required fields
-    if (!newRequest.amount || !newRequest.description || !newRequest.beneficiary) {
-      setFeedback({ type: 'error', message: 'Monto, descripción y beneficiario son requeridos' });
-      return;
-    }
+    const errors = validatePaymentForm(newRequest);
+    setCreateFormErrors(errors);
+    if (Object.keys(errors).length > 0) return;
     try {
       setActionLoading(true);
       await api.post('/payment-requests', {
@@ -412,7 +429,7 @@ export default function Solicitudes() {
           </button>
           {canCreate && (
             <button
-              onClick={() => setShowCreateModal(true)}
+              onClick={() => { setShowCreateModal(true); setCreateFormErrors({}); }}
               className="px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
             >
               + Nueva Solicitud
@@ -572,7 +589,7 @@ export default function Solicitudes() {
           )}
           {canCreate && !statusFilter && !hasAdvancedFilters && (
             <button
-              onClick={() => setShowCreateModal(true)}
+              onClick={() => { setShowCreateModal(true); setCreateFormErrors({}); }}
               className="mt-4 px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
             >
               + Nueva Solicitud
@@ -748,53 +765,66 @@ export default function Solicitudes() {
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Nueva Solicitud de Pago</h2>
-            <form onSubmit={(e) => handleCreate(e, false)} className="space-y-4">
+            <form onSubmit={(e) => handleCreate(e, false)} noValidate className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Monto (CLP)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Monto (CLP) *</label>
                 <input
                   type="number"
-                  required
                   min="1"
                   value={newRequest.amount}
-                  onChange={(e) => setNewRequest({ ...newRequest, amount: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none"
+                  onChange={(e) => { setNewRequest({ ...newRequest, amount: e.target.value }); if (createFormErrors.amount) setCreateFormErrors(prev => ({ ...prev, amount: '' })); }}
+                  className={`w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none ${createFormErrors.amount ? 'border-red-500' : 'border-gray-300'}`}
                   placeholder="50000"
+                  data-testid="pr-amount"
                 />
+                {createFormErrors.amount && (
+                  <p className="mt-1 text-sm text-red-600" data-testid="pr-amount-error">{createFormErrors.amount}</p>
+                )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Categoría *</label>
                 <select
                   value={newRequest.category_id}
-                  onChange={(e) => setNewRequest({ ...newRequest, category_id: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none"
+                  onChange={(e) => { setNewRequest({ ...newRequest, category_id: e.target.value }); if (createFormErrors.category_id) setCreateFormErrors(prev => ({ ...prev, category_id: '' })); }}
+                  className={`w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none ${createFormErrors.category_id ? 'border-red-500' : 'border-gray-300'}`}
+                  data-testid="pr-category"
                 >
-                  <option value="">Sin categoría</option>
+                  <option value="">Seleccionar categoría</option>
                   {categories.map(c => (
                     <option key={c.id} value={c.id}>{c.name}</option>
                   ))}
                 </select>
+                {createFormErrors.category_id && (
+                  <p className="mt-1 text-sm text-red-600" data-testid="pr-category-error">{createFormErrors.category_id}</p>
+                )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Descripción *</label>
                 <input
                   type="text"
-                  required
                   value={newRequest.description}
-                  onChange={(e) => setNewRequest({ ...newRequest, description: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none"
+                  onChange={(e) => { setNewRequest({ ...newRequest, description: e.target.value }); if (createFormErrors.description) setCreateFormErrors(prev => ({ ...prev, description: '' })); }}
+                  className={`w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none ${createFormErrors.description ? 'border-red-500' : 'border-gray-300'}`}
                   placeholder="Compra de materiales..."
+                  data-testid="pr-description"
                 />
+                {createFormErrors.description && (
+                  <p className="mt-1 text-sm text-red-600" data-testid="pr-description-error">{createFormErrors.description}</p>
+                )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Beneficiario</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Beneficiario *</label>
                 <input
                   type="text"
-                  required
                   value={newRequest.beneficiary}
-                  onChange={(e) => setNewRequest({ ...newRequest, beneficiary: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none"
+                  onChange={(e) => { setNewRequest({ ...newRequest, beneficiary: e.target.value }); if (createFormErrors.beneficiary) setCreateFormErrors(prev => ({ ...prev, beneficiary: '' })); }}
+                  className={`w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none ${createFormErrors.beneficiary ? 'border-red-500' : 'border-gray-300'}`}
                   placeholder="Proveedor XYZ"
+                  data-testid="pr-beneficiary"
                 />
+                {createFormErrors.beneficiary && (
+                  <p className="mt-1 text-sm text-red-600" data-testid="pr-beneficiary-error">{createFormErrors.beneficiary}</p>
+                )}
               </div>
               <div className="flex gap-3 pt-2">
                 <button
