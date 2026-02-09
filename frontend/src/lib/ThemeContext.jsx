@@ -56,6 +56,22 @@ export function ThemeProvider({ children }) {
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
+  // Sync theme across browser tabs via storage event
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === THEME_KEY && e.newValue) {
+        const newTheme = e.newValue;
+        if (newTheme === 'dark' || newTheme === 'light') {
+          setThemeState(newTheme);
+          applyTheme(newTheme);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [applyTheme]);
+
   const setTheme = useCallback((newTheme) => {
     setThemeState(newTheme);
     localStorage.setItem(THEME_KEY, newTheme);
