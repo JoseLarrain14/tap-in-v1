@@ -38,7 +38,8 @@ async function startServer() {
 
   // 404 handler
   app.use((req, res) => {
-    res.status(404).json({ error: `Ruta no encontrada: ${req.method} ${req.path}` });
+    const msg = `Ruta no encontrada: ${req.method} ${req.path}`;
+    res.status(404).json({ error: msg, message: msg });
   });
 
   // Error handler
