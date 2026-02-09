@@ -1,5 +1,98 @@
 === Tap In V1 - Development Progress ===
 
+## Session 31 - 2026-02-09
+
+### Completed Features:
+- Feature #96: Login with empty fields shows validation errors ✅
+- Feature #97: Income form validates required fields ✅
+- Feature #98: Payment request form validates required fields ✅
+
+### Verification Details:
+- Feature #96: Login form validation
+  - Added custom JavaScript validation with inline error messages
+  - Empty email shows "El correo electrónico es requerido"
+  - Empty password shows "La contraseña es requerida"
+  - Invalid email format shows "Ingrese un correo electrónico válido"
+  - Red border on fields with errors, clears on user input
+  - Uses noValidate to bypass browser-native validation
+  - Verified via Playwright browser automation + screenshot
+
+- Feature #97: Income form validation
+  - Added validateIncomeForm() for monto, categoría, and fecha
+  - Empty monto shows "El monto es requerido"
+  - Empty categoría shows "La categoría es requerida"
+  - Empty fecha shows "La fecha es requerida"
+  - Red border on invalid fields, clears on user input
+  - Filled all required fields → form submits successfully (VALIDATION_TEST_97 created)
+  - Verified via Playwright browser automation + screenshot
+
+- Feature #98: Payment request form validation
+  - Added validatePaymentForm() for monto, categoría, descripción, beneficiario
+  - Empty monto shows "El monto es requerido"
+  - Empty categoría shows "La categoría es requerida"
+  - Empty descripción shows "La descripción es requerida"
+  - Empty beneficiario shows "El beneficiario es requerido"
+  - Red border on invalid fields, clears on user input
+  - Filled all required fields → form submits successfully (VALIDATION_TEST_98 created)
+  - Verified via Playwright browser automation + screenshot
+
+### Changes Made:
+- frontend/src/pages/Login.jsx: Added fieldErrors state, validateFields(), noValidate, inline error messages
+- frontend/src/pages/Ingresos.jsx: Added formErrors state, validateIncomeForm(), noValidate, inline error messages
+- frontend/src/pages/Solicitudes.jsx: Added createFormErrors state, validatePaymentForm(), noValidate, inline error messages
+
+### Current Status: 97/265 features passing (~36.6%)
+
+## Session 30 - 2026-02-09
+
+### Completed Features:
+- Feature #88: Export with date filter ✅ (already done in previous session)
+- Feature #89: Export respects active filters ✅
+- Feature #90: Payment request shows complete detail view ✅
+
+### Verification Details:
+- Feature #88: Export with date filter (verified in previous session)
+  - Date range filter (Jan 2026) → exported 3 records, all January dates
+  - Date range filter (Feb 2026) → exported 33 records, all February dates
+  - Filename includes date range: ingresos_desde_2026-01-01_hasta_2026-01-31.xlsx
+
+- Feature #89: Export respects active filters
+  - Category filter ("Cuota Mensual") → exported 24 records, all Cuota Mensual ✅
+  - Search filter ("EXPORT_TEST") → exported 5 records, all matching description ✅
+  - Date filter already verified in Feature #88
+  - Verified with Playwright browser automation + xlsx verification scripts
+  - Used Playwright select_option tool for proper React state update
+  - Previous attempt failed: nativeInputValueSetter + change event didn't update React select state
+
+- Feature #90: Payment request shows complete detail view
+  - Verified on Solicitud #39 (Ejecutado status - full lifecycle):
+    - Monto: $75.000 in CLP format ✅
+    - Descripcion: TEST_F81_EXECUTED_CHECK ✅
+    - Beneficiario: Test Beneficiary F81 ✅
+    - Categoria: Sin categoria ✅
+    - Estado: Ejecutado with blue colored badge ✅
+    - Creador: Carlos López ✅
+    - Fecha de Creacion: 9 feb 2026, 01:30 a. m. ✅
+    - Adjuntar Documento section visible ✅
+    - Historial de Eventos (timeline) with 3 events: Pendiente → Aprobado → Ejecutado ✅
+  - Also verified on Solicitud #24 (Pendiente with category):
+    - Categoria: "Eventos" (named category) ✅
+    - Action buttons (Aprobar/Rechazar) visible for presidente ✅
+  - Full page screenshot saved as feature90-detail-view.png
+
+### Key Files Modified:
+- frontend/src/pages/Ingresos.jsx - Added XLSX import, handleExport with filter params
+- frontend/src/pages/Solicitudes.jsx - Added XLSX import, handleExport with filter params
+- frontend/src/pages/Reportes.jsx - Complete rewrite from stub to export hub
+
+### Current Status: 94/265 features passing (35.5%)
+
+### What should be worked on next:
+- More workflow completeness features
+- Additional reporting/export features
+- Security/access control features
+- UI/UX polish
+
 ## Session 29 - 2026-02-09
 
 ### Completed Features:
