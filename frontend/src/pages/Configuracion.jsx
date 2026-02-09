@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../lib/AuthContext';
 import { api } from '../lib/api';
+import { SkeletonTable } from '../components/Skeleton';
 
 const ROLE_LABELS = {
   delegado: 'Delegado',
@@ -254,7 +255,7 @@ export default function Configuracion() {
           </div>
 
           {loading && (
-            <div className="text-center py-12 text-gray-400">Cargando usuarios...</div>
+            <SkeletonTable rows={4} columns={isPresidente ? 5 : 4} />
           )}
 
           {error && (
@@ -364,7 +365,7 @@ export default function Configuracion() {
           )}
 
           {categoriesLoading && (
-            <div className="text-center py-12 text-gray-400">Cargando categor&iacute;as...</div>
+            <SkeletonTable rows={4} columns={isPresidente ? 3 : 2} />
           )}
 
           {!categoriesLoading && categories.length === 0 && (

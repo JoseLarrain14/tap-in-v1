@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/AuthContext';
 import { api } from '../lib/api';
 import * as XLSX from 'xlsx';
+import { SkeletonTable, SkeletonKanban, SkeletonLine } from '../components/Skeleton';
 
 const STATUS_LABELS = {
   borrador: 'Borrador',
@@ -559,9 +560,15 @@ export default function Solicitudes() {
         </div>
       )}
 
-      {/* Loading */}
+      {/* Loading Skeleton */}
       {loading && (
-        <div className="text-center py-12 text-gray-400">Cargando solicitudes...</div>
+        <div data-testid="loading-skeleton">
+          {viewMode === 'kanban' ? (
+            <SkeletonKanban />
+          ) : (
+            <SkeletonTable rows={5} columns={7} />
+          )}
+        </div>
       )}
 
       {/* Error */}
