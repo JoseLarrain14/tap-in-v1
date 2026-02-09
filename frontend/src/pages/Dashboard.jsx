@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../lib/AuthContext';
 import { api } from '../lib/api';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { useTheme } from '../lib/ThemeContext';
 import { SkeletonCard, SkeletonLine } from '../components/Skeleton';
 import NetworkError from '../components/NetworkError';
@@ -35,12 +35,15 @@ export default function Dashboard() {
   const [chartData, setChartData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [chartLoading, setChartLoading] = useState(true);
+  const [categoryData, setCategoryData] = useState([]);
+  const [categoryLoading, setCategoryLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
   const [isNetworkError, setIsNetworkError] = useState(false);
 
   useEffect(() => {
     loadDashboard();
     loadChartData();
+    loadCategoryData();
   }, []);
 
   async function loadDashboard() {
@@ -68,6 +71,20 @@ export default function Dashboard() {
       setChartLoading(false);
     }
   }
+
+  async function loadCategoryData() {
+    try {
+      setCategoryLoading(true);
+      const data = await api.get('/dashboard/categories');
+      setCategoryData(data.categories || []);
+    } catch (err) {
+      console.error('Error loading category data:', err);
+    } finally {
+      setCategoryLoading(false);
+    }
+  }
+
+  const CATEGORY_COLORS = ['#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#06b6d4', '#ec4899', '#8b5cf6', '#14b8a6'];
 
   const balance = summary?.balance ?? 0;
   const monthIncome = summary?.month_income ?? 0;
@@ -101,7 +118,7 @@ export default function Dashboard() {
       {loadError && isNetworkError && (
         <NetworkError
           message={loadError}
-          onRetry={async () => { setLoadError(null); setIsNetworkError(false); await loadDashboard(); await loadChartData(); }}
+          onRetry={async () => { setLoadError(null); setIsNetworkError(false); await loadDashboard(); await loadChartData(); await loadCategoryData(); }}
         />
       )}
       {loadError && !isNetworkError && (
@@ -110,7 +127,7 @@ export default function Dashboard() {
           <h3 className="text-lg font-semibold text-red-800 dark:text-red-300 mb-1">Error al cargar datos</h3>
           <p className="text-red-600 dark:text-red-400 text-sm mb-3">{loadError}</p>
           <button
-            onClick={() => { setLoadError(null); loadDashboard(); loadChartData(); }}
+            onClick={() => { setLoadError(null); loadDashboard(); loadChartData(); loadCategoryData(); }}
             className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
           >
             Reintentar
@@ -244,6 +261,45 @@ export default function Dashboard() {
           </ResponsiveContainer>
         ) : (
           <div className="text-center py-12 text-gray-400 dark:text-gray-500">No hay datos para mostrar</div>
+        )}
+      </div>
+
+      {/* Category Distribution Chart */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6" data-testid="category-chart">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Distribución por Categoría (Egresos)</h2>
+        {categoryLoading ? (
+          <div className="animate-pulse bg-gray-100 dark:bg-gray-700 rounded-lg h-64" />
+        ) : categoryData.length > 0 ? (
+          <div className="flex flex-col md:flex-row items-center gap-6">
+            <ResponsiveContainer width="100%" height={280}>
+              <PieChart>
+                <Pie
+                  data={categoryData}
+                  dataKey="total"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={100}
+                  paddingAngle={2}
+                  label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                >
+                  {categoryData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={CATEGORY_COLORS[index % CATEGORY_COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  formatter={(value) => formatCLP(value)}
+                  contentStyle={{ borderRadius: '8px', border: `1px solid ${tooltipBorder}`, backgroundColor: tooltipBg, color: tooltipLabelColor }}
+                />
+                <Legend
+                  wrapperStyle={{ fontSize: '13px', color: chartTickColor }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        ) : (
+          <div className="text-center py-12 text-gray-400 dark:text-gray-500">No hay egresos categorizados para mostrar</div>
         )}
       </div>
 
