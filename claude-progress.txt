@@ -1,5 +1,44 @@
 === Tap In V1 - Development Progress ===
 
+## Session 45 - 2026-02-09
+
+### Completed Features:
+- Feature #149: Query params for filters in URL ✅
+- Feature #150: Cross-organization URL access blocked ✅
+
+### Verification Details:
+- Feature #149: Query params for filters in URL
+  - Navigated to Ingresos page, selected "Cuota Mensual" category filter
+  - Clicked "Buscar" → URL updated to /ingresos?category=1 ✅
+  - Data filtered to 24 records (from 36 total) showing only "Cuota Mensual" ✅
+  - Opened URL /ingresos?category=1 in new tab → filter preserved ✅
+  - Category dropdown shows "Cuota Mensual" selected in new tab ✅
+  - "Limpiar" button visible indicating active filter recognized ✅
+  - Ingresos page uses useSearchParams from react-router-dom
+  - All filter states (category, search, from, to, sort_by, sort_order, page) sync to URL
+  - Zero console errors ✅
+
+- Feature #150: Cross-organization URL access blocked
+  - Logged in as Org A user (presidente@tapin.cl, org_id: 1)
+  - Got Org A transaction ID #55, payment request ID #51
+  - API tests (via browser fetch):
+    - Org B → GET /api/transactions/55/audit → 404 "Transaccion no encontrada" ✅
+    - Org B → GET /api/payment-requests/51 → 404 "Solicitud de pago no encontrada" ✅
+  - UI tests (logged in as Pedro OrgB, org_id: 2):
+    - Navigate to /ingresos/55 → 404 "Pagina no encontrada" ✅
+    - Navigate to /solicitudes/51 → Error "Solicitud de pago no encontrada" ✅
+    - No Org A data exposed in any response ✅
+    - Dashboard shows all $0 values for Org B (no cross-org leakage) ✅
+  - All backend endpoints use organization_id filtering in SQL WHERE clauses
+  - Zero console errors ✅
+
+### Current Status: ~151/265 features passing (~57%)
+
+### What should be worked on next:
+- Continue with remaining URL & Direct Access features
+- More UI/UX features
+- Security and access control features
+
 ## Session 44 - 2026-02-09
 
 ### Completed Features:
