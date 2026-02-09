@@ -1,5 +1,57 @@
 === Tap In V1 - Development Progress ===
 
+## Session 46 - 2026-02-09
+
+### Completed Features:
+- Feature #151: Double-click submit on income form creates only one record ✅
+- Feature #152: Double-click approve creates only one approval ✅
+- Feature #153: Double-click execute does not create duplicate transactions ✅
+
+### Verification Details:
+- Feature #151: Income form double-click prevention
+  - Filled income form with DOUBLECLICK_TEST_151, $12,345
+  - Double-clicked submit button (Playwright dblclick)
+  - Record count went from 35 to 36 (only ONE record created)
+  - Search confirmed only one record with that description
+  - Protection: submittingRef useRef guard + disabled={saving} + backend 5-sec dedup
+  - Zero console errors
+
+- Feature #152: Approve double-click prevention
+  - Navigated to SolicitudDetail for pending request #42 as Presidente
+  - Rapidly double-clicked "Aprobar Solicitud" button (JS btn.click(); btn.click();)
+  - Status changed to "aprobado" successfully
+  - API confirmed: Total events=2, Approval events=1 (pendiente + aprobado)
+  - No duplicate approval events created
+  - Protection: actionRef useRef guard + disabled={actionLoading} + backend status check
+  - Zero console errors
+
+- Feature #153: Execute double-click prevention
+  - Logged in as Secretaria (Ana Martínez)
+  - Navigated to approved request #42
+  - Selected comprobante file, then rapidly double-clicked "Marcar como Ejecutado"
+  - Status changed to "ejecutado" successfully
+  - API confirmed: Total events=3, Execution events=1 (pendiente + aprobado + ejecutado)
+  - No duplicate transactions or execution events created
+  - Protection: actionRef useRef guard + disabled={actionLoading} + backend status check
+  - Zero console errors
+
+### Changes Made:
+- frontend/src/pages/Solicitudes.jsx: Added actionRef, createSubmittingRef, editSubmittingRef guards
+  - handleApprove: added actionRef guard
+  - handleReject: added actionRef guard
+  - handleExecute: added actionRef guard
+  - handleCreate: added createSubmittingRef + createSubmitted guard
+  - handleEdit: added editSubmittingRef + editSubmitted guard
+  - Added isMountedRef for cleanup on unmount
+  - (SolicitudDetail.jsx and Ingresos.jsx already had guards from previous sessions)
+
+### Current Status: 152/265 features passing (~57.4%)
+
+### What should be worked on next:
+- More Double-Action & Idempotency features
+- Additional UI/UX features
+- Reporting and export enhancements
+
 ## Session 45 - 2026-02-09
 
 ### Completed Features:
