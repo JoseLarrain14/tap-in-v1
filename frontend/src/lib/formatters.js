@@ -140,8 +140,8 @@ export function handleAmountPaste(e, setter) {
 }
 
 /**
- * Relative time formatting (Hace X min, Hace X h, etc.)
- * Falls back to locale date in Chile timezone for older dates
+ * Relative time formatting in Spanish (Hace X minutos, Hace X horas, etc.)
+ * Falls back to absolute locale date in Chile timezone for older dates (>7 days)
  */
 export function formatRelativeDate(dateStr) {
   if (!dateStr) return '';
@@ -154,9 +154,12 @@ export function formatRelativeDate(dateStr) {
   const diffDays = Math.floor(diffMs / 86400000);
 
   if (diffMin < 1) return 'Hace un momento';
-  if (diffMin < 60) return `Hace ${diffMin} min`;
-  if (diffHrs < 24) return `Hace ${diffHrs} h`;
-  if (diffDays < 7) return `Hace ${diffDays} d`;
+  if (diffMin === 1) return 'Hace 1 minuto';
+  if (diffMin < 60) return `Hace ${diffMin} minutos`;
+  if (diffHrs === 1) return 'Hace 1 hora';
+  if (diffHrs < 24) return `Hace ${diffHrs} horas`;
+  if (diffDays === 1) return 'Hace 1 día';
+  if (diffDays < 7) return `Hace ${diffDays} días`;
   return date.toLocaleDateString('es-CL', {
     timeZone: CHILE_TZ,
     year: 'numeric',
