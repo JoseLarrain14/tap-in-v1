@@ -1,5 +1,39 @@
 === Tap In V1 - Development Progress ===
 
+## Session 50 - 2026-02-10
+
+### Completed Features:
+- Feature #175: Category dropdown shows placeholder text ✅
+- Feature #176: Dashboard loads with current month by default ✅
+
+### Verification Details:
+- Feature #175: Category dropdown shows placeholder text
+  - Income form (Ingresos): category dropdown shows "Seleccionar categoría" as default placeholder ✅
+  - No category pre-selected (category_id initialized to '' empty string) ✅
+  - Payment request form (Solicitudes): same "Seleccionar categoría" placeholder ✅
+  - No category pre-selected ✅
+  - Both forms already had correct implementation in place
+  - Verified via Playwright browser automation with screenshots
+
+- Feature #176: Dashboard loads with current month by default
+  - Dashboard navigates to / and loads current month data by default ✅
+  - "Ingresos del Mes" shows current month income ($4.795.396) ✅
+  - "Egresos del Mes" shows current month expenses ($710.000) ✅
+  - Shows "+966% vs mes anterior" comparison against previous month ✅
+  - Chart "Flujo Mensual (6 meses)" shows 6 months ending with "feb 2026" (current month) ✅
+  - Current month is the rightmost bar in the chart, clearly highlighted ✅
+  - Backend uses new Date() to determine current month (lines 30-37 of dashboard.js) ✅
+  - API /api/dashboard/summary returns month_income and month_expense for current month ✅
+  - API /api/dashboard/chart returns 6 months ending with current month ✅
+  - Zero console errors ✅
+
+### Current Status: 176/265 features passing (66.4%)
+
+### What should be worked on next:
+- Continue with remaining Default & Reset features
+- More UI polish and form behavior features
+- Additional validation and error handling features
+
 ## Session 49 - 2026-02-10
 
 ### Completed Features:
