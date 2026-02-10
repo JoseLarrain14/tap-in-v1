@@ -397,7 +397,7 @@ export default function Ingresos() {
               {exporting ? 'Exportando...' : 'Exportar Excel'}
             </button>
             <button
-              onClick={() => { setShowModal(true); setFormErrors({}); setFormSubmitted(false); setError(''); }}
+              onClick={() => { setShowModal(true); setFormErrors({}); setFormSubmitted(false); setError(''); setForm({ amount: '', category_id: '', description: '', date: new Date().toISOString().split('T')[0], payer_name: '', payer_rut: '' }); }}
               className="px-4 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium text-sm"
             >
               + Registrar Ingreso
@@ -561,7 +561,7 @@ export default function Ingresos() {
             </button>
           ) : (
             <button
-              onClick={() => { setShowModal(true); setFormErrors({}); setFormSubmitted(false); setError(''); }}
+              onClick={() => { setShowModal(true); setFormErrors({}); setFormSubmitted(false); setError(''); setForm({ amount: '', category_id: '', description: '', date: new Date().toISOString().split('T')[0], payer_name: '', payer_rut: '' }); }}
               className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium"
             >
               Registrar primer ingreso

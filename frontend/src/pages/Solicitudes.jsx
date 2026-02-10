@@ -511,7 +511,7 @@ export default function Solicitudes() {
           </button>
           {canCreate && (
             <button
-              onClick={() => { setShowCreateModal(true); setCreateFormErrors({}); setCreateSubmitted(false); }}
+              onClick={() => { setShowCreateModal(true); setCreateFormErrors({}); setCreateSubmitted(false); setNewRequest({ amount: '', description: '', beneficiary: '', category_id: '' }); }}
               className="px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
             >
               + Nueva Solicitud
@@ -693,7 +693,7 @@ export default function Solicitudes() {
           )}
           {canCreate && !statusFilter && !hasAdvancedFilters && (
             <button
-              onClick={() => { setShowCreateModal(true); setCreateFormErrors({}); setCreateSubmitted(false); }}
+              onClick={() => { setShowCreateModal(true); setCreateFormErrors({}); setCreateSubmitted(false); setNewRequest({ amount: '', description: '', beneficiary: '', category_id: '' }); }}
               className="mt-4 px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
             >
               + Nueva Solicitud
