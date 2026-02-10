@@ -417,10 +417,17 @@ export default function Ingresos() {
     try {
       await api.delete(`/transactions/${tx.id}`);
       setDeleteConfirm(null);
+      showFeedback('success', 'Ingreso eliminado exitosamente');
       loadData({}, { silent: true });
     } catch (err) {
       console.error('Error deleting transaction:', err);
       setDeleteConfirm(null);
+      if (err.status === 404) {
+        showFeedback('error', 'Este registro ya fue eliminado por otro usuario');
+        loadData({}, { silent: true });
+      } else {
+        showFeedback('error', err.message || 'Error al eliminar el registro');
+      }
     } finally {
       setDeleting(false);
     }
@@ -482,7 +489,18 @@ export default function Ingresos() {
       setEditingTransaction(null);
       loadData({}, { silent: true });
     } catch (err) {
-      setEditError(err.message || 'Error al actualizar ingreso');
+      if (err.status === 404) {
+        setEditError('Este registro ya no existe. Fue eliminado por otro usuario.');
+        // Close modal after a brief delay and refresh the list
+        setTimeout(() => {
+          setShowEditModal(false);
+          setEditingTransaction(null);
+          showFeedback('error', 'El registro fue eliminado por otro usuario');
+          loadData({}, { silent: true });
+        }, 2000);
+      } else {
+        setEditError(err.message || 'Error al actualizar ingreso');
+      }
     } finally {
       editSubmittingRef.current = false;
       setEditSaving(false);

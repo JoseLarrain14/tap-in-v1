@@ -429,14 +429,20 @@ router.post('/:id/approve', requireRole('presidente'), (req, res) => {
 
   const { comment } = req.body;
 
-  db.prepare(`
+  // Atomic update: only change if status is still 'pendiente' (prevents race conditions)
+  const updateResult = db.prepare(`
     UPDATE payment_requests SET
       status = 'aprobado',
       approved_by = ?,
       approved_at = CURRENT_TIMESTAMP,
       updated_at = CURRENT_TIMESTAMP
-    WHERE id = ?
+    WHERE id = ? AND status = 'pendiente'
   `).run(userId, req.params.id);
+
+  // If no rows changed, another concurrent request already changed the status
+  if (updateResult.changes === 0) {
+    return res.status(409).json({ error: 'La solicitud ya fue procesada por otro usuario' });
+  }
 
   db.prepare(`
     INSERT INTO payment_events (payment_request_id, previous_status, new_status, user_id, comment, ip_address, user_agent)
@@ -498,15 +504,21 @@ router.post('/:id/reject', requireRole('presidente'), (req, res) => {
     return res.status(400).json({ error: 'El comentario es obligatorio al rechazar una solicitud' });
   }
 
-  db.prepare(`
+  // Atomic update: only change if status is still 'pendiente' (prevents race conditions)
+  const rejectResult = db.prepare(`
     UPDATE payment_requests SET
       status = 'rechazado',
       rejected_by = ?,
       rejected_at = CURRENT_TIMESTAMP,
       rejection_comment = ?,
       updated_at = CURRENT_TIMESTAMP
-    WHERE id = ?
+    WHERE id = ? AND status = 'pendiente'
   `).run(userId, comment, req.params.id);
+
+  // If no rows changed, another concurrent request already changed the status
+  if (rejectResult.changes === 0) {
+    return res.status(409).json({ error: 'La solicitud ya fue procesada por otro usuario' });
+  }
 
   db.prepare(`
     INSERT INTO payment_events (payment_request_id, previous_status, new_status, user_id, comment, ip_address, user_agent)
@@ -556,14 +568,19 @@ router.post('/:id/execute', requireRole('secretaria'), upload.single('comprobant
 
   const comment = req.body.comment;
 
-  db.prepare(`
+  // Atomic update: only change if status is still 'aprobado' (prevents race conditions)
+  const execResult = db.prepare(`
     UPDATE payment_requests SET
       status = 'ejecutado',
       executed_by = ?,
       executed_at = CURRENT_TIMESTAMP,
       updated_at = CURRENT_TIMESTAMP
-    WHERE id = ?
+    WHERE id = ? AND status = 'aprobado'
   `).run(userId, req.params.id);
+
+  if (execResult.changes === 0) {
+    return res.status(409).json({ error: 'La solicitud ya fue procesada por otro usuario' });
+  }
 
   db.prepare(`
     INSERT INTO payment_events (payment_request_id, previous_status, new_status, user_id, comment, ip_address, user_agent)
