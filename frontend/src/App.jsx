@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './lib/AuthContext';
 import { ThemeProvider } from './lib/ThemeContext';
+import { ToastProvider } from './lib/ToastContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import Layout from './components/Layout';
 import Login from './pages/Login';
@@ -85,6 +86,7 @@ function App() {
   return (
     <ThemeProvider>
     <ErrorBoundary>
+    <ToastProvider>
     <BrowserRouter>
       <AuthProvider>
         <Routes>
@@ -118,6 +120,7 @@ function App() {
         </Routes>
       </AuthProvider>
     </BrowserRouter>
+    </ToastProvider>
     </ErrorBoundary>
     </ThemeProvider>
   );

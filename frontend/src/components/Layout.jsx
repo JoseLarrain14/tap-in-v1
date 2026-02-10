@@ -3,6 +3,7 @@ import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/AuthContext';
 import { useTheme } from '../lib/ThemeContext';
 import { api } from '../lib/api';
+import ToastContainer from './ToastContainer';
 
 const SIDEBAR_KEY = 'sidebar_collapsed';
 
@@ -135,7 +136,10 @@ export default function Layout() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex transition-colors duration-200">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex transition-colors duration-200 overflow-x-hidden max-w-full">
+      {/* Global Toast Container */}
+      <ToastContainer />
+
       {/* Sidebar - hidden on mobile, visible on md+ */}
       <aside
         data-testid="sidebar"
@@ -282,7 +286,7 @@ export default function Layout() {
       </header>
 
       {/* Main content - adjusted padding for mobile header/bottom nav */}
-      <main className="flex-1 p-4 pt-16 pb-20 md:p-8 md:pt-8 md:pb-8 transition-colors duration-200">
+      <main className="flex-1 min-w-0 p-4 pt-16 pb-20 md:p-8 md:pt-8 md:pb-8 transition-colors duration-200 overflow-x-hidden">
         <Outlet />
       </main>
 

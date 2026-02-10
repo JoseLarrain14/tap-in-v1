@@ -1,16 +1,17 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../lib/AuthContext';
+import { useToast } from '../lib/ToastContext';
 import { api } from '../lib/api';
 import * as XLSX from 'xlsx';
 import { SkeletonTable, SkeletonLine } from '../components/Skeleton';
 import Spinner from '../components/Spinner';
 import NetworkError from '../components/NetworkError';
-import Toast from '../components/Toast';
 import { formatCLP, formatDate, blockNonNumericKeys, handleAmountPaste } from '../lib/formatters';
 
 export default function Ingresos() {
   const { user } = useAuth();
+  const { addToast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
   const [transactions, setTransactions] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -88,7 +89,8 @@ export default function Ingresos() {
   const [formErrors, setFormErrors] = useState({});
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [editFormSubmitted, setEditFormSubmitted] = useState(false);
-  const [feedback, setFeedback] = useState(null);
+  // feedback state kept for backward compat but toasts now go through context
+  const showFeedback = (type, message) => addToast({ type, message, testId: 'income-toast' });
   const isMountedRef = useRef(true);
   const submittingRef = useRef(false);
   const editSubmittingRef = useRef(false);
@@ -391,7 +393,7 @@ export default function Ingresos() {
         payer_name: '',
         payer_rut: ''
       });
-      setFeedback({ type: 'success', message: 'Ingreso registrado exitosamente' });
+      showFeedback('success', 'Ingreso registrado exitosamente');
       loadData({}, { silent: true });
     } catch (err) {
       if (err.fields) setFormErrors(err.fields);
@@ -512,17 +514,6 @@ export default function Ingresos() {
           </div>
         )}
       </div>
-
-      {/* Success/Error Toast */}
-      {feedback && (
-        <Toast
-          message={feedback.message}
-          type={feedback.type}
-          duration={4000}
-          onClose={() => setFeedback(null)}
-          testId="income-toast"
-        />
-      )}
 
       {/* Loading Skeleton */}
       {loading && (
@@ -732,22 +723,22 @@ export default function Ingresos() {
       )}
 
       {!loading && transactions.length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <table className="w-full">
+        <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
+          <table className="w-full min-w-[700px]">
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50">
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase cursor-pointer hover:text-gray-700 select-none" onClick={() => handleSort('date')} data-testid="sort-fecha">
+                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase cursor-pointer hover:text-gray-700 select-none whitespace-nowrap" onClick={() => handleSort('date')} data-testid="sort-fecha">
                   Fecha<SortArrow column="date" />
                 </th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase cursor-pointer hover:text-gray-700 select-none" onClick={() => handleSort('description')} data-testid="sort-descripcion">
+                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase cursor-pointer hover:text-gray-700 select-none whitespace-nowrap" onClick={() => handleSort('description')} data-testid="sort-descripcion">
                   Descripción<SortArrow column="description" />
                 </th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Categoría</th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Pagador</th>
-                <th className="text-right px-6 py-3 text-xs font-medium text-gray-500 uppercase cursor-pointer hover:text-gray-700 select-none" onClick={() => handleSort('amount')} data-testid="sort-monto">
+                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase whitespace-nowrap">Categoría</th>
+                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase whitespace-nowrap">Pagador</th>
+                <th className="text-right px-6 py-3 text-xs font-medium text-gray-500 uppercase cursor-pointer hover:text-gray-700 select-none whitespace-nowrap" onClick={() => handleSort('amount')} data-testid="sort-monto">
                   Monto<SortArrow column="amount" />
                 </th>
-                <th className="text-center px-6 py-3 text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                <th className="text-center px-6 py-3 text-xs font-medium text-gray-500 uppercase whitespace-nowrap">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
