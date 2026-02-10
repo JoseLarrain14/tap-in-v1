@@ -336,17 +336,75 @@ export default function Configuracion() {
             </div>
           )}
 
+          {/* Mobile card view for users */}
           {!loading && displayUsers.length > 0 && (
-            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-              <table className="w-full">
+            <div className="md:hidden space-y-3" data-testid="mobile-user-cards">
+              {displayUsers.map((u) => (
+                <div key={u.id} className={`bg-white rounded-xl border border-gray-200 p-4 ${!u.is_active ? 'opacity-60' : ''}`}>
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex-1 min-w-0 mr-3">
+                      <p className={`text-sm font-medium ${u.is_active ? 'text-gray-900' : 'text-gray-400 line-through'}`}>{u.name}</p>
+                      <p className={`text-xs mt-0.5 ${u.is_active ? 'text-gray-500' : 'text-gray-400'} truncate`}>{u.email}</p>
+                    </div>
+                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                      <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${u.is_active ? ROLE_COLORS[u.role] : 'bg-gray-100 text-gray-400'}`}>
+                        {ROLE_LABELS[u.role]}
+                      </span>
+                      <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${u.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                        {u.is_active ? 'Activo' : 'Desactivado'}
+                      </span>
+                    </div>
+                  </div>
+                  {isPresidente && u.id !== user.id && (
+                    <div className="flex items-center gap-2 pt-2 border-t border-gray-100 mt-2">
+                      {u.is_active ? (
+                        <>
+                          <select
+                            value={u.role}
+                            onChange={(e) => handleRoleChange(u.id, e.target.value)}
+                            disabled={actionLoading}
+                            className="flex-1 px-2 py-1.5 border border-gray-300 rounded text-xs font-medium bg-white focus:ring-2 focus:ring-black focus:border-transparent outline-none disabled:opacity-50"
+                          >
+                            <option value="delegado">Delegado</option>
+                            <option value="presidente">Presidente</option>
+                            <option value="secretaria">Secretaria</option>
+                          </select>
+                          <button
+                            onClick={() => setDeactivateUserConfirm(u)}
+                            disabled={actionLoading}
+                            className="px-3 py-1.5 bg-red-100 text-red-700 rounded text-xs font-medium hover:bg-red-200 transition-colors disabled:opacity-50"
+                          >
+                            Desactivar
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          onClick={() => handleActivate(u.id)}
+                          disabled={actionLoading}
+                          className="px-3 py-1.5 bg-green-100 text-green-700 rounded text-xs font-medium hover:bg-green-200 transition-colors disabled:opacity-50"
+                        >
+                          Activar
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Desktop table view for users */}
+          {!loading && displayUsers.length > 0 && (
+            <div className="hidden md:block bg-white rounded-xl border border-gray-200 overflow-x-auto">
+              <table className="w-full min-w-[500px]">
                 <thead>
                   <tr className="border-b border-gray-100">
-                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Nombre</th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Email</th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Rol</th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Estado</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase whitespace-nowrap">Nombre</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase whitespace-nowrap">Email</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase whitespace-nowrap">Rol</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase whitespace-nowrap">Estado</th>
                     {isPresidente && (
-                      <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                      <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 uppercase whitespace-nowrap">Acciones</th>
                     )}
                   </tr>
                 </thead>
@@ -474,15 +532,51 @@ export default function Configuracion() {
             </div>
           )}
 
+          {/* Mobile card view for categories */}
           {!categoriesLoading && categories.length > 0 && (
-            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-              <table className="w-full">
+            <div className="md:hidden space-y-3" data-testid="mobile-category-cards">
+              {categories.map((cat) => (
+                <div key={cat.id} className="bg-white rounded-xl border border-gray-200 p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-gray-900">{cat.name}</span>
+                      <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${TYPE_COLORS[cat.type]}`}>
+                        {TYPE_LABELS[cat.type]}
+                      </span>
+                    </div>
+                    {isPresidente && (
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => openEditCategory(cat)}
+                          className="px-2.5 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium"
+                        >
+                          Editar
+                        </button>
+                        <button
+                          onClick={() => setDeleteCategoryConfirm(cat)}
+                          disabled={deletingCategory === cat.id}
+                          className="px-2.5 py-1 bg-red-100 text-red-700 rounded text-xs font-medium disabled:opacity-50"
+                        >
+                          {deletingCategory === cat.id ? '...' : 'Eliminar'}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Desktop table view for categories */}
+          {!categoriesLoading && categories.length > 0 && (
+            <div className="hidden md:block bg-white rounded-xl border border-gray-200 overflow-x-auto">
+              <table className="w-full min-w-[400px]">
                 <thead>
                   <tr className="border-b border-gray-100">
-                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Nombre</th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Tipo</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase whitespace-nowrap">Nombre</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase whitespace-nowrap">Tipo</th>
                     {isPresidente && (
-                      <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                      <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 uppercase whitespace-nowrap">Acciones</th>
                     )}
                   </tr>
                 </thead>
@@ -526,10 +620,19 @@ export default function Configuracion() {
       {/* Category Create/Edit Modal */}
       {showCategoryModal && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              {editingCategory ? 'Editar Categor\u00eda' : 'Nueva Categor\u00eda'}
-            </h2>
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">
+                {editingCategory ? 'Editar Categor\u00eda' : 'Nueva Categor\u00eda'}
+              </h2>
+              <button
+                onClick={() => setShowCategoryModal(false)}
+                className="text-gray-400 hover:text-gray-600 text-xl leading-none p-1 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                aria-label="Cerrar"
+              >
+                &times;
+              </button>
+            </div>
 
             {categoryError && (
               <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">{categoryError}</div>
@@ -586,7 +689,7 @@ export default function Configuracion() {
       {/* Delete Category Confirmation Modal */}
       {deleteCategoryConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
             <div className="text-center">
               <div className="text-4xl mb-3">⚠️</div>
               <h2 className="text-lg font-semibold text-gray-900 mb-2">Confirmar eliminación</h2>
@@ -600,7 +703,7 @@ export default function Configuracion() {
                 <button
                   onClick={() => setDeleteCategoryConfirm(null)}
                   disabled={deletingCategory === deleteCategoryConfirm.id}
-                  className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+                  className="flex-1 px-4 py-2.5 min-h-[44px] border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
                 >
                   Cancelar
                 </button>
@@ -620,7 +723,7 @@ export default function Configuracion() {
       {/* Deactivate User Confirmation Modal */}
       {deactivateUserConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
             <div className="text-center">
               <div className="text-4xl mb-3">⚠️</div>
               <h2 className="text-lg font-semibold text-gray-900 mb-2">Confirmar desactivación</h2>
@@ -637,7 +740,7 @@ export default function Configuracion() {
                 <button
                   onClick={() => setDeactivateUserConfirm(null)}
                   disabled={actionLoading}
-                  className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+                  className="flex-1 px-4 py-2.5 min-h-[44px] border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
                 >
                   Cancelar
                 </button>
@@ -657,8 +760,17 @@ export default function Configuracion() {
       {/* Invite Modal */}
       {showInviteModal && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Invitar Usuario</h2>
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">Invitar Usuario</h2>
+              <button
+                onClick={() => setShowInviteModal(false)}
+                className="text-gray-400 hover:text-gray-600 text-xl leading-none p-1 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                aria-label="Cerrar"
+              >
+                &times;
+              </button>
+            </div>
             {inviteError && (
               <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm" data-testid="invite-error">
                 {inviteError}

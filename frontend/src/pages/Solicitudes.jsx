@@ -479,7 +479,7 @@ export default function Solicitudes() {
           <h1 className="text-2xl font-semibold text-gray-900">Solicitudes de Pago</h1>
           <p className="text-sm text-gray-500 mt-1">Pipeline completo de solicitudes de egreso</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
           {/* View Toggle */}
           <div className="flex items-center bg-gray-100 rounded-lg p-0.5" data-testid="view-toggle">
             <button
@@ -536,7 +536,7 @@ export default function Solicitudes() {
           {canCreate && (
             <button
               onClick={() => { setShowCreateModal(true); setCreateFormErrors({}); setCreateSubmitted(false); setNewRequest({ amount: '', description: '', beneficiary: '', category_id: '' }); }}
-              className="px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
+              className="w-full sm:w-auto px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors text-center"
             >
               + Nueva Solicitud
             </button>
@@ -580,7 +580,7 @@ export default function Solicitudes() {
             <div className="bg-white border border-gray-200 rounded-xl p-4">
               <div className="flex flex-wrap items-end gap-3">
                 {/* Search */}
-                <div className="flex-1 min-w-[180px]">
+                <div className="flex-1 min-w-0 sm:min-w-[180px]">
                   <label className="block text-xs font-medium text-gray-500 mb-1">Buscar</label>
                   <input
                     type="text"
@@ -593,7 +593,7 @@ export default function Solicitudes() {
                   />
                 </div>
                 {/* Beneficiary */}
-                <div className="min-w-[160px]">
+                <div className="min-w-0 sm:min-w-[160px] w-full sm:w-auto">
                   <label className="block text-xs font-medium text-gray-500 mb-1">Beneficiario</label>
                   <input
                     type="text"
@@ -606,7 +606,7 @@ export default function Solicitudes() {
                   />
                 </div>
                 {/* Category */}
-                <div className="min-w-[160px]">
+                <div className="min-w-0 sm:min-w-[160px] w-full sm:w-auto">
                   <label className="block text-xs font-medium text-gray-500 mb-1">Categoría</label>
                   <select
                     value={categoryFilter}
@@ -621,7 +621,7 @@ export default function Solicitudes() {
                   </select>
                 </div>
                 {/* Creator */}
-                <div className="min-w-[160px]">
+                <div className="min-w-0 sm:min-w-[160px] w-full sm:w-auto">
                   <label className="block text-xs font-medium text-gray-500 mb-1">Creador</label>
                   <select
                     value={creatorFilter}
@@ -723,20 +723,20 @@ export default function Solicitudes() {
 
       {/* KANBAN VIEW */}
       {!loading && requests.length > 0 && viewMode === 'kanban' && (
-        <div className="flex gap-4 overflow-x-auto pb-4" data-testid="kanban-view">
+        <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 kanban-scroll" data-testid="kanban-view">
           {KANBAN_COLUMNS.map(status => (
             <div
               key={status}
-              className={`flex-shrink-0 w-64 rounded-xl border border-gray-200 border-t-4 ${KANBAN_COLUMN_COLORS[status]} bg-white flex flex-col max-h-[calc(100vh-240px)]`}
+              className={`flex-shrink-0 w-[75vw] sm:w-52 md:w-56 lg:w-64 rounded-xl border border-gray-200 border-t-4 ${KANBAN_COLUMN_COLORS[status]} bg-white flex flex-col max-h-[calc(100vh-280px)] sm:max-h-[calc(100vh-240px)] kanban-column`}
               data-testid={`kanban-column-${status}`}
             >
               {/* Column header */}
               <div className={`px-3 py-3 border-b border-gray-100 ${KANBAN_COLUMN_BG[status]} rounded-t-lg`}>
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-semibold text-gray-700" data-testid={`kanban-label-${status}`}>
+                  <h3 className="text-sm font-semibold text-gray-700 truncate" data-testid={`kanban-label-${status}`}>
                     {STATUS_LABELS[status]}
                   </h3>
-                  <span className="text-xs font-medium text-gray-400 bg-white px-2 py-0.5 rounded-full">
+                  <span className="text-xs font-medium text-gray-400 bg-white px-2 py-0.5 rounded-full ml-2 flex-shrink-0">
                     {requestsByStatus[status].length}
                   </span>
                 </div>
@@ -752,7 +752,7 @@ export default function Solicitudes() {
                     <div
                       key={req.id}
                       onClick={() => openDetail(req)}
-                      className={`bg-white border border-gray-100 rounded-lg p-3 hover:border-gray-300 hover:shadow-sm transition-all duration-300 cursor-pointer ${
+                      className={`bg-white border border-gray-100 rounded-lg p-3 hover:border-gray-300 hover:shadow-sm transition-all duration-300 cursor-pointer min-h-[44px] ${
                         recentlyTransitioned.has(req.id) ? 'animate-card-enter' : ''
                       }`}
                       data-testid={`kanban-card-${req.id}`}
@@ -766,13 +766,13 @@ export default function Solicitudes() {
                       </p>
                       <p className="text-xs text-gray-500 truncate">{req.beneficiary}</p>
                       <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-50">
-                        <span className="text-xs text-gray-400">{req.created_by_name}</span>
+                        <span className="text-xs text-gray-400 truncate mr-1">{req.created_by_name}</span>
                         {/* Quick actions */}
                         {canApproveReject && req.status === 'pendiente' && (
-                          <div className="flex gap-1" onClick={e => e.stopPropagation()}>
+                          <div className="flex gap-1 flex-shrink-0" onClick={e => e.stopPropagation()}>
                             <button
                               onClick={() => handleApprove(req.id)}
-                              className="text-xs px-1.5 py-0.5 bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors"
+                              className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors min-w-[32px] min-h-[28px]"
                               disabled={actionLoading}
                             >
                               ✓
@@ -780,10 +780,10 @@ export default function Solicitudes() {
                           </div>
                         )}
                         {canExecute && req.status === 'aprobado' && (
-                          <div onClick={e => e.stopPropagation()}>
+                          <div className="flex-shrink-0" onClick={e => e.stopPropagation()}>
                             <button
                               onClick={() => navigate(`/solicitudes/${req.id}`)}
-                              className="text-xs px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
+                              className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors min-h-[28px]"
                               title="Requiere adjuntar comprobante"
                             >
                               Ejecutar
@@ -800,19 +800,80 @@ export default function Solicitudes() {
         </div>
       )}
 
-      {/* TABLE VIEW */}
+      {/* TABLE VIEW - Mobile card layout */}
       {!loading && requests.length > 0 && viewMode === 'table' && (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden" data-testid="table-view">
-          <table className="w-full">
+        <div className="md:hidden space-y-3" data-testid="mobile-table-cards">
+          {requests.map((req) => (
+            <div
+              key={req.id}
+              onClick={() => openDetail(req)}
+              className="bg-white rounded-xl border border-gray-200 p-4 cursor-pointer hover:border-gray-300 transition-colors"
+              data-testid={`mobile-req-card-${req.id}`}
+            >
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex-1 min-w-0 mr-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs text-gray-400 font-mono">#{req.id}</span>
+                    <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[req.status]}`}>
+                      {STATUS_LABELS_SHORT[req.status]}
+                    </span>
+                  </div>
+                  <p className="text-sm font-medium text-gray-900 line-clamp-2">{req.description}</p>
+                </div>
+                <span className="text-sm font-semibold text-gray-900 whitespace-nowrap">{formatCLP(req.amount)}</span>
+              </div>
+              <div className="flex items-center justify-between text-xs text-gray-500">
+                <div className="flex items-center gap-2">
+                  <span className="truncate max-w-[120px]">{req.beneficiary}</span>
+                  <span>· {req.created_by_name}</span>
+                </div>
+                <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                  {canEditRequest(req) && (
+                    <button
+                      onClick={() => openEdit(req)}
+                      className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-medium"
+                      disabled={actionLoading}
+                    >
+                      Editar
+                    </button>
+                  )}
+                  {canApproveReject && req.status === 'pendiente' && (
+                    <button
+                      onClick={() => handleApprove(req.id)}
+                      className="px-2 py-1 bg-green-600 text-white rounded text-xs font-medium"
+                      disabled={actionLoading}
+                    >
+                      Aprobar
+                    </button>
+                  )}
+                  {canExecute && req.status === 'aprobado' && (
+                    <button
+                      onClick={() => navigate(`/solicitudes/${req.id}`)}
+                      className="px-2 py-1 bg-blue-600 text-white rounded text-xs font-medium"
+                    >
+                      Ejecutar
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* TABLE VIEW - Desktop table layout */}
+      {!loading && requests.length > 0 && viewMode === 'table' && (
+        <div className="hidden md:block bg-white rounded-xl border border-gray-200 overflow-x-auto" data-testid="table-view">
+          <table className="w-full min-w-[700px]">
             <thead>
               <tr className="border-b border-gray-100">
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">ID</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Descripción</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Beneficiario</th>
-                <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 uppercase">Monto</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Estado</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Creado por</th>
-                <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase whitespace-nowrap">ID</th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase whitespace-nowrap">Descripción</th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase whitespace-nowrap">Beneficiario</th>
+                <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 uppercase whitespace-nowrap">Monto</th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase whitespace-nowrap">Estado</th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase whitespace-nowrap">Creado por</th>
+                <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 uppercase whitespace-nowrap">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -889,8 +950,17 @@ export default function Solicitudes() {
       {/* Create Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Nueva Solicitud de Pago</h2>
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">Nueva Solicitud de Pago</h2>
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="text-gray-400 hover:text-gray-600 text-xl leading-none p-1 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                aria-label="Cerrar"
+              >
+                &times;
+              </button>
+            </div>
             <form onSubmit={(e) => handleCreate(e, false)} noValidate className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Monto (CLP) *</label>
@@ -994,14 +1064,15 @@ export default function Solicitudes() {
       {/* Detail Modal */}
       {showDetailModal && selectedRequest && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-lg w-full p-6">
+          <div className="bg-white rounded-xl shadow-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-start justify-between mb-4">
               <h2 className="text-lg font-semibold text-gray-900">
                 Solicitud #{selectedRequest.id}
               </h2>
               <button
                 onClick={() => setShowDetailModal(false)}
-                className="text-gray-400 hover:text-gray-600 text-xl leading-none"
+                className="text-gray-400 hover:text-gray-600 text-xl leading-none p-1 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                aria-label="Cerrar"
               >
                 &times;
               </button>
@@ -1105,8 +1176,8 @@ export default function Solicitudes() {
 
       {/* Reject Confirmation Modal */}
       {rejectConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4" onClick={() => setRejectConfirm(null)}>
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="text-center">
               <div className="text-4xl mb-3">⚠️</div>
               <h2 className="text-lg font-semibold text-gray-900 mb-2">Confirmar rechazo</h2>
@@ -1146,8 +1217,17 @@ export default function Solicitudes() {
       {/* Edit Modal */}
       {showEditModal && selectedRequest && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Editar Solicitud #{selectedRequest.id}</h2>
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">Editar Solicitud #{selectedRequest.id}</h2>
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="text-gray-400 hover:text-gray-600 text-xl leading-none p-1 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                aria-label="Cerrar"
+              >
+                &times;
+              </button>
+            </div>
             <form onSubmit={handleEdit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Monto (CLP)</label>

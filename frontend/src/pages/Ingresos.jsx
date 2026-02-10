@@ -485,18 +485,18 @@ export default function Ingresos() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Ingresos</h1>
           <p className="text-gray-500 mt-1">Registro de ingresos del CPP</p>
         </div>
         {!loading && !pageError && (
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-shrink-0 w-full sm:w-auto">
             <button
               onClick={handleExport}
               disabled={exporting}
               data-testid="export-excel-btn"
-              className="px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm disabled:opacity-50 flex items-center gap-2"
+              className="flex-1 sm:flex-none px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm disabled:opacity-50 flex items-center justify-center gap-2"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
@@ -507,7 +507,7 @@ export default function Ingresos() {
             </button>
             <button
               onClick={() => { setShowModal(true); setFormErrors({}); setFormSubmitted(false); setError(''); setForm({ amount: '', category_id: '', description: '', date: new Date().toISOString().split('T')[0], payer_name: '', payer_rut: '' }); }}
-              className="px-4 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium text-sm"
+              className="flex-1 sm:flex-none px-4 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium text-sm text-center"
             >
               + Registrar Ingreso
             </button>
@@ -557,7 +557,7 @@ export default function Ingresos() {
       {!loading && !pageError && <div className="bg-white rounded-xl border border-gray-200 p-4" data-testid="filter-bar">
         <div className="flex items-center gap-3 flex-wrap">
           {/* Search */}
-          <div className="flex-1 min-w-[200px]">
+          <div className="flex-1 min-w-0 sm:min-w-[200px]">
             <input
               type="text"
               placeholder="Buscar por descripción..."
@@ -722,8 +722,58 @@ export default function Ingresos() {
         </div>
       )}
 
+      {/* Mobile card view - visible on small screens */}
       {!loading && transactions.length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
+        <div className="md:hidden space-y-3" data-testid="mobile-income-cards">
+          {/* Mobile sort controls */}
+          <div className="flex items-center gap-2 text-xs text-gray-500">
+            <span>Ordenar:</span>
+            <button onClick={() => handleSort('date')} className={`px-2 py-1 rounded ${sortBy === 'date' ? 'bg-primary-100 text-primary-700 font-medium' : 'bg-gray-100 text-gray-600'}`} data-testid="sort-fecha">
+              Fecha {sortBy === 'date' && (sortOrder === 'asc' ? '↑' : '↓')}
+            </button>
+            <button onClick={() => handleSort('amount')} className={`px-2 py-1 rounded ${sortBy === 'amount' ? 'bg-primary-100 text-primary-700 font-medium' : 'bg-gray-100 text-gray-600'}`} data-testid="mobile-sort-monto">
+              Monto {sortBy === 'amount' && (sortOrder === 'asc' ? '↑' : '↓')}
+            </button>
+          </div>
+          {transactions.map(tx => (
+            <div key={tx.id} className="bg-white rounded-xl border border-gray-200 p-4" data-testid={`mobile-card-${tx.id}`}>
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex-1 min-w-0 mr-3">
+                  <p className="text-sm font-medium text-gray-900 truncate">{tx.description || 'Sin descripción'}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{tx.category_name || 'Sin categoría'}</p>
+                </div>
+                <span className="text-sm font-semibold text-green-600 whitespace-nowrap">{formatCLP(tx.amount)}</span>
+              </div>
+              <div className="flex items-center justify-between text-xs text-gray-500">
+                <div className="flex items-center gap-3">
+                  <span>{formatDate(tx.date)}</span>
+                  {tx.payer_name && <span className="truncate max-w-[120px]">{tx.payer_name}</span>}
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => openEditModal(tx)}
+                    className="text-primary-600 hover:text-primary-800 font-medium"
+                    title="Editar ingreso"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    onClick={() => setDeleteConfirm(tx)}
+                    className="text-red-500 hover:text-red-700 font-medium"
+                    title="Eliminar ingreso"
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Desktop table view - hidden on small screens */}
+      {!loading && transactions.length > 0 && (
+        <div className="hidden md:block bg-white rounded-xl border border-gray-200 overflow-x-auto">
           <table className="w-full min-w-[700px]">
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50">
@@ -744,11 +794,11 @@ export default function Ingresos() {
             <tbody className="divide-y divide-gray-100">
               {transactions.map(tx => (
                 <tr key={tx.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 text-sm text-gray-600">{formatDate(tx.date)}</td>
+                  <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">{formatDate(tx.date)}</td>
                   <td className="px-6 py-4 text-sm text-gray-900">{tx.description || '-'}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{tx.category_name || '-'}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{tx.payer_name || '-'}</td>
-                  <td className="px-6 py-4 text-sm text-green-600 font-medium text-right">{formatCLP(tx.amount)}</td>
+                  <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">{tx.category_name || '-'}</td>
+                  <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">{tx.payer_name || '-'}</td>
+                  <td className="px-6 py-4 text-sm text-green-600 font-medium text-right whitespace-nowrap">{formatCLP(tx.amount)}</td>
                   <td className="px-6 py-4 text-center">
                     <div className="flex items-center justify-center gap-3">
                       <button
@@ -776,11 +826,11 @@ export default function Ingresos() {
 
       {/* Pagination Controls */}
       {!loading && !pageError && totalPages > 1 && (
-        <div className="flex items-center justify-between px-2" data-testid="pagination">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-2" data-testid="pagination">
           <p className="text-sm text-gray-500">
             Mostrando {((currentPage - 1) * pageSize) + 1}–{Math.min(currentPage * pageSize, totalRecords)} de {totalRecords} registros
           </p>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 flex-wrap justify-center">
             <button
               onClick={() => goToPage(currentPage - 1)}
               disabled={currentPage <= 1}
@@ -818,7 +868,7 @@ export default function Ingresos() {
       {/* Delete Confirmation Modal - always rendered regardless of loading */}
       {deleteConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
             <div className="text-center">
               <div className="text-4xl mb-3">⚠️</div>
               <h2 className="text-lg font-semibold text-gray-900 mb-2">Confirmar eliminación</h2>
@@ -855,7 +905,7 @@ export default function Ingresos() {
           <div className="bg-white rounded-xl shadow-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-semibold text-gray-900">Editar Ingreso</h2>
-              <button onClick={() => setShowEditModal(false)} className="text-gray-400 hover:text-gray-600">✕</button>
+              <button onClick={() => setShowEditModal(false)} className="text-gray-400 hover:text-gray-600 p-1 min-w-[44px] min-h-[44px] flex items-center justify-center" aria-label="Cerrar">✕</button>
             </div>
 
             {editError && (
@@ -960,10 +1010,10 @@ export default function Ingresos() {
       {/* Create Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-lg w-full p-6">
+          <div className="bg-white rounded-xl shadow-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-semibold text-gray-900">Registrar Ingreso</h2>
-              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600">✕</button>
+              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600 p-1 min-w-[44px] min-h-[44px] flex items-center justify-center" aria-label="Cerrar">✕</button>
             </div>
 
             {error && (
