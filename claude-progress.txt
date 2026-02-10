@@ -1,5 +1,44 @@
 === Tap In V1 - Development Progress ===
 
+## Session 69 - 2026-02-10
+
+### Completed Features:
+- Feature #237: Date range filter inclusive of boundary dates ✅
+- Feature #238: Date sorting works correctly across months ✅
+
+### Verification Details:
+- Feature #237: Date range filter inclusive of boundary dates
+  - Created 5 test incomes: JAN (Jan 15), MAR1 (Mar 1), MAR15 (Mar 15), MAR31 (Mar 31), APR (Apr 10)
+  - Filtered by date range March 1 to March 31
+  - Result: Exactly 3 records (MAR1, MAR15, MAR31) - both boundary dates included
+  - JAN and APR correctly excluded from results
+  - Backend uses >= and <= operators for inclusive boundaries
+  - Verified via API tests (12/12 passed) and Playwright browser automation with screenshots
+  - Zero console errors, no mock data patterns
+
+- Feature #238: Date sorting works correctly across months
+  - Same 5 test records across Jan, Mar, Apr months
+  - Ascending sort: JAN → MAR1 → MAR15 → MAR31 → APR (correct chronological order)
+  - Descending sort: APR → MAR31 → MAR15 → MAR1 → JAN (correct reverse order)
+  - Dates stored as YYYY-MM-DD strings in SQLite, which sort correctly lexicographically
+  - Sort includes secondary key (t.id) for deterministic pagination
+  - Verified via API tests and Playwright browser automation with screenshots
+  - Zero console errors, no mock data patterns
+
+### Technical Notes:
+- Both features were already working correctly in the existing codebase
+- Backend transactions.js uses `t.date >= ?` and `t.date <= ?` for inclusive date filtering
+- Date storage as YYYY-MM-DD ensures correct string-based sorting across months/years
+- Frontend Ingresos page has full filter UI with date range (Desde/Hasta) and sort headers
+- Test data cleaned up after verification
+
+### Current Status: 247/265 features passing (93.2%)
+
+### What should be worked on next:
+- Remaining features from the backlog
+- Performance optimizations
+- Additional accessibility features
+
 ## Session 68 - 2026-02-10
 
 ### Completed Features:
