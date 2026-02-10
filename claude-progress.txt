@@ -1,5 +1,63 @@
 === Tap In V1 - Development Progress ===
 
+## Session 61 - 2026-02-10
+
+### Completed Features:
+- Feature #226: Form labels associated with inputs ✅ (completed in prior session)
+- Feature #227: Color contrast meets WCAG AA ✅
+- Feature #228: Error messages announced to screen readers ✅
+
+### Changes Made:
+**Feature #227 - Color Contrast:**
+- Darkened gray-400 → gray-500 for informational text (Dashboard, Notificaciones, Solicitudes, Skeleton)
+- Darkened chart colors in Dashboard bar chart (#22c55e→#15803d, #ef4444→#dc2626) and pie chart
+- Updated CATEGORY_COLORS to darker variants (all pass WCAG AA 4.5:1+ ratio)
+- Changed amber-600 → amber-700 in Ingresos and Reportes date warnings
+
+**Feature #228 - ARIA Error Announcements:**
+- Added role="alert" to 22 error message elements across 8 components
+- Added aria-invalid and aria-describedby to form inputs in Login, Ingresos, Solicitudes
+- Added id attributes to field-level errors for aria-describedby linking
+- NetworkError component: added role="alert"
+- Page-level error displays: added role="alert" (Dashboard, Ingresos, Solicitudes, Configuracion, SolicitudDetail)
+- Modal error displays: added role="alert" (Ingresos edit/create, Configuracion invite/category)
+- Toast.jsx already had role="alert" (verified)
+
+### Files Modified:
+- frontend/src/components/NetworkError.jsx - role="alert"
+- frontend/src/components/Skeleton.jsx - kanban responsive fixes
+- frontend/src/pages/Login.jsx - role="alert", aria-invalid, aria-describedby
+- frontend/src/pages/Dashboard.jsx - contrast fixes + role="alert"
+- frontend/src/pages/Ingresos.jsx - contrast + role="alert" + aria-invalid + aria-describedby
+- frontend/src/pages/Solicitudes.jsx - contrast + role="alert" + aria-invalid + aria-describedby
+- frontend/src/pages/SolicitudDetail.jsx - role="alert"
+- frontend/src/pages/Configuracion.jsx - role="alert" on 4 error displays
+- frontend/src/pages/Notificaciones.jsx - gray-400 → gray-500
+- frontend/src/pages/Reportes.jsx - amber-600 → amber-700
+
+### Current Status: 232/265 features passing (87.5%)
+
+---
+
+## Session 60 - 2026-02-10
+
+### Completed Features:
+- Feature #232: Semantic HTML structure ✅
+
+### Changes Made:
+- No code changes needed - all semantic HTML was already properly implemented
+
+### Verification Details:
+- Layout.jsx: <nav> (2 instances: sidebar + mobile bottom), <main>, <aside>, <header> ✅
+- All pages use <h1> for page title, <h2> for sections, <h3> for sub-sections ✅
+- Heading hierarchy valid per HTML5 sectioning contexts ✅
+- All forms use <form> element (Login, Ingresos×2, Solicitudes×2, SolicitudDetail, Configuracion×2) ✅
+- All tables use <table>/<thead>/<tbody> (Ingresos, Solicitudes, Configuracion×2) ✅
+- Browser verification via Playwright accessibility snapshots confirmed all semantic landmarks ✅
+- JavaScript DOM evaluation confirmed: 2 nav, 1 main, 1 aside, 1 header elements ✅
+
+### Current Status: 231/265 features passing (87.2%)
+
 ## Session 59 - 2026-02-10
 
 ### Completed Features:
