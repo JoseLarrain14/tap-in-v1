@@ -7,7 +7,7 @@ import * as XLSX from 'xlsx';
 import { SkeletonTable, SkeletonKanban, SkeletonLine } from '../components/Skeleton';
 import Spinner from '../components/Spinner';
 import NetworkError from '../components/NetworkError';
-import { formatCLP, blockNonNumericKeys, handleAmountPaste } from '../lib/formatters';
+import { formatCLP, formatDateTime, blockNonNumericKeys, handleAmountPaste } from '../lib/formatters';
 import { useModalAccessibility } from '../lib/useModalAccessibility';
 
 const STATUS_LABELS = {
@@ -218,7 +218,7 @@ export default function Solicitudes() {
         'Monto (CLP)': req.amount,
         'Estado': STATUS_LABELS[req.status] || req.status,
         'Creado por': req.created_by_name || '',
-        'Fecha creacion': req.created_at || '',
+        'Fecha creacion': formatDateTime(req.created_at),
       }));
 
       const ws = XLSX.utils.json_to_sheet(rows);

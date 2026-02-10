@@ -7,7 +7,7 @@ import * as XLSX from 'xlsx';
 import { SkeletonTable, SkeletonLine } from '../components/Skeleton';
 import Spinner from '../components/Spinner';
 import NetworkError from '../components/NetworkError';
-import { formatCLP, formatDate, blockNonNumericKeys, handleAmountPaste } from '../lib/formatters';
+import { formatCLP, formatDate, blockNonNumericKeys, handleAmountPaste, getTodayInChile } from '../lib/formatters';
 import { useModalAccessibility } from '../lib/useModalAccessibility';
 
 export default function Ingresos() {
@@ -69,7 +69,7 @@ export default function Ingresos() {
     amount: '',
     category_id: '',
     description: '',
-    date: new Date().toISOString().split('T')[0],
+    date: getTodayInChile(),
     payer_name: '',
     payer_rut: ''
   });
@@ -395,7 +395,7 @@ export default function Ingresos() {
         amount: '',
         category_id: '',
         description: '',
-        date: new Date().toISOString().split('T')[0],
+        date: getTodayInChile(),
         payer_name: '',
         payer_rut: ''
       });
@@ -512,7 +512,7 @@ export default function Ingresos() {
               {exporting ? 'Exportando...' : 'Exportar Excel'}
             </button>
             <button
-              onClick={() => { setShowModal(true); setFormErrors({}); setFormSubmitted(false); setError(''); setForm({ amount: '', category_id: '', description: '', date: new Date().toISOString().split('T')[0], payer_name: '', payer_rut: '' }); }}
+              onClick={() => { setShowModal(true); setFormErrors({}); setFormSubmitted(false); setError(''); setForm({ amount: '', category_id: '', description: '', date: getTodayInChile(), payer_name: '', payer_rut: '' }); }}
               className="flex-1 sm:flex-none px-4 py-2.5 min-h-[44px] bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium text-sm text-center"
             >
               + Registrar Ingreso
@@ -729,7 +729,7 @@ export default function Ingresos() {
             </button>
           ) : (
             <button
-              onClick={() => { setShowModal(true); setFormErrors({}); setFormSubmitted(false); setError(''); setForm({ amount: '', category_id: '', description: '', date: new Date().toISOString().split('T')[0], payer_name: '', payer_rut: '' }); }}
+              onClick={() => { setShowModal(true); setFormErrors({}); setFormSubmitted(false); setError(''); setForm({ amount: '', category_id: '', description: '', date: getTodayInChile(), payer_name: '', payer_rut: '' }); }}
               className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium"
             >
               Registrar primer ingreso
