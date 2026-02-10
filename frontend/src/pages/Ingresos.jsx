@@ -8,6 +8,7 @@ import { SkeletonTable, SkeletonLine } from '../components/Skeleton';
 import Spinner from '../components/Spinner';
 import NetworkError from '../components/NetworkError';
 import { formatCLP, formatDate, blockNonNumericKeys, handleAmountPaste } from '../lib/formatters';
+import { useModalAccessibility } from '../lib/useModalAccessibility';
 
 export default function Ingresos() {
   const { user } = useAuth();
@@ -94,6 +95,11 @@ export default function Ingresos() {
   const isMountedRef = useRef(true);
   const submittingRef = useRef(false);
   const editSubmittingRef = useRef(false);
+
+  // Modal accessibility hooks
+  const { modalRef: deleteModalRef, handleKeyDown: deleteKeyDown } = useModalAccessibility(!!deleteConfirm, () => setDeleteConfirm(null));
+  const { modalRef: editModalRef, handleKeyDown: editKeyDown } = useModalAccessibility(showEditModal, () => setShowEditModal(false));
+  const { modalRef: createModalRef, handleKeyDown: createKeyDown } = useModalAccessibility(showModal, () => setShowModal(false));
 
   const hasActiveFilters = filterCategory || filterFrom || filterTo || filterSearch || filterAmountMin || filterAmountMax;
   const [dateRangeWarning, setDateRangeWarning] = useState('');
@@ -658,12 +664,12 @@ export default function Ingresos() {
               </div>
             </div>
             {isDateRangeInverted && (
-              <p className="text-xs text-amber-600 font-medium" data-testid="date-range-warning">
+              <p className="text-xs text-amber-700 font-medium" data-testid="date-range-warning">
                 ⚠ La fecha "Desde" es posterior a "Hasta". Se corregira automaticamente al buscar.
               </p>
             )}
             {dateRangeWarning && (
-              <p className="text-xs text-amber-600 font-medium" data-testid="date-range-corrected">
+              <p className="text-xs text-amber-700 font-medium" data-testid="date-range-corrected">
                 ✓ {dateRangeWarning}
               </p>
             )}
@@ -877,11 +883,11 @@ export default function Ingresos() {
 
       {/* Delete Confirmation Modal - always rendered regardless of loading */}
       {deleteConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onKeyDown={deleteKeyDown} onClick={(e) => { if (e.target === e.currentTarget) setDeleteConfirm(null); }}>
+          <div ref={deleteModalRef} role="dialog" aria-modal="true" aria-labelledby="delete-confirm-title" tabIndex={-1} className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto outline-none">
             <div className="text-center">
-              <div className="text-4xl mb-3">⚠️</div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-2">Confirmar eliminación</h2>
+              <div className="text-4xl mb-3" aria-hidden="true">⚠️</div>
+              <h2 id="delete-confirm-title" className="text-lg font-semibold text-gray-900 mb-2">Confirmar eliminación</h2>
               <p className="text-gray-600 text-sm mb-1">
                 ¿Estás seguro de eliminar este ingreso?
               </p>
@@ -911,10 +917,10 @@ export default function Ingresos() {
 
       {/* Edit Modal */}
       {showEditModal && editingTransaction && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onKeyDown={editKeyDown} onClick={(e) => { if (e.target === e.currentTarget) setShowEditModal(false); }}>
+          <div ref={editModalRef} role="dialog" aria-modal="true" aria-labelledby="edit-income-title" tabIndex={-1} className="bg-white rounded-xl shadow-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto outline-none">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold text-gray-900">Editar Ingreso</h2>
+              <h2 id="edit-income-title" className="text-lg font-semibold text-gray-900">Editar Ingreso</h2>
               <button onClick={() => setShowEditModal(false)} className="text-gray-400 hover:text-gray-600 p-1 min-w-[44px] min-h-[44px] flex items-center justify-center" aria-label="Cerrar">✕</button>
             </div>
 
@@ -1025,10 +1031,10 @@ export default function Ingresos() {
 
       {/* Create Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onKeyDown={createKeyDown} onClick={(e) => { if (e.target === e.currentTarget) setShowModal(false); }}>
+          <div ref={createModalRef} role="dialog" aria-modal="true" aria-labelledby="create-income-title" tabIndex={-1} className="bg-white rounded-xl shadow-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto outline-none">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold text-gray-900">Registrar Ingreso</h2>
+              <h2 id="create-income-title" className="text-lg font-semibold text-gray-900">Registrar Ingreso</h2>
               <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600 p-1 min-w-[44px] min-h-[44px] flex items-center justify-center" aria-label="Cerrar">✕</button>
             </div>
 

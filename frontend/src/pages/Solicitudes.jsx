@@ -8,6 +8,7 @@ import { SkeletonTable, SkeletonKanban, SkeletonLine } from '../components/Skele
 import Spinner from '../components/Spinner';
 import NetworkError from '../components/NetworkError';
 import { formatCLP, blockNonNumericKeys, handleAmountPaste } from '../lib/formatters';
+import { useModalAccessibility } from '../lib/useModalAccessibility';
 
 const STATUS_LABELS = {
   borrador: 'Borrador',
@@ -106,6 +107,12 @@ export default function Solicitudes() {
   const hasAdvancedFilters = categoryFilter || creatorFilter || searchFilter || beneficiaryFilter;
   // Track recently transitioned card IDs for CSS animation
   const [recentlyTransitioned, setRecentlyTransitioned] = useState(new Set());
+
+  // Modal accessibility hooks
+  const { modalRef: createModalRef, handleKeyDown: createKeyDown } = useModalAccessibility(showCreateModal, () => setShowCreateModal(false));
+  const { modalRef: editModalRef, handleKeyDown: editKeyDown } = useModalAccessibility(showEditModal, () => setShowEditModal(false));
+  const { modalRef: rejectModalRef, handleKeyDown: rejectKeyDown } = useModalAccessibility(!!rejectConfirm, () => setRejectConfirm(null));
+  const { modalRef: detailModalRef, handleKeyDown: detailKeyDown } = useModalAccessibility(showDetailModal, () => setShowDetailModal(false));
 
   function buildFilterQuery(overrides = {}) {
     const status = overrides.status !== undefined ? overrides.status : statusFilter;
@@ -740,7 +747,7 @@ export default function Solicitudes() {
                   <h3 className="text-sm font-semibold text-gray-700 truncate" data-testid={`kanban-label-${status}`}>
                     {STATUS_LABELS[status]}
                   </h3>
-                  <span className="text-xs font-medium text-gray-400 bg-white px-2 py-0.5 rounded-full ml-2 flex-shrink-0">
+                  <span className="text-xs font-medium text-gray-500 bg-white px-2 py-0.5 rounded-full ml-2 flex-shrink-0">
                     {requestsByStatus[status].length}
                   </span>
                 </div>
@@ -748,7 +755,7 @@ export default function Solicitudes() {
               {/* Column body */}
               <div className="flex-1 overflow-y-auto p-2 space-y-2">
                 {requestsByStatus[status].length === 0 ? (
-                  <div className="text-center py-6 text-xs text-gray-400">
+                  <div className="text-center py-6 text-xs text-gray-500">
                     Sin solicitudes
                   </div>
                 ) : (
@@ -762,7 +769,7 @@ export default function Solicitudes() {
                       data-testid={`kanban-card-${req.id}`}
                     >
                       <div className="flex items-start justify-between mb-1.5">
-                        <span className="text-xs text-gray-400 font-mono">#{req.id}</span>
+                        <span className="text-xs text-gray-500 font-mono">#{req.id}</span>
                         <span className="text-xs font-semibold text-gray-900">{formatCLP(req.amount)}</span>
                       </div>
                       <p className="text-sm font-medium text-gray-900 line-clamp-2 mb-1">
@@ -770,7 +777,7 @@ export default function Solicitudes() {
                       </p>
                       <p className="text-xs text-gray-500 truncate">{req.beneficiary}</p>
                       <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-50">
-                        <span className="text-xs text-gray-400 truncate mr-1">{req.created_by_name}</span>
+                        <span className="text-xs text-gray-500 truncate mr-1">{req.created_by_name}</span>
                         {/* Quick actions */}
                         {canApproveReject && req.status === 'pendiente' && (
                           <div className="flex gap-1 flex-shrink-0" onClick={e => e.stopPropagation()}>
@@ -819,7 +826,7 @@ export default function Solicitudes() {
               <div className="flex items-start justify-between mb-2">
                 <div className="flex-1 min-w-0 mr-3">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs text-gray-400 font-mono">#{req.id}</span>
+                    <span className="text-xs text-gray-500 font-mono">#{req.id}</span>
                     <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[req.status]}`}>
                       {STATUS_LABELS_SHORT[req.status]}
                     </span>
@@ -955,10 +962,10 @@ export default function Solicitudes() {
 
       {/* Create Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onKeyDown={createKeyDown} onClick={(e) => { if (e.target === e.currentTarget) setShowCreateModal(false); }}>
+          <div ref={createModalRef} role="dialog" aria-modal="true" aria-labelledby="create-solicitud-title" tabIndex={-1} className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto outline-none">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">Nueva Solicitud de Pago</h2>
+              <h2 id="create-solicitud-title" className="text-lg font-semibold text-gray-900">Nueva Solicitud de Pago</h2>
               <button
                 onClick={() => setShowCreateModal(false)}
                 className="text-gray-400 hover:text-gray-600 text-xl leading-none p-1 min-w-[44px] min-h-[44px] flex items-center justify-center"
@@ -1021,7 +1028,7 @@ export default function Solicitudes() {
                   {createFormErrors.description ? (
                     <p className="text-sm text-red-600" data-testid="pr-description-error">{createFormErrors.description}</p>
                   ) : <span />}
-                  <span className={`text-xs ${newRequest.description.length >= DESCRIPTION_MAX_LENGTH ? 'text-red-500 font-medium' : 'text-gray-400'}`} data-testid="pr-description-counter">
+                  <span className={`text-xs ${newRequest.description.length >= DESCRIPTION_MAX_LENGTH ? 'text-red-500 font-medium' : 'text-gray-500'}`} data-testid="pr-description-counter">
                     {newRequest.description.length}/{DESCRIPTION_MAX_LENGTH}
                   </span>
                 </div>
@@ -1073,10 +1080,10 @@ export default function Solicitudes() {
 
       {/* Detail Modal */}
       {showDetailModal && selectedRequest && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onKeyDown={detailKeyDown} onClick={(e) => { if (e.target === e.currentTarget) setShowDetailModal(false); }}>
+          <div ref={detailModalRef} role="dialog" aria-modal="true" aria-labelledby="detail-solicitud-title" tabIndex={-1} className="bg-white rounded-xl shadow-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto outline-none">
             <div className="flex items-start justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">
+              <h2 id="detail-solicitud-title" className="text-lg font-semibold text-gray-900">
                 Solicitud #{selectedRequest.id}
               </h2>
               <button
@@ -1187,11 +1194,11 @@ export default function Solicitudes() {
 
       {/* Reject Confirmation Modal */}
       {rejectConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4" onClick={() => setRejectConfirm(null)}>
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4" onKeyDown={rejectKeyDown} onClick={(e) => { if (e.target === e.currentTarget) setRejectConfirm(null); }}>
+          <div ref={rejectModalRef} role="dialog" aria-modal="true" aria-labelledby="reject-confirm-title" tabIndex={-1} className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto outline-none" onClick={(e) => e.stopPropagation()}>
             <div className="text-center">
-              <div className="text-4xl mb-3">⚠️</div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-2">Confirmar rechazo</h2>
+              <div className="text-4xl mb-3" aria-hidden="true">⚠️</div>
+              <h2 id="reject-confirm-title" className="text-lg font-semibold text-gray-900 mb-2">Confirmar rechazo</h2>
               <p className="text-gray-600 text-sm mb-1">
                 ¿Estás seguro de rechazar esta solicitud?
               </p>
@@ -1227,10 +1234,10 @@ export default function Solicitudes() {
 
       {/* Edit Modal */}
       {showEditModal && selectedRequest && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onKeyDown={editKeyDown} onClick={(e) => { if (e.target === e.currentTarget) setShowEditModal(false); }}>
+          <div ref={editModalRef} role="dialog" aria-modal="true" aria-labelledby="edit-solicitud-title" tabIndex={-1} className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto outline-none">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">Editar Solicitud #{selectedRequest.id}</h2>
+              <h2 id="edit-solicitud-title" className="text-lg font-semibold text-gray-900">Editar Solicitud #{selectedRequest.id}</h2>
               <button
                 onClick={() => setShowEditModal(false)}
                 className="text-gray-400 hover:text-gray-600 text-xl leading-none p-1 min-w-[44px] min-h-[44px] flex items-center justify-center"
@@ -1266,7 +1273,7 @@ export default function Solicitudes() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none resize-none"
                 />
                 <div className="flex justify-end mt-1">
-                  <span className={`text-xs ${editRequest.description.length >= DESCRIPTION_MAX_LENGTH ? 'text-red-500 font-medium' : 'text-gray-400'}`}>
+                  <span className={`text-xs ${editRequest.description.length >= DESCRIPTION_MAX_LENGTH ? 'text-red-500 font-medium' : 'text-gray-500'}`}>
                     {editRequest.description.length}/{DESCRIPTION_MAX_LENGTH}
                   </span>
                 </div>

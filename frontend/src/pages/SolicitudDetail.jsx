@@ -6,6 +6,7 @@ import { api } from '../lib/api';
 import Spinner from '../components/Spinner';
 import NetworkError from '../components/NetworkError';
 import { formatCLP, formatDateTime, blockNonNumericKeys, handleAmountPaste } from '../lib/formatters';
+import { useModalAccessibility } from '../lib/useModalAccessibility';
 
 const STATUS_LABELS = {
   borrador: 'Borrador',
@@ -57,6 +58,9 @@ export default function SolicitudDetail() {
   const [editData, setEditData] = useState({ amount: '', description: '', beneficiary: '', category_id: '' });
   const [categories, setCategories] = useState([]);
   const actionRef = useRef(false);
+
+  // Modal accessibility hook for reject confirmation
+  const { modalRef: rejectModalRef, handleKeyDown: rejectKeyDown } = useModalAccessibility(rejectConfirm, () => setRejectConfirm(false));
 
   useEffect(() => {
     loadDetail();
@@ -270,7 +274,7 @@ export default function SolicitudDetail() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-pulse text-gray-400">Cargando solicitud...</div>
+        <div className="animate-pulse text-gray-500">Cargando solicitud...</div>
       </div>
     );
   }
@@ -282,7 +286,7 @@ export default function SolicitudDetail() {
           onClick={() => navigate('/solicitudes')}
           className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <polyline points="15 18 9 12 15 6"></polyline>
           </svg>
           Volver al Pipeline
@@ -313,7 +317,7 @@ export default function SolicitudDetail() {
         className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors"
         data-testid="back-to-pipeline"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <polyline points="15 18 9 12 15 6"></polyline>
         </svg>
         Volver al Pipeline
@@ -351,8 +355,9 @@ export default function SolicitudDetail() {
           <h2 className="text-lg font-medium text-gray-900 mb-4">Editar Solicitud</h2>
           <form onSubmit={handleEdit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Monto (CLP)</label>
+              <label htmlFor="detail-edit-amount" className="block text-sm font-medium text-gray-700 mb-1">Monto (CLP)</label>
               <input
+                id="detail-edit-amount"
                 type="number"
                 required
                 min="1"
@@ -365,8 +370,9 @@ export default function SolicitudDetail() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+              <label htmlFor="detail-edit-description" className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
               <textarea
+                id="detail-edit-description"
                 required
                 data-testid="edit-description"
                 value={editData.description}
@@ -376,14 +382,15 @@ export default function SolicitudDetail() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none resize-none"
               />
               <div className="flex justify-end mt-1">
-                <span className={`text-xs ${(editData.description?.length || 0) >= 500 ? 'text-red-500 font-medium' : 'text-gray-400'}`}>
+                <span className={`text-xs ${(editData.description?.length || 0) >= 500 ? 'text-red-500 font-medium' : 'text-gray-500'}`}>
                   {editData.description?.length || 0}/500
                 </span>
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Beneficiario</label>
+              <label htmlFor="detail-edit-beneficiary" className="block text-sm font-medium text-gray-700 mb-1">Beneficiario</label>
               <input
+                id="detail-edit-beneficiary"
                 type="text"
                 required
                 data-testid="edit-beneficiary"
@@ -393,8 +400,9 @@ export default function SolicitudDetail() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Categoria</label>
+              <label htmlFor="detail-edit-category" className="block text-sm font-medium text-gray-700 mb-1">Categoria</label>
               <select
+                id="detail-edit-category"
                 data-testid="edit-category"
                 value={editData.category_id}
                 onChange={(e) => setEditData({ ...editData, category_id: e.target.value })}
@@ -497,7 +505,7 @@ export default function SolicitudDetail() {
                         {STATUS_LABELS[event.new_status] || event.new_status}
                       </span>
                       {event.previous_status && (
-                        <span className="text-xs text-gray-400">
+                        <span className="text-xs text-gray-500">
                           desde {STATUS_LABELS[event.previous_status] || event.previous_status}
                         </span>
                       )}
@@ -530,10 +538,11 @@ export default function SolicitudDetail() {
             {actionLoading ? <><Spinner size={14} className="inline mr-1" />Procesando...</> : 'Aprobar Solicitud'}
           </button>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="detail-reject-comment" className="block text-sm font-medium text-gray-700 mb-1">
               Comentario de rechazo (obligatorio)
             </label>
             <textarea
+              id="detail-reject-comment"
               value={rejectComment}
               onChange={(e) => setRejectComment(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none"
@@ -556,10 +565,11 @@ export default function SolicitudDetail() {
           <h2 className="text-lg font-medium text-gray-900 mb-4">Ejecutar Pago</h2>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="execute-file-upload" className="block text-sm font-medium text-gray-700 mb-1">
                 Comprobante de pago (imagen o PDF, máx. 10MB)
               </label>
               <input
+                id="execute-file-upload"
                 type="file"
                 accept=".jpg,.jpeg,.png,.gif,.pdf,.webp"
                 onChange={(e) => {
@@ -588,7 +598,7 @@ export default function SolicitudDetail() {
             {executeUploading && (
               <div className="space-y-2" data-testid="execute-upload-progress">
                 <div className="flex items-center gap-2 text-sm text-blue-600">
-                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
@@ -618,7 +628,7 @@ export default function SolicitudDetail() {
         <h2 className="text-lg font-medium text-gray-900 mb-4">Adjuntar Documento</h2>
         <div className="space-y-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="attachment-upload-input" className="block text-sm font-medium text-gray-700 mb-1">
               Documento de respaldo (imagen o PDF, máx. 10MB)
             </label>
             <input
@@ -646,7 +656,7 @@ export default function SolicitudDetail() {
           {uploading && (
             <div className="space-y-2" data-testid="upload-progress">
               <div className="flex items-center gap-2 text-sm text-blue-600">
-                <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
@@ -723,11 +733,11 @@ export default function SolicitudDetail() {
 
       {/* Reject Confirmation Modal */}
       {rejectConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onKeyDown={rejectKeyDown} onClick={(e) => { if (e.target === e.currentTarget) setRejectConfirm(false); }}>
+          <div ref={rejectModalRef} role="dialog" aria-modal="true" aria-labelledby="reject-confirm-detail-title" tabIndex={-1} className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto outline-none">
             <div className="text-center">
-              <div className="text-4xl mb-3">⚠️</div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-2">Confirmar rechazo</h2>
+              <div className="text-4xl mb-3" aria-hidden="true">⚠️</div>
+              <h2 id="reject-confirm-detail-title" className="text-lg font-semibold text-gray-900 mb-2">Confirmar rechazo</h2>
               <p className="text-gray-600 text-sm mb-1">
                 ¿Estás seguro de rechazar esta solicitud?
               </p>

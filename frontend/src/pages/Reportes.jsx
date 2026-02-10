@@ -255,8 +255,9 @@ export default function Reportes() {
         <h2 className="text-lg font-medium text-gray-900 mb-4">Filtros de exportacion</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Desde</label>
+            <label htmlFor="report-filter-from" className="block text-sm font-medium text-gray-700 mb-1">Desde</label>
             <input
+              id="report-filter-from"
               type="date"
               value={filterFrom}
               onChange={e => { setFilterFrom(e.target.value); setDateRangeWarning(''); }}
@@ -265,8 +266,9 @@ export default function Reportes() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Hasta</label>
+            <label htmlFor="report-filter-to" className="block text-sm font-medium text-gray-700 mb-1">Hasta</label>
             <input
+              id="report-filter-to"
               type="date"
               value={filterTo}
               onChange={e => { setFilterTo(e.target.value); setDateRangeWarning(''); }}
@@ -275,8 +277,9 @@ export default function Reportes() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Categoria</label>
+            <label htmlFor="report-filter-category" className="block text-sm font-medium text-gray-700 mb-1">Categoria</label>
             <select
+              id="report-filter-category"
               value={filterCategory}
               onChange={e => setFilterCategory(e.target.value)}
               data-testid="report-filter-category"
@@ -290,12 +293,12 @@ export default function Reportes() {
           </div>
         </div>
         {isDateRangeInverted && (
-          <p className="mt-3 text-xs text-amber-600 font-medium" data-testid="date-range-warning">
+          <p className="mt-3 text-xs text-amber-700 font-medium" data-testid="date-range-warning">
             ⚠ La fecha "Desde" es posterior a "Hasta". Se corregira automaticamente al exportar.
           </p>
         )}
         {dateRangeWarning && (
-          <p className="mt-2 text-xs text-amber-600 font-medium" data-testid="date-range-corrected">
+          <p className="mt-2 text-xs text-amber-700 font-medium" data-testid="date-range-corrected">
             ✓ {dateRangeWarning}
           </p>
         )}
@@ -322,7 +325,7 @@ export default function Reportes() {
             data-testid="export-ingresos-report"
             className="px-4 py-2.5 min-h-[44px] bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium disabled:opacity-50 flex items-center gap-2 mx-auto"
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
               <polyline points="7 10 12 15 17 10"/>
               <line x1="12" y1="15" x2="12" y2="3"/>
@@ -342,7 +345,7 @@ export default function Reportes() {
             data-testid="export-solicitudes-report"
             className="px-4 py-2.5 min-h-[44px] bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium disabled:opacity-50 flex items-center gap-2 mx-auto"
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
               <polyline points="7 10 12 15 17 10"/>
               <line x1="12" y1="15" x2="12" y2="3"/>
@@ -362,7 +365,7 @@ export default function Reportes() {
             data-testid="export-all-report"
             className="px-4 py-2.5 min-h-[44px] bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium disabled:opacity-50 flex items-center gap-2 mx-auto"
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
               <polyline points="7 10 12 15 17 10"/>
               <line x1="12" y1="15" x2="12" y2="3"/>

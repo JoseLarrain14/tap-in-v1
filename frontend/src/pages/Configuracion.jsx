@@ -5,6 +5,7 @@ import { api } from '../lib/api';
 import { SkeletonTable } from '../components/Skeleton';
 import Spinner from '../components/Spinner';
 import NetworkError from '../components/NetworkError';
+import { useModalAccessibility } from '../lib/useModalAccessibility';
 
 const ROLE_LABELS = {
   delegado: 'Delegado',
@@ -60,6 +61,12 @@ export default function Configuracion() {
     role: '',
   });
   const [inviteError, setInviteError] = useState('');
+
+  // Modal accessibility hooks
+  const { modalRef: categoryModalRef, handleKeyDown: categoryKeyDown } = useModalAccessibility(showCategoryModal, () => setShowCategoryModal(false));
+  const { modalRef: deleteCatModalRef, handleKeyDown: deleteCatKeyDown } = useModalAccessibility(!!deleteCategoryConfirm, () => setDeleteCategoryConfirm(null));
+  const { modalRef: deactivateModalRef, handleKeyDown: deactivateKeyDown } = useModalAccessibility(!!deactivateUserConfirm, () => setDeactivateUserConfirm(null));
+  const { modalRef: inviteModalRef, handleKeyDown: inviteKeyDown } = useModalAccessibility(showInviteModal, () => setShowInviteModal(false));
 
   const [showDeactivated, setShowDeactivated] = useState(true);
 
@@ -619,10 +626,10 @@ export default function Configuracion() {
 
       {/* Category Create/Edit Modal */}
       {showCategoryModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onKeyDown={categoryKeyDown} onClick={(e) => { if (e.target === e.currentTarget) setShowCategoryModal(false); }}>
+          <div ref={categoryModalRef} role="dialog" aria-modal="true" aria-labelledby="category-modal-title" tabIndex={-1} className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto outline-none">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">
+              <h2 id="category-modal-title" className="text-lg font-semibold text-gray-900">
                 {editingCategory ? 'Editar Categor\u00eda' : 'Nueva Categor\u00eda'}
               </h2>
               <button
@@ -640,8 +647,9 @@ export default function Configuracion() {
 
             <form onSubmit={handleCategorySubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Nombre *</label>
+                <label htmlFor="category-name" className="block text-sm font-medium text-gray-700 mb-1">Nombre *</label>
                 <input
+                  id="category-name"
                   type="text"
                   required
                   value={categoryForm.name}
@@ -651,8 +659,9 @@ export default function Configuracion() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Tipo *</label>
+                <label htmlFor="category-type" className="block text-sm font-medium text-gray-700 mb-1">Tipo *</label>
                 <select
+                  id="category-type"
                   value={categoryForm.type}
                   onChange={(e) => setCategoryForm({ ...categoryForm, type: e.target.value })}
                   disabled={!!editingCategory}
@@ -688,11 +697,11 @@ export default function Configuracion() {
 
       {/* Delete Category Confirmation Modal */}
       {deleteCategoryConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onKeyDown={deleteCatKeyDown} onClick={(e) => { if (e.target === e.currentTarget) setDeleteCategoryConfirm(null); }}>
+          <div ref={deleteCatModalRef} role="dialog" aria-modal="true" aria-labelledby="delete-cat-title" tabIndex={-1} className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto outline-none">
             <div className="text-center">
-              <div className="text-4xl mb-3">⚠️</div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-2">Confirmar eliminación</h2>
+              <div className="text-4xl mb-3" aria-hidden="true">⚠️</div>
+              <h2 id="delete-cat-title" className="text-lg font-semibold text-gray-900 mb-2">Confirmar eliminación</h2>
               <p className="text-gray-600 text-sm mb-1">
                 ¿Estás seguro de eliminar esta categoría?
               </p>
@@ -722,11 +731,11 @@ export default function Configuracion() {
 
       {/* Deactivate User Confirmation Modal */}
       {deactivateUserConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onKeyDown={deactivateKeyDown} onClick={(e) => { if (e.target === e.currentTarget) setDeactivateUserConfirm(null); }}>
+          <div ref={deactivateModalRef} role="dialog" aria-modal="true" aria-labelledby="deactivate-user-title" tabIndex={-1} className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto outline-none">
             <div className="text-center">
-              <div className="text-4xl mb-3">⚠️</div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-2">Confirmar desactivación</h2>
+              <div className="text-4xl mb-3" aria-hidden="true">⚠️</div>
+              <h2 id="deactivate-user-title" className="text-lg font-semibold text-gray-900 mb-2">Confirmar desactivación</h2>
               <p className="text-gray-600 text-sm mb-1">
                 ¿Estás seguro de desactivar este usuario?
               </p>
@@ -759,10 +768,10 @@ export default function Configuracion() {
 
       {/* Invite Modal */}
       {showInviteModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onKeyDown={inviteKeyDown} onClick={(e) => { if (e.target === e.currentTarget) setShowInviteModal(false); }}>
+          <div ref={inviteModalRef} role="dialog" aria-modal="true" aria-labelledby="invite-user-title" tabIndex={-1} className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto outline-none">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">Invitar Usuario</h2>
+              <h2 id="invite-user-title" className="text-lg font-semibold text-gray-900">Invitar Usuario</h2>
               <button
                 onClick={() => setShowInviteModal(false)}
                 className="text-gray-400 hover:text-gray-600 text-xl leading-none p-1 min-w-[44px] min-h-[44px] flex items-center justify-center"
@@ -778,8 +787,9 @@ export default function Configuracion() {
             )}
             <form onSubmit={handleInvite} noValidate className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Nombre completo *</label>
+                <label htmlFor="invite-name" className="block text-sm font-medium text-gray-700 mb-1">Nombre completo *</label>
                 <input
+                  id="invite-name"
                   type="text"
                   value={inviteForm.name}
                   onChange={(e) => { setInviteForm({ ...inviteForm, name: e.target.value }); if (inviteError) setInviteError(''); }}
@@ -788,8 +798,9 @@ export default function Configuracion() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                <label htmlFor="invite-email" className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
                 <input
+                  id="invite-email"
                   type="email"
                   value={inviteForm.email}
                   onChange={(e) => { setInviteForm({ ...inviteForm, email: e.target.value }); if (inviteError) setInviteError(''); }}
@@ -798,8 +809,9 @@ export default function Configuracion() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Rol *</label>
+                <label htmlFor="invite-role" className="block text-sm font-medium text-gray-700 mb-1">Rol *</label>
                 <select
+                  id="invite-role"
                   value={inviteForm.role}
                   onChange={(e) => { setInviteForm({ ...inviteForm, role: e.target.value }); if (inviteError) setInviteError(''); }}
                   className={`w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none ${inviteError && inviteError.toLowerCase().includes('rol') ? 'border-red-500' : 'border-gray-300'}`}
