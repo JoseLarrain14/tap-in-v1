@@ -1,7 +1,41 @@
 const express = require('express');
+const path = require('path');
+const fs = require('fs');
+const multer = require('multer');
 const router = express.Router();
 const { getDb } = require('../database');
 const { authenticateToken, requireActive } = require('../middleware/auth');
+
+// Configure multer for file uploads
+const uploadsDir = path.join(__dirname, '..', '..', 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadsDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    cb(null, 'txn-attachment-' + uniqueSuffix + ext);
+  }
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB max
+  fileFilter: (req, file, cb) => {
+    const allowed = ['.jpg', '.jpeg', '.png', '.gif', '.pdf', '.webp'];
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (allowed.includes(ext)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Tipo de archivo no permitido. Use JPG, PNG, GIF, PDF o WebP.'));
+    }
+  }
+});
 
 // All routes require authentication
 router.use(authenticateToken);
@@ -42,9 +76,12 @@ router.get('/', (req, res) => {
     params.push(to);
   }
 
-  if (search) {
-    query += ' AND (t.description LIKE ? OR t.payer_name LIKE ? OR t.beneficiary LIKE ?)';
-    const searchTerm = `%${search}%`;
+  const trimmedSearch = (search || '').trim();
+  if (trimmedSearch) {
+    // Escape LIKE wildcards to prevent unexpected matching with special characters
+    const escapedSearch = trimmedSearch.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_');
+    const searchTerm = `%${escapedSearch}%`;
+    query += " AND (t.description LIKE ? ESCAPE '\\' OR t.payer_name LIKE ? ESCAPE '\\' OR t.beneficiary LIKE ? ESCAPE '\\')";
     params.push(searchTerm, searchTerm, searchTerm);
   }
 
@@ -85,9 +122,10 @@ router.get('/', (req, res) => {
     countQuery += ' AND t.date <= ?';
     countParams.push(to);
   }
-  if (search) {
-    countQuery += ' AND (t.description LIKE ? OR t.payer_name LIKE ? OR t.beneficiary LIKE ?)';
-    const searchTerm = `%${search}%`;
+  if (trimmedSearch) {
+    const escapedSearch = trimmedSearch.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_');
+    const searchTerm = `%${escapedSearch}%`;
+    countQuery += " AND (t.description LIKE ? ESCAPE '\\' OR t.payer_name LIKE ? ESCAPE '\\' OR t.beneficiary LIKE ? ESCAPE '\\')";
     countParams.push(searchTerm, searchTerm, searchTerm);
   }
 
@@ -281,11 +319,72 @@ router.delete('/:id', requireActive, (req, res) => {
     WHERE id = ? AND organization_id = ?
   `).run(userId, transactionId, orgId);
 
+  // Clean up associated attachments
+  const attachments = db.prepare(
+    "SELECT id, file_path FROM attachments WHERE entity_type = 'transaction' AND entity_id = ? AND organization_id = ?"
+  ).all(transactionId, orgId);
+
+  for (const attachment of attachments) {
+    // Delete physical file
+    if (attachment.file_path) {
+      const relativePath = attachment.file_path.startsWith('/') ? attachment.file_path.slice(1) : attachment.file_path;
+      const fullPath = path.join(__dirname, '..', '..', relativePath);
+      try {
+        if (fs.existsSync(fullPath)) {
+          fs.unlinkSync(fullPath);
+        }
+      } catch (err) {
+        // Log but don't fail the delete operation
+        console.error(`Failed to delete attachment file: ${fullPath}`, err.message);
+      }
+    }
+  }
+
+  // Delete attachment records from database
+  if (attachments.length > 0) {
+    db.prepare(
+      "DELETE FROM attachments WHERE entity_type = 'transaction' AND entity_id = ? AND organization_id = ?"
+    ).run(transactionId, orgId);
+  }
+
+  // Also clean up attachments for linked payment requests
+  let prAttachmentsCount = 0;
+  const linkedRequest = db.prepare(
+    'SELECT id FROM payment_requests WHERE transaction_id = ? AND organization_id = ?'
+  ).get(transactionId, orgId);
+
+  if (linkedRequest) {
+    const prAttachments = db.prepare(
+      "SELECT id, file_path FROM attachments WHERE entity_type = 'payment_request' AND entity_id = ? AND organization_id = ?"
+    ).all(linkedRequest.id, orgId);
+    prAttachmentsCount = prAttachments.length;
+
+    for (const attachment of prAttachments) {
+      if (attachment.file_path) {
+        const relativePath = attachment.file_path.startsWith('/') ? attachment.file_path.slice(1) : attachment.file_path;
+      const fullPath = path.join(__dirname, '..', '..', relativePath);
+        try {
+          if (fs.existsSync(fullPath)) {
+            fs.unlinkSync(fullPath);
+          }
+        } catch (err) {
+          console.error(`Failed to delete attachment file: ${fullPath}`, err.message);
+        }
+      }
+    }
+
+    if (prAttachments.length > 0) {
+      db.prepare(
+        "DELETE FROM attachments WHERE entity_type = 'payment_request' AND entity_id = ? AND organization_id = ?"
+      ).run(linkedRequest.id, orgId);
+    }
+  }
+
   // Audit log
   db.prepare(`
     INSERT INTO transaction_audit_log (transaction_id, action, user_id, changes, ip_address, user_agent)
     VALUES (?, 'deleted', ?, ?, ?, ?)
-  `).run(transactionId, userId, JSON.stringify({ deleted: true }), req.ip || null, req.headers['user-agent'] || null);
+  `).run(transactionId, userId, JSON.stringify({ deleted: true, attachments_removed: attachments.length + prAttachmentsCount }), req.ip || null, req.headers['user-agent'] || null);
 
   res.json({ message: 'Transacción eliminada' });
 });
@@ -314,6 +413,64 @@ router.get('/:id/audit', (req, res) => {
   `).all(transactionId);
 
   res.json(auditLog);
+});
+
+// POST /api/transactions/:id/attachments - Upload attachment to a transaction
+router.post('/:id/attachments', requireActive, upload.single('file'), (req, res) => {
+  const db = getDb();
+  const orgId = req.user.organization_id;
+  const userId = req.user.id;
+  const transactionId = req.params.id;
+
+  const transaction = db.prepare(
+    'SELECT id FROM transactions WHERE id = ? AND organization_id = ? AND deleted_at IS NULL'
+  ).get(transactionId, orgId);
+
+  if (!transaction) {
+    return res.status(404).json({ error: 'Transacción no encontrada' });
+  }
+
+  if (!req.file) {
+    return res.status(400).json({ error: 'No se proporcionó ningún archivo' });
+  }
+
+  const relativePath = '/uploads/' + req.file.filename;
+  const attachmentType = req.body.attachment_type || 'respaldo';
+
+  const result = db.prepare(`
+    INSERT INTO attachments (organization_id, entity_type, entity_id, file_name, file_path, file_type, file_size, attachment_type, uploaded_by)
+    VALUES (?, 'transaction', ?, ?, ?, ?, ?, ?, ?)
+  `).run(orgId, transactionId, req.file.originalname, relativePath, req.file.mimetype, req.file.size, attachmentType, userId);
+
+  const attachment = db.prepare(
+    'SELECT a.*, u.name as uploaded_by_name FROM attachments a LEFT JOIN users u ON a.uploaded_by = u.id WHERE a.id = ?'
+  ).get(result.lastInsertRowid);
+
+  res.status(201).json({ message: 'Archivo adjuntado exitosamente', attachment });
+});
+
+// GET /api/transactions/:id/attachments - Get attachments for a transaction
+router.get('/:id/attachments', (req, res) => {
+  const db = getDb();
+  const orgId = req.user.organization_id;
+  const transactionId = req.params.id;
+
+  const transaction = db.prepare(
+    'SELECT id FROM transactions WHERE id = ? AND organization_id = ?'
+  ).get(transactionId, orgId);
+
+  if (!transaction) {
+    return res.status(404).json({ error: 'Transacción no encontrada' });
+  }
+
+  const attachments = db.prepare(`
+    SELECT a.*, u.name as uploaded_by_name
+    FROM attachments a
+    LEFT JOIN users u ON a.uploaded_by = u.id
+    WHERE a.entity_type = 'transaction' AND a.entity_id = ?
+  `).all(transactionId);
+
+  res.json(attachments);
 });
 
 module.exports = router;
