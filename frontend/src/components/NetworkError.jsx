@@ -54,7 +54,7 @@ export default function NetworkError({ message, onRetry, className = '' }) {
   const displayMessage = message || 'No se pudo conectar con el servidor. Verifique su conexión e intente nuevamente.';
 
   return (
-    <div className={`bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-xl p-8 text-center ${className}`} data-testid="network-error">
+    <div role="alert" className={`bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-xl p-8 text-center ${className}`} data-testid="network-error">
       <div className="text-5xl mb-4">🔌</div>
       <h3 className="text-lg font-semibold text-orange-800 dark:text-orange-300 mb-2">
         Sin conexión al servidor

@@ -546,7 +546,7 @@ export default function Ingresos() {
         />
       )}
       {pageError && !isNetworkError && (
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6 text-center">
+        <div role="alert" className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6 text-center">
           <div className="text-3xl mb-2">⚠️</div>
           <h3 className="text-lg font-semibold text-red-800 dark:text-red-300 mb-1">Error al cargar datos</h3>
           <p className="text-red-600 dark:text-red-400 text-sm mb-3">{pageError}</p>
@@ -925,7 +925,7 @@ export default function Ingresos() {
             </div>
 
             {editError && (
-              <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">{editError}</div>
+              <div role="alert" className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">{editError}</div>
             )}
 
             <form onSubmit={handleEditSubmit} className="space-y-4">
@@ -1039,7 +1039,7 @@ export default function Ingresos() {
             </div>
 
             {error && (
-              <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">{error}</div>
+              <div role="alert" className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">{error}</div>
             )}
 
             <form onSubmit={handleSubmit} noValidate className="space-y-4">
@@ -1054,12 +1054,14 @@ export default function Ingresos() {
                   onChange={e => { setForm({ ...form, amount: e.target.value }); if (formErrors.amount) setFormErrors(prev => ({ ...prev, amount: '' })); }}
                   onKeyDown={blockNonNumericKeys}
                   onPaste={e => handleAmountPaste(e, v => { setForm(f => ({ ...f, amount: v })); if (formErrors.amount) setFormErrors(prev => ({ ...prev, amount: '' })); })}
+                  aria-describedby={formErrors.amount ? 'income-amount-error' : undefined}
+                  aria-invalid={!!formErrors.amount}
                   className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 ${formErrors.amount ? 'border-red-500' : 'border-gray-300'}`}
                   placeholder="50000"
                   data-testid="income-amount"
                 />
                 {formErrors.amount && (
-                  <p className="mt-1 text-sm text-red-600" data-testid="income-amount-error">{formErrors.amount}</p>
+                  <p id="income-amount-error" role="alert" className="mt-1 text-sm text-red-600" data-testid="income-amount-error">{formErrors.amount}</p>
                 )}
               </div>
 
@@ -1069,6 +1071,8 @@ export default function Ingresos() {
                   id="create-income-category"
                   value={form.category_id}
                   onChange={e => { setForm({ ...form, category_id: e.target.value }); if (formErrors.category_id) setFormErrors(prev => ({ ...prev, category_id: '' })); }}
+                  aria-describedby={formErrors.category_id ? 'income-category-error' : undefined}
+                  aria-invalid={!!formErrors.category_id}
                   className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 ${formErrors.category_id ? 'border-red-500' : 'border-gray-300'}`}
                   data-testid="income-category"
                 >
@@ -1078,7 +1082,7 @@ export default function Ingresos() {
                   ))}
                 </select>
                 {formErrors.category_id && (
-                  <p className="mt-1 text-sm text-red-600" data-testid="income-category-error">{formErrors.category_id}</p>
+                  <p id="income-category-error" role="alert" className="mt-1 text-sm text-red-600" data-testid="income-category-error">{formErrors.category_id}</p>
                 )}
               </div>
 
@@ -1101,11 +1105,13 @@ export default function Ingresos() {
                   type="date"
                   value={form.date}
                   onChange={e => { setForm({ ...form, date: e.target.value }); if (formErrors.date) setFormErrors(prev => ({ ...prev, date: '' })); }}
+                  aria-describedby={formErrors.date ? 'income-date-error' : undefined}
+                  aria-invalid={!!formErrors.date}
                   className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 ${formErrors.date ? 'border-red-500' : 'border-gray-300'}`}
                   data-testid="income-date"
                 />
                 {formErrors.date && (
-                  <p className="mt-1 text-sm text-red-600" data-testid="income-date-error">{formErrors.date}</p>
+                  <p id="income-date-error" role="alert" className="mt-1 text-sm text-red-600" data-testid="income-date-error">{formErrors.date}</p>
                 )}
               </div>
 
@@ -1128,12 +1134,14 @@ export default function Ingresos() {
                   type="text"
                   value={form.payer_rut}
                   onChange={e => { setForm({ ...form, payer_rut: e.target.value }); if (formErrors.payer_rut) setFormErrors(prev => ({ ...prev, payer_rut: '' })); }}
+                  aria-describedby={formErrors.payer_rut ? 'income-rut-error' : undefined}
+                  aria-invalid={!!formErrors.payer_rut}
                   className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 ${formErrors.payer_rut ? 'border-red-500' : 'border-gray-300'}`}
                   placeholder="12.345.678-9"
                   data-testid="income-rut"
                 />
                 {formErrors.payer_rut && (
-                  <p className="mt-1 text-sm text-red-600" data-testid="income-rut-error">{formErrors.payer_rut}</p>
+                  <p id="income-rut-error" role="alert" className="mt-1 text-sm text-red-600" data-testid="income-rut-error">{formErrors.payer_rut}</p>
                 )}
               </div>
 

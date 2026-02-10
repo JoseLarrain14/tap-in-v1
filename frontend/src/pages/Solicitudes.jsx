@@ -72,6 +72,8 @@ export default function Solicitudes() {
   const [actionLoading, setActionLoading] = useState(false);
   const actionRef = useRef(false);
   const isMountedRef = useRef(true);
+  const kanbanScrollRef = useRef(null);
+  const kanbanWrapperRef = useRef(null);
   const showFeedback = (type, message) => addToast({ type, message, duration: type === 'success' ? 4000 : 6000, testId: 'solicitudes-toast' });
   const [viewMode, setViewMode] = useState(() => {
     return localStorage.getItem(VIEW_KEY) || 'kanban';
@@ -243,6 +245,26 @@ export default function Solicitudes() {
     loadUsers();
     return function() { isMountedRef.current = false; };
   }, []);
+
+  // Kanban scroll fade indicator - hide fade when scrolled to end
+  useEffect(() => {
+    const scrollEl = kanbanScrollRef.current;
+    const wrapperEl = kanbanWrapperRef.current;
+    if (!scrollEl || !wrapperEl) return;
+
+    function checkScrollEnd() {
+      const atEnd = scrollEl.scrollLeft + scrollEl.clientWidth >= scrollEl.scrollWidth - 10;
+      if (atEnd) {
+        wrapperEl.classList.add('scrolled-end');
+      } else {
+        wrapperEl.classList.remove('scrolled-end');
+      }
+    }
+
+    checkScrollEnd();
+    scrollEl.addEventListener('scroll', checkScrollEnd, { passive: true });
+    return () => scrollEl.removeEventListener('scroll', checkScrollEnd);
+  }, [requests, viewMode]);
 
   function handleViewChange(mode) {
     setViewMode(mode);
@@ -690,7 +712,7 @@ export default function Solicitudes() {
         />
       )}
       {error && !isNetworkError && (
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6 text-center">
+        <div role="alert" className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6 text-center">
           <div className="text-3xl mb-2">⚠️</div>
           <h3 className="text-lg font-semibold text-red-800 dark:text-red-300 mb-1">Error al cargar datos</h3>
           <p className="text-red-600 dark:text-red-400 text-sm mb-3">{error}</p>
@@ -734,7 +756,8 @@ export default function Solicitudes() {
 
       {/* KANBAN VIEW */}
       {!loading && requests.length > 0 && viewMode === 'kanban' && (
-        <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 kanban-scroll" data-testid="kanban-view">
+        <div ref={kanbanWrapperRef} className="kanban-scroll-wrapper">
+        <div ref={kanbanScrollRef} className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 kanban-scroll" data-testid="kanban-view">
           {KANBAN_COLUMNS.map(status => (
             <div
               key={status}
@@ -811,6 +834,7 @@ export default function Solicitudes() {
               </div>
             </div>
           ))}
+        </div>
         </div>
       )}
 
@@ -987,12 +1011,14 @@ export default function Solicitudes() {
                   onChange={(e) => { setNewRequest({ ...newRequest, amount: e.target.value }); if (createFormErrors.amount) setCreateFormErrors(prev => ({ ...prev, amount: '' })); }}
                   onKeyDown={blockNonNumericKeys}
                   onPaste={e => handleAmountPaste(e, v => { setNewRequest(r => ({ ...r, amount: v })); if (createFormErrors.amount) setCreateFormErrors(prev => ({ ...prev, amount: '' })); })}
+                  aria-describedby={createFormErrors.amount ? 'pr-amount-error' : undefined}
+                  aria-invalid={!!createFormErrors.amount}
                   className={`w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none ${createFormErrors.amount ? 'border-red-500' : 'border-gray-300'}`}
                   placeholder="50000"
                   data-testid="pr-amount"
                 />
                 {createFormErrors.amount && (
-                  <p className="mt-1 text-sm text-red-600" data-testid="pr-amount-error">{createFormErrors.amount}</p>
+                  <p id="pr-amount-error" role="alert" className="mt-1 text-sm text-red-600" data-testid="pr-amount-error">{createFormErrors.amount}</p>
                 )}
               </div>
               <div>
@@ -1001,6 +1027,8 @@ export default function Solicitudes() {
                   id="create-pr-category"
                   value={newRequest.category_id}
                   onChange={(e) => { setNewRequest({ ...newRequest, category_id: e.target.value }); if (createFormErrors.category_id) setCreateFormErrors(prev => ({ ...prev, category_id: '' })); }}
+                  aria-describedby={createFormErrors.category_id ? 'pr-category-error' : undefined}
+                  aria-invalid={!!createFormErrors.category_id}
                   className={`w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none ${createFormErrors.category_id ? 'border-red-500' : 'border-gray-300'}`}
                   data-testid="pr-category"
                 >
@@ -1010,7 +1038,7 @@ export default function Solicitudes() {
                   ))}
                 </select>
                 {createFormErrors.category_id && (
-                  <p className="mt-1 text-sm text-red-600" data-testid="pr-category-error">{createFormErrors.category_id}</p>
+                  <p id="pr-category-error" role="alert" className="mt-1 text-sm text-red-600" data-testid="pr-category-error">{createFormErrors.category_id}</p>
                 )}
               </div>
               <div>
@@ -1021,13 +1049,15 @@ export default function Solicitudes() {
                   onChange={(e) => { setNewRequest({ ...newRequest, description: e.target.value.slice(0, DESCRIPTION_MAX_LENGTH) }); if (createFormErrors.description) setCreateFormErrors(prev => ({ ...prev, description: '' })); }}
                   maxLength={DESCRIPTION_MAX_LENGTH}
                   rows={2}
+                  aria-describedby={createFormErrors.description ? 'pr-description-error' : undefined}
+                  aria-invalid={!!createFormErrors.description}
                   className={`w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none resize-none ${createFormErrors.description ? 'border-red-500' : 'border-gray-300'}`}
                   placeholder="Compra de materiales..."
                   data-testid="pr-description"
                 />
                 <div className="flex justify-between items-center mt-1">
                   {createFormErrors.description ? (
-                    <p className="text-sm text-red-600" data-testid="pr-description-error">{createFormErrors.description}</p>
+                    <p id="pr-description-error" role="alert" className="text-sm text-red-600" data-testid="pr-description-error">{createFormErrors.description}</p>
                   ) : <span />}
                   <span className={`text-xs ${newRequest.description.length >= DESCRIPTION_MAX_LENGTH ? 'text-red-500 font-medium' : 'text-gray-500'}`} data-testid="pr-description-counter">
                     {newRequest.description.length}/{DESCRIPTION_MAX_LENGTH}
@@ -1042,12 +1072,14 @@ export default function Solicitudes() {
                   value={newRequest.beneficiary}
                   onChange={(e) => { setNewRequest({ ...newRequest, beneficiary: e.target.value.slice(0, BENEFICIARY_MAX_LENGTH) }); if (createFormErrors.beneficiary) setCreateFormErrors(prev => ({ ...prev, beneficiary: '' })); }}
                   maxLength={BENEFICIARY_MAX_LENGTH}
+                  aria-describedby={createFormErrors.beneficiary ? 'pr-beneficiary-error' : undefined}
+                  aria-invalid={!!createFormErrors.beneficiary}
                   className={`w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none ${createFormErrors.beneficiary ? 'border-red-500' : 'border-gray-300'}`}
                   placeholder="Proveedor XYZ"
                   data-testid="pr-beneficiary"
                 />
                 {createFormErrors.beneficiary && (
-                  <p className="mt-1 text-sm text-red-600" data-testid="pr-beneficiary-error">{createFormErrors.beneficiary}</p>
+                  <p id="pr-beneficiary-error" role="alert" className="mt-1 text-sm text-red-600" data-testid="pr-beneficiary-error">{createFormErrors.beneficiary}</p>
                 )}
               </div>
               <div className="flex gap-3 pt-2">

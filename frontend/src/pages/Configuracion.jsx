@@ -330,7 +330,7 @@ export default function Configuracion() {
             />
           )}
           {error && !isNetworkError && (
-            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6 text-center">
+            <div role="alert" className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6 text-center">
               <div className="text-3xl mb-2">⚠️</div>
               <h3 className="text-lg font-semibold text-red-800 dark:text-red-300 mb-1">Error al cargar datos</h3>
               <p className="text-red-600 dark:text-red-400 text-sm mb-3">{error}</p>
@@ -516,7 +516,7 @@ export default function Configuracion() {
           </div>
 
           {categoryDeleteError && (
-            <div className="mb-4 px-4 py-3 rounded-lg text-sm bg-red-50 text-red-800 border border-red-200">
+            <div role="alert" className="mb-4 px-4 py-3 rounded-lg text-sm bg-red-50 text-red-800 border border-red-200">
               {categoryDeleteError}
               <button
                 onClick={() => setCategoryDeleteError('')}
@@ -642,7 +642,7 @@ export default function Configuracion() {
             </div>
 
             {categoryError && (
-              <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">{categoryError}</div>
+              <div role="alert" className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">{categoryError}</div>
             )}
 
             <form onSubmit={handleCategorySubmit} className="space-y-4">
@@ -781,7 +781,7 @@ export default function Configuracion() {
               </button>
             </div>
             {inviteError && (
-              <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm" data-testid="invite-error">
+              <div role="alert" className="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm" data-testid="invite-error">
                 {inviteError}
               </div>
             )}

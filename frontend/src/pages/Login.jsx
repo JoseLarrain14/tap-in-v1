@@ -59,7 +59,7 @@ export default function Login() {
 
           {/* Error */}
           {error && (
-            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg mb-6 text-sm">
+            <div role="alert" className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg mb-6 text-sm">
               {error}
             </div>
           )}
@@ -76,10 +76,12 @@ export default function Login() {
                 value={email}
                 onChange={(e) => { setEmail(e.target.value); if (fieldErrors.email) setFieldErrors(prev => ({ ...prev, email: '' })); }}
                 placeholder="tu@correo.cl"
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 placeholder-gray-400 dark:placeholder-gray-500 ${fieldErrors.email ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'}`}
+                aria-describedby={fieldErrors.email ? 'email-error' : undefined}
+              aria-invalid={!!fieldErrors.email}
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 placeholder-gray-400 dark:placeholder-gray-500 ${fieldErrors.email ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'}`}
               />
               {fieldErrors.email && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400" data-testid="email-error">{fieldErrors.email}</p>
+                <p id="email-error" role="alert" className="mt-1 text-sm text-red-600 dark:text-red-400" data-testid="email-error">{fieldErrors.email}</p>
               )}
             </div>
 
@@ -93,10 +95,12 @@ export default function Login() {
                 value={password}
                 onChange={(e) => { setPassword(e.target.value); if (fieldErrors.password) setFieldErrors(prev => ({ ...prev, password: '' })); }}
                 placeholder="&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;"
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 placeholder-gray-400 dark:placeholder-gray-500 ${fieldErrors.password ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'}`}
+                aria-describedby={fieldErrors.password ? 'password-error' : undefined}
+              aria-invalid={!!fieldErrors.password}
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 placeholder-gray-400 dark:placeholder-gray-500 ${fieldErrors.password ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'}`}
               />
               {fieldErrors.password && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400" data-testid="password-error">{fieldErrors.password}</p>
+                <p id="password-error" role="alert" className="mt-1 text-sm text-red-600 dark:text-red-400" data-testid="password-error">{fieldErrors.password}</p>
               )}
             </div>
 
