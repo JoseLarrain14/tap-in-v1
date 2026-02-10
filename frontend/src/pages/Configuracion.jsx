@@ -208,7 +208,8 @@ export default function Configuracion() {
     setCategorySaving(true);
     try {
       if (editingCategory) {
-        await api.put(`/categories/${editingCategory.id}`, categoryForm);
+        // Only send name - type cannot be changed after creation
+        await api.put(`/categories/${editingCategory.id}`, { name: categoryForm.name });
         setFeedback({ type: 'success', message: 'Categor\u00eda actualizada exitosamente' });
       } else {
         await api.post('/categories', categoryForm);
@@ -564,11 +565,15 @@ export default function Configuracion() {
                 <select
                   value={categoryForm.type}
                   onChange={(e) => setCategoryForm({ ...categoryForm, type: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none"
+                  disabled={!!editingCategory}
+                  className={`w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none ${editingCategory ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`}
                 >
                   <option value="ingreso">Ingreso</option>
                   <option value="egreso">Egreso</option>
                 </select>
+                {editingCategory && (
+                  <p className="mt-1 text-xs text-gray-500">El tipo no se puede cambiar después de la creación</p>
+                )}
               </div>
               <div className="flex gap-3 pt-2">
                 <button

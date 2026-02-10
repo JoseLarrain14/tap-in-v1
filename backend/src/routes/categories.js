@@ -96,24 +96,29 @@ router.put('/:id', requireRole('presidente'), (req, res) => {
     return res.status(400).json({ error: 'Nombre es requerido' });
   }
 
-  const newType = type || category.type;
+  // Category type cannot be changed after creation
+  if (type && type !== category.type) {
+    return res.status(400).json({ error: 'No se puede cambiar el tipo de una categoría existente' });
+  }
+
+  const currentType = category.type;
 
   // Check for duplicate name within org and type (exclude current)
   const existing = db.prepare(
     'SELECT id FROM categories WHERE organization_id = ? AND name = ? AND type = ? AND id != ?'
-  ).get(orgId, name, newType, req.params.id);
+  ).get(orgId, name, currentType, req.params.id);
 
   if (existing) {
     return res.status(409).json({ error: 'Ya existe una categoría con ese nombre y tipo' });
   }
 
   db.prepare(
-    'UPDATE categories SET name = ?, type = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
-  ).run(name, newType, req.params.id);
+    'UPDATE categories SET name = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
+  ).run(name, req.params.id);
 
   const updated = db.prepare('SELECT * FROM categories WHERE id = ?').get(req.params.id);
 
-  console.log(`[Categories] Updated: ${name} (${newType}) by ${req.user.email}`);
+  console.log(`[Categories] Updated: ${name} (${currentType}) by ${req.user.email}`);
 
   res.json({ category: updated });
 });
