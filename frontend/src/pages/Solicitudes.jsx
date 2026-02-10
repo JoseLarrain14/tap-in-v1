@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/AuthContext';
+import { useToast } from '../lib/ToastContext';
 import { api } from '../lib/api';
 import * as XLSX from 'xlsx';
 import { SkeletonTable, SkeletonKanban, SkeletonLine } from '../components/Skeleton';
 import Spinner from '../components/Spinner';
 import NetworkError from '../components/NetworkError';
-import Toast from '../components/Toast';
 import { formatCLP, blockNonNumericKeys, handleAmountPaste } from '../lib/formatters';
 
 const STATUS_LABELS = {
@@ -55,6 +55,7 @@ const VIEW_KEY = 'solicitudes_view';
 
 export default function Solicitudes() {
   const { user } = useAuth();
+  const { addToast } = useToast();
   const navigate = useNavigate();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -70,7 +71,7 @@ export default function Solicitudes() {
   const [actionLoading, setActionLoading] = useState(false);
   const actionRef = useRef(false);
   const isMountedRef = useRef(true);
-  const [feedback, setFeedback] = useState(null);
+  const showFeedback = (type, message) => addToast({ type, message, duration: type === 'success' ? 4000 : 6000, testId: 'solicitudes-toast' });
   const [viewMode, setViewMode] = useState(() => {
     return localStorage.getItem(VIEW_KEY) || 'kanban';
   });
@@ -301,10 +302,10 @@ export default function Solicitudes() {
       setCreateSubmitted(true);
       setShowCreateModal(false);
       setNewRequest({ amount: '', description: '', beneficiary: '', category_id: '' });
-      setFeedback({ type: 'success', message: asDraft ? 'Borrador guardado exitosamente' : 'Solicitud enviada exitosamente' });
+      showFeedback('success', asDraft ? 'Borrador guardado exitosamente' : 'Solicitud enviada exitosamente');
       loadRequests({}, { silent: true });
     } catch (err) {
-      setFeedback({ type: 'error', message: err.message });
+      showFeedback('error', err.message);
     } finally {
       createSubmittingRef.current = false;
       setActionLoading(false);
@@ -329,12 +330,12 @@ export default function Solicitudes() {
         next.delete(id);
         return next;
       }), 600);
-      setFeedback({ type: 'success', message: 'Solicitud aprobada exitosamente' });
+      showFeedback('success', 'Solicitud aprobada exitosamente');
       setShowDetailModal(false);
       // Background sync to get any server-side changes
       loadRequests({}, { silent: true });
     } catch (err) {
-      setFeedback({ type: 'error', message: err.message });
+      showFeedback('error', err.message);
     } finally {
       actionRef.current = false;
       setActionLoading(false);
@@ -343,7 +344,7 @@ export default function Solicitudes() {
 
   function showRejectConfirmation(id) {
     if (!rejectComment.trim()) {
-      setFeedback({ type: 'error', message: 'El comentario es obligatorio al rechazar' });
+      showFeedback('error', 'El comentario es obligatorio al rechazar');
       return;
     }
     const req = requests.find(r => r.id === id);
@@ -368,14 +369,14 @@ export default function Solicitudes() {
         next.delete(id);
         return next;
       }), 600);
-      setFeedback({ type: 'success', message: 'Solicitud rechazada' });
+      showFeedback('success', 'Solicitud rechazada');
       setRejectComment('');
       setRejectConfirm(null);
       setShowDetailModal(false);
       // Background sync
       loadRequests({}, { silent: true });
     } catch (err) {
-      setFeedback({ type: 'error', message: err.message });
+      showFeedback('error', err.message);
     } finally {
       actionRef.current = false;
       setActionLoading(false);
@@ -400,12 +401,12 @@ export default function Solicitudes() {
         next.delete(id);
         return next;
       }), 600);
-      setFeedback({ type: 'success', message: 'Pago ejecutado exitosamente. Comprobante adjuntado correctamente.' });
+      showFeedback('success', 'Pago ejecutado exitosamente. Comprobante adjuntado correctamente.');
       setShowDetailModal(false);
       // Background sync
       loadRequests({}, { silent: true });
     } catch (err) {
-      setFeedback({ type: 'error', message: err.message });
+      showFeedback('error', err.message);
     } finally {
       actionRef.current = false;
       setActionLoading(false);
@@ -428,10 +429,10 @@ export default function Solicitudes() {
       });
       setEditSubmitted(true);
       setShowEditModal(false);
-      setFeedback({ type: 'success', message: 'Solicitud editada exitosamente' });
+      showFeedback('success', 'Solicitud editada exitosamente');
       loadRequests({}, { silent: true });
     } catch (err) {
-      setFeedback({ type: 'error', message: err.message });
+      showFeedback('error', err.message);
     } finally {
       editSubmittingRef.current = false;
       setActionLoading(false);
@@ -542,17 +543,6 @@ export default function Solicitudes() {
           )}
         </div>
       </div>
-
-      {/* Feedback Toast */}
-      {feedback && (
-        <Toast
-          message={feedback.message}
-          type={feedback.type}
-          duration={feedback.type === 'success' ? 4000 : 6000}
-          onClose={() => setFeedback(null)}
-          testId="solicitudes-toast"
-        />
-      )}
 
       {/* Status Filters - only show in Table view */}
       {viewMode === 'table' && (

@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/AuthContext';
+import { useToast } from '../lib/ToastContext';
 import { api } from '../lib/api';
 import Spinner from '../components/Spinner';
 import NetworkError from '../components/NetworkError';
-import Toast from '../components/Toast';
 import { formatCLP, formatDateTime, blockNonNumericKeys, handleAmountPaste } from '../lib/formatters';
 
 const STATUS_LABELS = {
@@ -35,13 +35,14 @@ export default function SolicitudDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { addToast } = useToast();
   const [request, setRequest] = useState(null);
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isNetworkError, setIsNetworkError] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
-  const [feedback, setFeedback] = useState(null);
+  const showFeedback = (type, message) => addToast({ type, message, duration: type === 'success' ? 4000 : 6000, testId: 'solicitud-detail-toast' });
   const [rejectComment, setRejectComment] = useState('');
   const [rejectConfirm, setRejectConfirm] = useState(false);
   const [executeFile, setExecuteFile] = useState(null);
@@ -49,6 +50,9 @@ export default function SolicitudDetail() {
   const [uploadFile, setUploadFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(null);
+  const [uploadPercent, setUploadPercent] = useState(0);
+  const [executeUploading, setExecuteUploading] = useState(false);
+  const [executeUploadPercent, setExecuteUploadPercent] = useState(0);
   const [showEditForm, setShowEditForm] = useState(false);
   const [editData, setEditData] = useState({ amount: '', description: '', beneficiary: '', category_id: '' });
   const [categories, setCategories] = useState([]);
@@ -94,11 +98,11 @@ export default function SolicitudDetail() {
       await api.post(`/payment-requests/${id}/approve`, {});
       // Optimistic update - update local state immediately
       setRequest(prev => prev ? { ...prev, status: 'aprobado' } : prev);
-      setFeedback({ type: 'success', message: 'Solicitud aprobada exitosamente' });
+      showFeedback('success', 'Solicitud aprobada exitosamente');
       // Background sync for complete data
       loadDetail();
     } catch (err) {
-      setFeedback({ type: 'error', message: err.message });
+      showFeedback('error', err.message);
     } finally {
       actionRef.current = false;
       setActionLoading(false);
@@ -107,7 +111,7 @@ export default function SolicitudDetail() {
 
   function showRejectConfirmation() {
     if (!rejectComment.trim()) {
-      setFeedback({ type: 'error', message: 'El comentario es obligatorio al rechazar' });
+      showFeedback('error', 'El comentario es obligatorio al rechazar');
       return;
     }
     setRejectConfirm(true);
@@ -122,13 +126,13 @@ export default function SolicitudDetail() {
       await api.post(`/payment-requests/${id}/reject`, { comment: rejectComment });
       // Optimistic update
       setRequest(prev => prev ? { ...prev, status: 'rechazado', rejection_comment: rejectComment } : prev);
-      setFeedback({ type: 'success', message: 'Solicitud rechazada' });
+      showFeedback('success', 'Solicitud rechazada');
       setRejectComment('');
       setRejectConfirm(false);
       // Background sync
       loadDetail();
     } catch (err) {
-      setFeedback({ type: 'error', message: err.message });
+      showFeedback('error', err.message);
     } finally {
       actionRef.current = false;
       setActionLoading(false);
@@ -137,7 +141,7 @@ export default function SolicitudDetail() {
 
   async function handleExecute() {
     if (!executeFile) {
-      setFeedback({ type: 'error', message: 'Debe adjuntar un comprobante de pago para ejecutar la solicitud' });
+      showFeedback('error', 'Debe adjuntar un comprobante de pago para ejecutar la solicitud');
       return;
     }
     // Prevent double-click: ref guard blocks re-entry before React re-renders
@@ -145,21 +149,27 @@ export default function SolicitudDetail() {
     actionRef.current = true;
     try {
       setActionLoading(true);
+      setExecuteUploading(true);
+      setExecuteUploadPercent(0);
       const formData = new FormData();
       formData.append('comprobante', executeFile);
       formData.append('comment', 'Pago ejecutado');
-      await api.upload(`/payment-requests/${id}/execute`, formData);
+      await api.uploadWithProgress(`/payment-requests/${id}/execute`, formData, (progress) => {
+        setExecuteUploadPercent(progress.percent);
+      });
       // Optimistic update
       setRequest(prev => prev ? { ...prev, status: 'ejecutado' } : prev);
-      setFeedback({ type: 'success', message: 'Pago ejecutado exitosamente. Comprobante adjuntado correctamente.' });
+      showFeedback('success', 'Pago ejecutado exitosamente. Comprobante adjuntado correctamente.');
       setExecuteFile(null);
       // Background sync
       loadDetail();
     } catch (err) {
-      setFeedback({ type: 'error', message: err.message });
+      showFeedback('error', err.message);
     } finally {
       actionRef.current = false;
       setActionLoading(false);
+      setExecuteUploading(false);
+      setExecuteUploadPercent(0);
     }
   }
 
@@ -172,11 +182,11 @@ export default function SolicitudDetail() {
       await api.post(`/payment-requests/${id}/submit`, {});
       // Optimistic update
       setRequest(prev => prev ? { ...prev, status: 'pendiente' } : prev);
-      setFeedback({ type: 'success', message: 'Solicitud enviada para aprobación' });
+      showFeedback('success', 'Solicitud enviada para aprobación');
       // Background sync
       loadDetail();
     } catch (err) {
-      setFeedback({ type: 'error', message: err.message });
+      showFeedback('error', err.message);
     } finally {
       actionRef.current = false;
       setActionLoading(false);
@@ -187,21 +197,31 @@ export default function SolicitudDetail() {
     if (!uploadFile) return;
     try {
       setUploading(true);
+      setUploadPercent(0);
       setUploadProgress('Subiendo archivo...');
       const formData = new FormData();
       formData.append('file', uploadFile);
       formData.append('attachment_type', 'respaldo');
-      await api.upload(`/payment-requests/${id}/attachments`, formData);
-      setFeedback({ type: 'success', message: `Archivo "${uploadFile.name}" adjuntado exitosamente` });
+      await api.uploadWithProgress(`/payment-requests/${id}/attachments`, formData, (progress) => {
+        setUploadPercent(progress.percent);
+        if (progress.percent < 100) {
+          setUploadProgress(`Subiendo archivo... ${progress.percent}%`);
+        } else {
+          setUploadProgress('Procesando...');
+        }
+      });
+      showFeedback('success', `Archivo "${uploadFile.name}" adjuntado exitosamente`);
       setUploadFile(null);
       setUploadProgress(null);
+      setUploadPercent(0);
       // Reset file input
       const fileInput = document.getElementById('attachment-upload-input');
       if (fileInput) fileInput.value = '';
       loadDetail();
     } catch (err) {
-      setFeedback({ type: 'error', message: err.message || 'Error al subir archivo' });
+      showFeedback('error', err.message || 'Error al subir archivo');
       setUploadProgress(null);
+      setUploadPercent(0);
     } finally {
       setUploading(false);
     }
@@ -221,7 +241,7 @@ export default function SolicitudDetail() {
   async function handleEdit(e) {
     e.preventDefault();
     if (!editData.amount || !editData.description || !editData.beneficiary) {
-      setFeedback({ type: 'error', message: 'Monto, descripcion y beneficiario son requeridos' });
+      showFeedback('error', 'Monto, descripcion y beneficiario son requeridos');
       return;
     }
     try {
@@ -233,10 +253,10 @@ export default function SolicitudDetail() {
         category_id: editData.category_id ? parseInt(editData.category_id) : undefined,
       });
       setShowEditForm(false);
-      setFeedback({ type: 'success', message: 'Solicitud editada exitosamente' });
+      showFeedback('success', 'Solicitud editada exitosamente');
       loadDetail();
     } catch (err) {
-      setFeedback({ type: 'error', message: err.message });
+      showFeedback('error', err.message);
     } finally {
       setActionLoading(false);
     }
@@ -324,17 +344,6 @@ export default function SolicitudDetail() {
           </span>
         </div>
       </div>
-
-      {/* Feedback Toast */}
-      {feedback && (
-        <Toast
-          message={feedback.message}
-          type={feedback.type}
-          duration={feedback.type === 'success' ? 4000 : 6000}
-          onClose={() => setFeedback(null)}
-          testId="solicitud-detail-toast"
-        />
-      )}
 
       {/* Edit Form (inline, replaces detail card when editing) */}
       {showEditForm && canEditDraft && (
@@ -556,7 +565,7 @@ export default function SolicitudDetail() {
                 onChange={(e) => {
                   const file = e.target.files[0] || null;
                   if (file && file.size > 10 * 1024 * 1024) {
-                    setFeedback({ type: 'error', message: 'El archivo excede el tamaño máximo permitido (10MB)' });
+                    showFeedback('error', 'El archivo excede el tamaño máximo permitido (10MB)');
                     e.target.value = '';
                     setExecuteFile(null);
                     return;
@@ -576,6 +585,23 @@ export default function SolicitudDetail() {
                 </p>
               )}
             </div>
+            {executeUploading && (
+              <div className="space-y-2" data-testid="execute-upload-progress">
+                <div className="flex items-center gap-2 text-sm text-blue-600">
+                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>Subiendo comprobante... {executeUploadPercent}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                  <div
+                    className="bg-blue-600 h-2 rounded-full transition-all duration-300 ease-out"
+                    style={{ width: `${executeUploadPercent}%` }}
+                  />
+                </div>
+              </div>
+            )}
             <button
               onClick={handleExecute}
               disabled={actionLoading || !executeFile}
@@ -602,7 +628,7 @@ export default function SolicitudDetail() {
               onChange={(e) => {
                   const file = e.target.files[0] || null;
                   if (file && file.size > 10 * 1024 * 1024) {
-                    setFeedback({ type: 'error', message: 'El archivo excede el tamaño máximo permitido (10MB)' });
+                    showFeedback('error', 'El archivo excede el tamaño máximo permitido (10MB)');
                     e.target.value = '';
                     setUploadFile(null);
                     return;
@@ -617,13 +643,23 @@ export default function SolicitudDetail() {
               </p>
             )}
           </div>
-          {uploadProgress && (
-            <div className="flex items-center gap-2 text-sm text-blue-600">
-              <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              {uploadProgress}
+          {uploading && (
+            <div className="space-y-2" data-testid="upload-progress">
+              <div className="flex items-center gap-2 text-sm text-blue-600">
+                <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span data-testid="upload-progress-text">{uploadProgress || 'Subiendo archivo...'}</span>
+                <span className="font-medium" data-testid="upload-percent">{uploadPercent}%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                <div
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-300 ease-out"
+                  style={{ width: `${uploadPercent}%` }}
+                  data-testid="upload-progress-bar"
+                />
+              </div>
             </div>
           )}
           <button
