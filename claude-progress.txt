@@ -1,5 +1,43 @@
 === Tap In V1 - Development Progress ===
 
+## Session 51 - 2026-02-10
+
+### Completed Features:
+- Feature #164: Executed expense creates transaction record ✅
+- Feature #167: Audit trail preserved even if user deactivated ✅
+- Feature #168: Attachment deleted when associated record is deleted ✅
+
+### Verification Details:
+- Feature #164: Executed expense creates transaction record
+  - Created PR #56 (FEAT164_TEST_75000, $75,000) → approved → executed as secretaria ✅
+  - Execution auto-created transaction #111 (type=egreso, source=solicitud, amount=75000) ✅
+  - PR #56 linked to transaction via transaction_id=111 ✅
+  - Dashboard saldo correctly reflects the expense (Egresos: $710,000) ✅
+  - Verified via API and Playwright browser automation
+
+- Feature #167: Audit trail preserved even if user deactivated
+  - User #12 (F167 Audit Test User) is deactivated (is_active=0) ✅
+  - Income #109 (F167_AUDIT_INCOME_TEST) shows created_by_name: "F167 Audit Test User" ✅
+  - PR #55 (F167_AUDIT_PR_TEST) shows created_by_name: "F167 Audit Test User" ✅
+  - Transaction audit log preserves user_name, action, and timestamps ✅
+  - Payment events preserve user_name and timestamps for all state transitions ✅
+  - UI (SolicitudDetail) shows deactivated user's name in Historial de Eventos ✅
+  - LEFT JOIN on users table does NOT filter by is_active - correct design ✅
+
+- Feature #168: Attachment deleted when associated record is deleted
+  - Added POST/GET /api/transactions/:id/attachments endpoints ✅
+  - Created income #115, attached file → HTTP 200 accessible ✅
+  - Deleted income → attachment file HTTP 404, DB record empty [] ✅
+  - Cascade cleanup: physical file (fs.unlinkSync) + DB record (DELETE from attachments) ✅
+  - Also handles linked payment_request attachments on cascade ✅
+  - Data persisted across server restart (SQLite, not in-memory) ✅
+  - Zero console errors, no mock data patterns ✅
+
+### Changes Made:
+- backend/src/routes/transactions.js: Added multer config, POST/GET attachment endpoints, cascade deletion of attachments on transaction delete
+
+### Current Status: ~169/265 features passing (~63.8%)
+
 ## Session 50 - 2026-02-10
 
 ### Completed Features:
