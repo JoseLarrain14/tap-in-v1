@@ -63,29 +63,33 @@ export default function SolicitudDetail() {
   const { modalRef: rejectModalRef, handleKeyDown: rejectKeyDown } = useModalAccessibility(rejectConfirm, () => setRejectConfirm(false));
 
   useEffect(() => {
-    loadDetail();
-    loadCategories();
+    const controller = new AbortController();
+    loadDetail(controller.signal);
+    loadCategories(controller.signal);
+    return () => controller.abort();
   }, [id]);
 
-  async function loadCategories() {
+  async function loadCategories(signal) {
     try {
-      const data = await api.get('/categories');
+      const data = await api.get('/categories', signal ? { signal } : {});
       const cats = (data.categories || data || []).filter(c => c.type === 'egreso');
       setCategories(cats);
     } catch (err) {
+      if (err.isAborted) return;
       // Categories are optional
     }
   }
 
-  async function loadDetail() {
+  async function loadDetail(signal) {
     try {
       setLoading(true);
       setError(null);
-      const data = await api.get(`/payment-requests/${id}`);
+      const data = await api.get(`/payment-requests/${id}`, signal ? { signal } : {});
       setRequest(data.payment_request || data);
       setEvents(data.events || []);
       setAttachments(data.attachments || []);
     } catch (err) {
+      if (err.isAborted) return;
       setError(err.message || 'Error al cargar la solicitud');
       setIsNetworkError(!!err.isNetworkError);
     } finally {

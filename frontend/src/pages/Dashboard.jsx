@@ -32,52 +32,61 @@ export default function Dashboard() {
   const [isNetworkError, setIsNetworkError] = useState(false);
 
   var isMountedRef = useRef(true);
+  var abortRef = useRef(null);
   useEffect(() => {
     isMountedRef.current = true;
-    loadDashboard();
-    loadChartData();
-    loadCategoryData();
-    return function() { isMountedRef.current = false; };
+    abortRef.current = new AbortController();
+    const signal = abortRef.current.signal;
+    loadDashboard(signal);
+    loadChartData(signal);
+    loadCategoryData(signal);
+    return function() {
+      isMountedRef.current = false;
+      if (abortRef.current) abortRef.current.abort();
+    };
   }, []);
 
-  async function loadDashboard() {
+  async function loadDashboard(signal) {
     try {
       setLoading(true);
-      const data = await api.get('/dashboard/summary');
+      const data = await api.get('/dashboard/summary', { signal });
       if (!isMountedRef.current) return;
       setSummary(data);
     } catch (err) {
+      if (err.isAborted) return;
       console.error('Error loading dashboard:', err);
       setLoadError(err.message || 'Error al cargar el dashboard');
       setIsNetworkError(!!err.isNetworkError);
     } finally {
-      setLoading(false);
+      if (isMountedRef.current) setLoading(false);
     }
   }
 
-  async function loadChartData() {
+  async function loadChartData(signal) {
     try {
       setChartLoading(true);
-      const data = await api.get('/dashboard/chart');
+      const data = await api.get('/dashboard/chart', { signal });
       if (!isMountedRef.current) return;
       setChartData(data.months || []);
     } catch (err) {
+      if (err.isAborted) return;
       console.error('Error loading chart data:', err);
     } finally {
-      setChartLoading(false);
+      if (isMountedRef.current) setChartLoading(false);
     }
   }
 
-  async function loadCategoryData() {
+  async function loadCategoryData(signal) {
     try {
       setCategoryLoading(true);
-      const data = await api.get('/dashboard/categories');
+      const data = await api.get('/dashboard/categories', { signal });
       if (!isMountedRef.current) return;
       setCategoryData(data.categories || []);
     } catch (err) {
+      if (err.isAborted) return;
       console.error('Error loading category data:', err);
     } finally {
-      setCategoryLoading(false);
+      if (isMountedRef.current) setCategoryLoading(false);
     }
   }
 

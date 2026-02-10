@@ -108,11 +108,12 @@ router.get('/', (req, res) => {
     LEFT JOIN users eu ON pr.executed_by = eu.id
   ` + whereClause;
 
-  // Sorting
+  // Sorting - secondary sort by id ensures deterministic pagination
+  // (prevents skips/duplicates when records share the same sort value)
   const validSortColumns = ['created_at', 'amount', 'status', 'description'];
   const sortColumn = validSortColumns.includes(sort_by) ? sort_by : 'created_at';
   const sortDirection = sort_order === 'asc' ? 'ASC' : 'DESC';
-  query += ` ORDER BY pr.${sortColumn} ${sortDirection}`;
+  query += ` ORDER BY pr.${sortColumn} ${sortDirection}, pr.id ${sortDirection}`;
 
   // Pagination - allow up to 10000 for exports
   const limit = Math.min(parseInt(limitParam) || 50, 10000);

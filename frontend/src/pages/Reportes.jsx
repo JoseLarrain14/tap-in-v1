@@ -15,14 +15,17 @@ export default function Reportes() {
   const [exportingAll, setExportingAll] = useState(false);
 
   useEffect(() => {
-    loadCategories();
+    const controller = new AbortController();
+    loadCategories(controller.signal);
+    return () => controller.abort();
   }, []);
 
-  async function loadCategories() {
+  async function loadCategories(signal) {
     try {
-      const data = await api.get('/categories');
+      const data = await api.get('/categories', signal ? { signal } : {});
       setCategories(data.categories || data || []);
     } catch (err) {
+      if (err.isAborted) return;
       // Optional
     }
   }

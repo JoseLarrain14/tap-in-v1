@@ -22,13 +22,14 @@ export default function Notificaciones() {
   const [isNetworkError, setIsNetworkError] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  async function loadNotifications() {
+  async function loadNotifications(signal) {
     try {
       setLoading(true);
-      const data = await api.get('/notifications');
+      const data = await api.get('/notifications', signal ? { signal } : {});
       setNotifications(data.notifications || []);
       setUnreadCount(data.unread_count || 0);
     } catch (err) {
+      if (err.isAborted) return;
       setError(err.message);
       setIsNetworkError(!!err.isNetworkError);
     } finally {
@@ -37,7 +38,9 @@ export default function Notificaciones() {
   }
 
   useEffect(() => {
-    loadNotifications();
+    const controller = new AbortController();
+    loadNotifications(controller.signal);
+    return () => controller.abort();
   }, []);
 
   async function handleMarkRead(id) {

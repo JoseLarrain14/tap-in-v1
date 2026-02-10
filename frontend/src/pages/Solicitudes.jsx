@@ -72,6 +72,7 @@ export default function Solicitudes() {
   const [actionLoading, setActionLoading] = useState(false);
   const actionRef = useRef(false);
   const isMountedRef = useRef(true);
+  const abortRef = useRef(null);
   const kanbanScrollRef = useRef(null);
   const kanbanWrapperRef = useRef(null);
   const showFeedback = (type, message) => addToast({ type, message, duration: type === 'success' ? 4000 : 6000, testId: 'solicitudes-toast' });
@@ -134,37 +135,46 @@ export default function Solicitudes() {
   }
 
   async function loadRequests(filterOverrides = {}, { silent = false } = {}) {
+    // Cancel any previous in-flight request
+    if (abortRef.current) abortRef.current.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+    const signal = controller.signal;
+
     try {
       if (!silent) setLoading(true);
       const qs = buildFilterQuery(filterOverrides);
-      const data = await api.get(`/payment-requests?${qs}`);
-      if (!isMountedRef.current) return;
+      const data = await api.get(`/payment-requests?${qs}`, { signal });
+      if (!isMountedRef.current || signal.aborted) return;
       setRequests(data.payment_requests || []);
     } catch (err) {
+      if (err.isAborted) return;
       setError(err.message);
       setIsNetworkError(!!err.isNetworkError);
     } finally {
-      setLoading(false);
+      if (isMountedRef.current && !signal.aborted) setLoading(false);
     }
   }
 
-  async function loadCategories() {
+  async function loadCategories(signal) {
     try {
-      const data = await api.get('/categories');
+      const data = await api.get('/categories', signal ? { signal } : {});
       const cats = (data.categories || data || []).filter(c => c.type === 'egreso');
       if (!isMountedRef.current) return;
       setCategories(cats);
     } catch (err) {
+      if (err.isAborted) return;
       // Categories are optional
     }
   }
 
-  async function loadUsers() {
+  async function loadUsers(signal) {
     try {
-      const data = await api.get('/users');
+      const data = await api.get('/users', signal ? { signal } : {});
       if (!isMountedRef.current) return;
       setUsers(data.users || data || []);
     } catch (err) {
+      if (err.isAborted) return;
       // Users are optional for filter
     }
   }
@@ -240,10 +250,16 @@ export default function Solicitudes() {
 
   useEffect(() => {
     isMountedRef.current = true;
+    const controller = new AbortController();
+    abortRef.current = controller;
+    const signal = controller.signal;
     loadRequests();
-    loadCategories();
-    loadUsers();
-    return function() { isMountedRef.current = false; };
+    loadCategories(signal);
+    loadUsers(signal);
+    return function() {
+      isMountedRef.current = false;
+      controller.abort();
+    };
   }, []);
 
   // Kanban scroll fade indicator - hide fade when scrolled to end

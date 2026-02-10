@@ -93,6 +93,7 @@ export default function Ingresos() {
   // feedback state kept for backward compat but toasts now go through context
   const showFeedback = (type, message) => addToast({ type, message, testId: 'income-toast' });
   const isMountedRef = useRef(true);
+  const abortRef = useRef(null);
   const submittingRef = useRef(false);
   const editSubmittingRef = useRef(false);
 
@@ -135,18 +136,28 @@ export default function Ingresos() {
 
   useEffect(() => {
     isMountedRef.current = true;
+    abortRef.current = new AbortController();
     loadData();
-    return function() { isMountedRef.current = false; };
+    return function() {
+      isMountedRef.current = false;
+      if (abortRef.current) abortRef.current.abort();
+    };
   }, []);
 
   async function loadData(filterOverrides = {}, { silent = false } = {}) {
+    // Cancel any previous in-flight request and create a new AbortController
+    if (abortRef.current) abortRef.current.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+    const signal = controller.signal;
+
     try {
       if (!silent) setLoading(true);
       const [txRes, catRes] = await Promise.all([
-        api.get(`/transactions?${buildFilterQuery(filterOverrides)}`),
-        api.get('/categories')
+        api.get(`/transactions?${buildFilterQuery(filterOverrides)}`, { signal }),
+        api.get('/categories', { signal })
       ]);
-      if (!isMountedRef.current) return;
+      if (!isMountedRef.current || signal.aborted) return;
       setTransactions(txRes.transactions || []);
       if (txRes.pagination) {
         setTotalPages(txRes.pagination.pages || 1);
@@ -157,11 +168,12 @@ export default function Ingresos() {
       }
       setCategories((catRes.categories || catRes || []).filter(c => c.type === 'ingreso'));
     } catch (err) {
+      if (err.isAborted) return; // Request was cancelled - ignore
       console.error('Error loading data:', err);
       setPageError(err.message || 'Error al cargar datos');
       setIsNetworkError(!!err.isNetworkError);
     } finally {
-      setLoading(false);
+      if (isMountedRef.current && !signal.aborted) setLoading(false);
     }
   }
 

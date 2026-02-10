@@ -30,6 +30,12 @@ async function request(endpoint, options = {}) {
       headers,
     });
   } catch (networkError) {
+    // If the request was aborted (e.g., by navigation), throw a specific error
+    if (networkError.name === 'AbortError') {
+      const err = new Error('Request cancelled');
+      err.isAborted = true;
+      throw err;
+    }
     // Network error - server unreachable
     const err = new Error('No se pudo conectar con el servidor. Verifique su conexión e intente nuevamente.');
     err.isNetworkError = true;
@@ -201,10 +207,10 @@ function uploadWithProgress(endpoint, formData, onProgress) {
 }
 
 export const api = {
-  get: (endpoint) => request(endpoint),
-  post: (endpoint, body) => request(endpoint, { method: 'POST', body: JSON.stringify(body) }),
-  put: (endpoint, body) => request(endpoint, { method: 'PUT', body: JSON.stringify(body) }),
-  delete: (endpoint) => request(endpoint, { method: 'DELETE' }),
+  get: (endpoint, options) => request(endpoint, { ...options }),
+  post: (endpoint, body, options) => request(endpoint, { method: 'POST', body: JSON.stringify(body), ...options }),
+  put: (endpoint, body, options) => request(endpoint, { method: 'PUT', body: JSON.stringify(body), ...options }),
+  delete: (endpoint, options) => request(endpoint, { method: 'DELETE', ...options }),
   upload: (endpoint, formData) => uploadRequest(endpoint, formData),
   uploadWithProgress: (endpoint, formData, onProgress) => uploadWithProgress(endpoint, formData, onProgress),
 };

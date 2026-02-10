@@ -83,12 +83,13 @@ export default function Configuracion() {
   const deactivatedUsers = users.filter(u => !u.is_active);
   const displayUsers = showDeactivated ? sortedUsers : activeUsers;
 
-  async function loadUsers() {
+  async function loadUsers(signal) {
     try {
       setLoading(true);
-      const data = await api.get('/users');
+      const data = await api.get('/users', signal ? { signal } : {});
       setUsers(data.users || []);
     } catch (err) {
+      if (err.isAborted) return;
       setError(err.message);
       setIsNetworkError(!!err.isNetworkError);
     } finally {
@@ -96,12 +97,13 @@ export default function Configuracion() {
     }
   }
 
-  async function loadCategories({ silent = false } = {}) {
+  async function loadCategories({ silent = false, signal } = {}) {
     try {
       if (!silent) setCategoriesLoading(true);
-      const data = await api.get('/categories');
+      const data = await api.get('/categories', signal ? { signal } : {});
       setCategories(data.categories || []);
     } catch (err) {
+      if (err.isAborted) return;
       setError(err.message);
       setIsNetworkError(!!err.isNetworkError);
     } finally {
@@ -110,8 +112,10 @@ export default function Configuracion() {
   }
 
   useEffect(() => {
-    loadUsers();
-    loadCategories();
+    const controller = new AbortController();
+    loadUsers(controller.signal);
+    loadCategories({ signal: controller.signal });
+    return () => controller.abort();
   }, []);
 
   function validateEmail(email) {

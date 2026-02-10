@@ -118,11 +118,12 @@ router.get('/', (req, res) => {
     params.push(searchTerm, searchTerm, searchTerm);
   }
 
-  // Sorting
+  // Sorting - secondary sort by id ensures deterministic pagination
+  // (prevents skips/duplicates when records share the same sort value)
   const validSortColumns = ['date', 'amount', 'created_at', 'description'];
   const sortColumn = validSortColumns.includes(sort_by) ? sort_by : 'date';
   const sortDirection = sort_order === 'asc' ? 'ASC' : 'DESC';
-  query += ` ORDER BY t.${sortColumn} ${sortDirection}`;
+  query += ` ORDER BY t.${sortColumn} ${sortDirection}, t.id ${sortDirection}`;
 
   // Pagination - allow up to 10000 for exports
   const limit = Math.min(parseInt(limitParam) || 50, 10000);
