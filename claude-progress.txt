@@ -1,5 +1,94 @@
 === Tap In V1 - Development Progress ===
 
+## Session 54 - 2026-02-10
+
+### Completed Features:
+- Feature #199: Beneficiary field required for payment requests ✅
+- Feature #200: Server-side validation matches client-side ✅
+- Feature #201: Specific field error messages displayed ✅
+
+### Verification Details:
+- Feature #199: Beneficiary field required for payment requests
+  - Opened payment request form, filled amount, category, description
+  - Left beneficiary empty and clicked Enviar
+  - Validation error "El beneficiario es requerido" shown in red below the field
+  - Beneficiary field had red border indicating error
+  - Filled beneficiary with "FEAT199_TEST_BENEFICIARY" and submitted
+  - Submission succeeded: "Solicitud enviada exitosamente" shown
+  - New request #65 appeared in "Pendiente de Aprobación" column
+  - Verified with Playwright browser automation + screenshots
+
+- Feature #200: Server-side validation matches client-side
+  - Bypassed frontend validation using direct API calls (Node.js test script)
+  - POST /api/transactions with negative amount → 400 ✅
+  - POST /api/transactions with zero amount → 400 ✅
+  - POST /api/transactions with decimal amount → 400 ✅
+  - POST /api/payment-requests with empty description → 400 with field error ✅
+  - POST /api/payment-requests with empty beneficiary → 400 with field error ✅
+  - POST /api/payment-requests with negative amount → 400 ✅
+  - POST /api/payment-requests with decimal amount → 400 ✅
+  - POST /api/payment-requests/:id/reject without comment → 400 ✅
+  - POST /api/payment-requests/:id/reject with empty comment → 400 ✅
+  - All 9 backend validation tests passed
+  - Zero console errors in browser
+
+- Feature #201: Specific field error messages displayed
+  - Opened income form (Registrar Ingreso), cleared date, clicked Registrar
+  - Three specific field errors shown inline:
+    - Monto: "El monto es requerido"
+    - Categoría: "La categoría es requerida"
+    - Fecha: "La fecha es requerida"
+  - Each error appeared near its respective field with red border
+  - Filled monto field with 10000 → monto error disappeared
+  - Categoría and Fecha errors remained (independent field-level validation)
+  - Verified with Playwright browser automation + screenshots
+  - Zero console errors
+
+### Current Status: ~197/265 features passing (~74.3%)
+
+### What should be worked on next:
+- More form validation features
+- Additional security/access control features
+- Reporting and export features
+- Remaining UI/UX polish features
+
+## Session 53 - 2026-02-10
+
+### Completed Features:
+- Feature #188: Income amount must be positive integer ✅
+- Feature #189: Payment request amount must be positive ✅
+- Feature #190: Email format validated on login ✅
+
+### Verification Details:
+- Feature #188: Income amount validation
+  - Enter 0 → "El monto debe ser mayor a cero" ✅
+  - Enter -1000 → "El monto debe ser mayor a cero" ✅
+  - Enter 5000.50 → "El monto debe ser un número entero (sin decimales)" ✅
+  - Enter 5000 → accepted, transaction created ✅
+  - Enter "abc" (empty in number field) → "El monto es requerido" ✅
+  - Backend: added Number.isInteger check to POST /api/transactions
+
+- Feature #189: Payment request amount validation
+  - Enter 0 → "El monto debe ser mayor a cero" ✅
+  - Enter -5000 → "El monto debe ser mayor a cero" ✅
+  - Enter 25000 → accepted, payment request created ✅
+  - Backend: added Number.isInteger check to POST/PUT /api/payment-requests
+
+- Feature #190: Email format validated on login
+  - Enter "notanemail" → "Ingrese un correo electrónico válido" ✅
+  - Enter "user@" → "Ingrese un correo electrónico válido" ✅
+  - Enter "@domain.com" → "Ingrese un correo electrónico válido" ✅
+  - Enter "presidente@tapin.cl" → accepted, login successful ✅
+  - Existing regex validation (/\S+@\S+\.\S+/) already handled all cases
+
+### Changes Made:
+- frontend/src/pages/Ingresos.jsx: Improved validateIncomeForm() with integer check, added step="1" to input
+- frontend/src/pages/Solicitudes.jsx: Improved validatePaymentForm() with integer check, added step="1" to input
+- backend/src/routes/transactions.js: Added Number.isInteger validation for amount
+- backend/src/routes/payment-requests.js: Added Number.isInteger validation for amount (POST + PUT)
+
+### Current Status: 193/265 features passing (72.8%)
+
 ## Session 52 - 2026-02-10
 
 ### Completed Features:
