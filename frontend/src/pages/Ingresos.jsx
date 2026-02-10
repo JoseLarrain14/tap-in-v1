@@ -498,7 +498,7 @@ export default function Ingresos() {
               data-testid="export-excel-btn"
               className="flex-1 sm:flex-none px-4 py-2.5 min-h-[44px] border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm disabled:opacity-50 flex items-center justify-center gap-2"
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                 <polyline points="7 10 12 15 17 10"/>
                 <line x1="12" y1="15" x2="12" y2="3"/>
@@ -558,7 +558,9 @@ export default function Ingresos() {
         <div className="flex items-center gap-3 flex-wrap">
           {/* Search */}
           <div className="flex-1 min-w-[140px] sm:min-w-[200px]">
+            <label htmlFor="filter-income-search" className="sr-only">Buscar por descripción</label>
             <input
+              id="filter-income-search"
               type="text"
               placeholder="Buscar por descripción..."
               value={filterSearch}
@@ -571,17 +573,21 @@ export default function Ingresos() {
           </div>
 
           {/* Category Filter */}
-          <select
-            value={filterCategory}
-            onChange={e => { setFilterCategory(e.target.value); }}
-            data-testid="filter-category"
-            className="px-3 py-2 min-h-[44px] border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
-          >
+          <div>
+            <label htmlFor="filter-income-category" className="sr-only">Categoría</label>
+            <select
+              id="filter-income-category"
+              value={filterCategory}
+              onChange={e => { setFilterCategory(e.target.value); }}
+              data-testid="filter-category"
+              className="px-3 py-2 min-h-[44px] border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
+            >
             <option value="">Todas las categorías</option>
             {categories.map(c => (
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
-          </select>
+            </select>
+          </div>
 
           {/* Toggle advanced filters */}
           <button
@@ -593,7 +599,7 @@ export default function Ingresos() {
             }`}
           >
             <span className="flex items-center gap-1.5">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
               </svg>
               Filtros
@@ -629,8 +635,9 @@ export default function Ingresos() {
           <div className="space-y-3 mt-3 pt-3 border-t border-gray-100">
             <div className="flex items-center gap-3 flex-wrap">
               <div className="flex items-center gap-2">
-                <label className="text-sm text-gray-500 whitespace-nowrap">Desde:</label>
+                <label htmlFor="filter-income-from" className="text-sm text-gray-500 whitespace-nowrap">Desde:</label>
                 <input
+                  id="filter-income-from"
                   type="date"
                   value={filterFrom}
                   onChange={e => { setFilterFrom(e.target.value); setDateRangeWarning(''); }}
@@ -639,8 +646,9 @@ export default function Ingresos() {
                 />
               </div>
               <div className="flex items-center gap-2">
-                <label className="text-sm text-gray-500 whitespace-nowrap">Hasta:</label>
+                <label htmlFor="filter-income-to" className="text-sm text-gray-500 whitespace-nowrap">Hasta:</label>
                 <input
+                  id="filter-income-to"
                   type="date"
                   value={filterTo}
                   onChange={e => { setFilterTo(e.target.value); setDateRangeWarning(''); }}
@@ -661,8 +669,9 @@ export default function Ingresos() {
             )}
             <div className="flex items-center gap-3 flex-wrap">
               <div className="flex items-center gap-2">
-                <label className="text-sm text-gray-500 whitespace-nowrap">Monto mín:</label>
+                <label htmlFor="filter-income-amount-min" className="text-sm text-gray-500 whitespace-nowrap">Monto mín:</label>
                 <input
+                  id="filter-income-amount-min"
                   type="number"
                   min="0"
                   value={filterAmountMin}
@@ -675,8 +684,9 @@ export default function Ingresos() {
                 />
               </div>
               <div className="flex items-center gap-2">
-                <label className="text-sm text-gray-500 whitespace-nowrap">Monto máx:</label>
+                <label htmlFor="filter-income-amount-max" className="text-sm text-gray-500 whitespace-nowrap">Monto máx:</label>
                 <input
+                  id="filter-income-amount-max"
                   type="number"
                   min="0"
                   value={filterAmountMax}
@@ -914,8 +924,9 @@ export default function Ingresos() {
 
             <form onSubmit={handleEditSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Monto (CLP) *</label>
+                <label htmlFor="edit-income-amount" className="block text-sm font-medium text-gray-700 mb-1">Monto (CLP) *</label>
                 <input
+                  id="edit-income-amount"
                   type="number"
                   required
                   min="1"
@@ -929,8 +940,9 @@ export default function Ingresos() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
+                <label htmlFor="edit-income-category" className="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
                 <select
+                  id="edit-income-category"
                   value={editForm.category_id}
                   onChange={e => setEditForm({ ...editForm, category_id: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
@@ -943,8 +955,9 @@ export default function Ingresos() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+                <label htmlFor="edit-income-description" className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
                 <input
+                  id="edit-income-description"
                   type="text"
                   value={editForm.description}
                   onChange={e => setEditForm({ ...editForm, description: e.target.value })}
@@ -954,8 +967,9 @@ export default function Ingresos() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Fecha *</label>
+                <label htmlFor="edit-income-date" className="block text-sm font-medium text-gray-700 mb-1">Fecha *</label>
                 <input
+                  id="edit-income-date"
                   type="date"
                   required
                   value={editForm.date}
@@ -965,8 +979,9 @@ export default function Ingresos() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Nombre del pagador</label>
+                <label htmlFor="edit-income-payer-name" className="block text-sm font-medium text-gray-700 mb-1">Nombre del pagador</label>
                 <input
+                  id="edit-income-payer-name"
                   type="text"
                   value={editForm.payer_name}
                   onChange={e => setEditForm({ ...editForm, payer_name: e.target.value })}
@@ -976,8 +991,9 @@ export default function Ingresos() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">RUT del pagador</label>
+                <label htmlFor="edit-income-payer-rut" className="block text-sm font-medium text-gray-700 mb-1">RUT del pagador</label>
                 <input
+                  id="edit-income-payer-rut"
                   type="text"
                   value={editForm.payer_rut}
                   onChange={e => setEditForm({ ...editForm, payer_rut: e.target.value })}
@@ -1022,8 +1038,9 @@ export default function Ingresos() {
 
             <form onSubmit={handleSubmit} noValidate className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Monto (CLP) *</label>
+                <label htmlFor="create-income-amount" className="block text-sm font-medium text-gray-700 mb-1">Monto (CLP) *</label>
                 <input
+                  id="create-income-amount"
                   type="number"
                   min="1"
                   step="1"
@@ -1041,8 +1058,9 @@ export default function Ingresos() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Categoría *</label>
+                <label htmlFor="create-income-category" className="block text-sm font-medium text-gray-700 mb-1">Categoría *</label>
                 <select
+                  id="create-income-category"
                   value={form.category_id}
                   onChange={e => { setForm({ ...form, category_id: e.target.value }); if (formErrors.category_id) setFormErrors(prev => ({ ...prev, category_id: '' })); }}
                   className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 ${formErrors.category_id ? 'border-red-500' : 'border-gray-300'}`}
@@ -1059,8 +1077,9 @@ export default function Ingresos() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+                <label htmlFor="create-income-description" className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
                 <input
+                  id="create-income-description"
                   type="text"
                   value={form.description}
                   onChange={e => setForm({ ...form, description: e.target.value })}
@@ -1070,8 +1089,9 @@ export default function Ingresos() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Fecha *</label>
+                <label htmlFor="create-income-date" className="block text-sm font-medium text-gray-700 mb-1">Fecha *</label>
                 <input
+                  id="create-income-date"
                   type="date"
                   value={form.date}
                   onChange={e => { setForm({ ...form, date: e.target.value }); if (formErrors.date) setFormErrors(prev => ({ ...prev, date: '' })); }}
@@ -1084,8 +1104,9 @@ export default function Ingresos() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Nombre del pagador</label>
+                <label htmlFor="create-income-payer-name" className="block text-sm font-medium text-gray-700 mb-1">Nombre del pagador</label>
                 <input
+                  id="create-income-payer-name"
                   type="text"
                   value={form.payer_name}
                   onChange={e => setForm({ ...form, payer_name: e.target.value })}
@@ -1095,8 +1116,9 @@ export default function Ingresos() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">RUT del pagador</label>
+                <label htmlFor="create-income-payer-rut" className="block text-sm font-medium text-gray-700 mb-1">RUT del pagador</label>
                 <input
+                  id="create-income-payer-rut"
                   type="text"
                   value={form.payer_rut}
                   onChange={e => { setForm({ ...form, payer_rut: e.target.value }); if (formErrors.payer_rut) setFormErrors(prev => ({ ...prev, payer_rut: '' })); }}

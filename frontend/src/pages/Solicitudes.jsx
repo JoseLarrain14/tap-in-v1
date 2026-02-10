@@ -492,7 +492,7 @@ export default function Solicitudes() {
               }`}
             >
               <span className="flex items-center gap-1.5">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                   <rect x="1" y="1" width="4" height="14" rx="1" stroke="currentColor" strokeWidth="1.5"/>
                   <rect x="6" y="1" width="4" height="10" rx="1" stroke="currentColor" strokeWidth="1.5"/>
                   <rect x="11" y="1" width="4" height="7" rx="1" stroke="currentColor" strokeWidth="1.5"/>
@@ -510,7 +510,7 @@ export default function Solicitudes() {
               }`}
             >
               <span className="flex items-center gap-1.5">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                   <rect x="1" y="1" width="14" height="3" rx="0.5" stroke="currentColor" strokeWidth="1.5"/>
                   <rect x="1" y="6" width="14" height="3" rx="0.5" stroke="currentColor" strokeWidth="1.5"/>
                   <rect x="1" y="11" width="14" height="3" rx="0.5" stroke="currentColor" strokeWidth="1.5"/>
@@ -526,7 +526,7 @@ export default function Solicitudes() {
             data-testid="export-solicitudes-btn"
             className="px-3 py-2.5 min-h-[44px] border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 flex items-center gap-1.5"
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
               <polyline points="7 10 12 15 17 10"/>
               <line x1="12" y1="15" x2="12" y2="3"/>
@@ -581,8 +581,9 @@ export default function Solicitudes() {
               <div className="flex flex-wrap items-end gap-3">
                 {/* Search */}
                 <div className="flex-1 min-w-0 sm:min-w-[180px]">
-                  <label className="block text-xs font-medium text-gray-500 mb-1">Buscar</label>
+                  <label htmlFor="filter-pr-search" className="block text-xs font-medium text-gray-500 mb-1">Buscar</label>
                   <input
+                    id="filter-pr-search"
                     type="text"
                     value={searchFilter}
                     onChange={(e) => setSearchFilter(e.target.value.slice(0, 500))}
@@ -594,8 +595,9 @@ export default function Solicitudes() {
                 </div>
                 {/* Beneficiary */}
                 <div className="min-w-0 sm:min-w-[160px] w-full sm:w-auto">
-                  <label className="block text-xs font-medium text-gray-500 mb-1">Beneficiario</label>
+                  <label htmlFor="filter-pr-beneficiary" className="block text-xs font-medium text-gray-500 mb-1">Beneficiario</label>
                   <input
+                    id="filter-pr-beneficiary"
                     type="text"
                     value={beneficiaryFilter}
                     onChange={(e) => setBeneficiaryFilter(e.target.value.slice(0, 500))}
@@ -607,8 +609,9 @@ export default function Solicitudes() {
                 </div>
                 {/* Category */}
                 <div className="min-w-0 sm:min-w-[160px] w-full sm:w-auto">
-                  <label className="block text-xs font-medium text-gray-500 mb-1">Categoría</label>
+                  <label htmlFor="filter-pr-category" className="block text-xs font-medium text-gray-500 mb-1">Categoría</label>
                   <select
+                    id="filter-pr-category"
                     value={categoryFilter}
                     onChange={(e) => setCategoryFilter(e.target.value)}
                     data-testid="pipeline-filter-category"
@@ -622,8 +625,9 @@ export default function Solicitudes() {
                 </div>
                 {/* Creator */}
                 <div className="min-w-0 sm:min-w-[160px] w-full sm:w-auto">
-                  <label className="block text-xs font-medium text-gray-500 mb-1">Creador</label>
+                  <label htmlFor="filter-pr-creator" className="block text-xs font-medium text-gray-500 mb-1">Creador</label>
                   <select
+                    id="filter-pr-creator"
                     value={creatorFilter}
                     onChange={(e) => setCreatorFilter(e.target.value)}
                     data-testid="pipeline-filter-creator"
@@ -965,8 +969,9 @@ export default function Solicitudes() {
             </div>
             <form onSubmit={(e) => handleCreate(e, false)} noValidate className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Monto (CLP) *</label>
+                <label htmlFor="create-pr-amount" className="block text-sm font-medium text-gray-700 mb-1">Monto (CLP) *</label>
                 <input
+                  id="create-pr-amount"
                   type="number"
                   min="1"
                   step="1"
@@ -983,8 +988,9 @@ export default function Solicitudes() {
                 )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Categoría *</label>
+                <label htmlFor="create-pr-category" className="block text-sm font-medium text-gray-700 mb-1">Categoría *</label>
                 <select
+                  id="create-pr-category"
                   value={newRequest.category_id}
                   onChange={(e) => { setNewRequest({ ...newRequest, category_id: e.target.value }); if (createFormErrors.category_id) setCreateFormErrors(prev => ({ ...prev, category_id: '' })); }}
                   className={`w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none ${createFormErrors.category_id ? 'border-red-500' : 'border-gray-300'}`}
@@ -1000,8 +1006,9 @@ export default function Solicitudes() {
                 )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Descripción *</label>
+                <label htmlFor="create-pr-description" className="block text-sm font-medium text-gray-700 mb-1">Descripción *</label>
                 <textarea
+                  id="create-pr-description"
                   value={newRequest.description}
                   onChange={(e) => { setNewRequest({ ...newRequest, description: e.target.value.slice(0, DESCRIPTION_MAX_LENGTH) }); if (createFormErrors.description) setCreateFormErrors(prev => ({ ...prev, description: '' })); }}
                   maxLength={DESCRIPTION_MAX_LENGTH}
@@ -1020,8 +1027,9 @@ export default function Solicitudes() {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Beneficiario *</label>
+                <label htmlFor="create-pr-beneficiary" className="block text-sm font-medium text-gray-700 mb-1">Beneficiario *</label>
                 <input
+                  id="create-pr-beneficiary"
                   type="text"
                   value={newRequest.beneficiary}
                   onChange={(e) => { setNewRequest({ ...newRequest, beneficiary: e.target.value.slice(0, BENEFICIARY_MAX_LENGTH) }); if (createFormErrors.beneficiary) setCreateFormErrors(prev => ({ ...prev, beneficiary: '' })); }}
@@ -1122,10 +1130,11 @@ export default function Solicitudes() {
                   {actionLoading ? <><Spinner size={14} className="inline mr-1" />Procesando...</> : 'Aprobar Solicitud'}
                 </button>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="detail-reject-comment" className="block text-sm font-medium text-gray-700 mb-1">
                     Comentario de rechazo (obligatorio)
                   </label>
                   <textarea
+                    id="detail-reject-comment"
                     value={rejectComment}
                     onChange={(e) => setRejectComment(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none"
@@ -1232,8 +1241,9 @@ export default function Solicitudes() {
             </div>
             <form onSubmit={handleEdit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Monto (CLP)</label>
+                <label htmlFor="edit-pr-amount" className="block text-sm font-medium text-gray-700 mb-1">Monto (CLP)</label>
                 <input
+                  id="edit-pr-amount"
                   type="number"
                   required
                   min="1"
@@ -1245,8 +1255,9 @@ export default function Solicitudes() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+                <label htmlFor="edit-pr-description" className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
                 <textarea
+                  id="edit-pr-description"
                   required
                   value={editRequest.description}
                   onChange={(e) => setEditRequest({ ...editRequest, description: e.target.value.slice(0, DESCRIPTION_MAX_LENGTH) })}
@@ -1261,8 +1272,9 @@ export default function Solicitudes() {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Beneficiario</label>
+                <label htmlFor="edit-pr-beneficiary" className="block text-sm font-medium text-gray-700 mb-1">Beneficiario</label>
                 <input
+                  id="edit-pr-beneficiary"
                   type="text"
                   required
                   value={editRequest.beneficiary}
@@ -1272,8 +1284,9 @@ export default function Solicitudes() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
+                <label htmlFor="edit-pr-category" className="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
                 <select
+                  id="edit-pr-category"
                   value={editRequest.category_id}
                   onChange={(e) => setEditRequest({ ...editRequest, category_id: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none"
