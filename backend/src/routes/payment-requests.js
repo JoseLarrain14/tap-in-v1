@@ -42,10 +42,57 @@ router.use(authenticateToken);
 
 // GET /api/payment-requests - List payment requests (all roles can see everything)
 router.get('/', (req, res) => {
+  try {
   const db = getDb();
   const orgId = req.user.organization_id;
-  const { status, created_by, category_id, from, to, search, sort_by, sort_order, page, limit: limitParam } = req.query;
+  const { status, created_by, category_id, from, to, search, beneficiary, sort_by, sort_order, page, limit: limitParam } = req.query;
 
+  // Build shared WHERE conditions for both main query and count query
+  let whereClause = ' WHERE pr.organization_id = ?';
+  const filterParams = [orgId];
+
+  if (status) {
+    whereClause += ' AND pr.status = ?';
+    filterParams.push(status);
+  }
+
+  if (created_by) {
+    whereClause += ' AND pr.created_by = ?';
+    filterParams.push(created_by);
+  }
+
+  if (category_id) {
+    whereClause += ' AND pr.category_id = ?';
+    filterParams.push(category_id);
+  }
+
+  if (beneficiary && beneficiary.trim()) {
+    const trimmedBeneficiary = beneficiary.trim().slice(0, 500);
+    const escapedBeneficiary = trimmedBeneficiary.replace(/%/g, '\\%').replace(/_/g, '\\_');
+    whereClause += " AND pr.beneficiary LIKE ? ESCAPE '\\'";
+    filterParams.push(`%${escapedBeneficiary}%`);
+  }
+
+  if (from) {
+    whereClause += ' AND pr.created_at >= ?';
+    filterParams.push(from);
+  }
+
+  if (to) {
+    whereClause += ' AND pr.created_at <= ?';
+    filterParams.push(to);
+  }
+
+  const trimmedSearch = (search || '').trim().slice(0, 500);
+  if (trimmedSearch) {
+    // Escape LIKE wildcards to prevent unexpected matching with special characters
+    const escapedSearch = trimmedSearch.replace(/%/g, '\\%').replace(/_/g, '\\_');
+    const searchTerm = `%${escapedSearch}%`;
+    whereClause += " AND (pr.description LIKE ? ESCAPE '\\' OR pr.beneficiary LIKE ? ESCAPE '\\')";
+    filterParams.push(searchTerm, searchTerm);
+  }
+
+  // Main query with JOINs
   let query = `
     SELECT pr.*,
       c.name as category_name,
@@ -59,43 +106,7 @@ router.get('/', (req, res) => {
     LEFT JOIN users au ON pr.approved_by = au.id
     LEFT JOIN users ru ON pr.rejected_by = ru.id
     LEFT JOIN users eu ON pr.executed_by = eu.id
-    WHERE pr.organization_id = ?
-  `;
-  const params = [orgId];
-
-  if (status) {
-    query += ' AND pr.status = ?';
-    params.push(status);
-  }
-
-  if (created_by) {
-    query += ' AND pr.created_by = ?';
-    params.push(created_by);
-  }
-
-  if (category_id) {
-    query += ' AND pr.category_id = ?';
-    params.push(category_id);
-  }
-
-  if (from) {
-    query += ' AND pr.created_at >= ?';
-    params.push(from);
-  }
-
-  if (to) {
-    query += ' AND pr.created_at <= ?';
-    params.push(to);
-  }
-
-  const trimmedSearch = (search || '').trim().slice(0, 500);
-  if (trimmedSearch) {
-    // Escape LIKE wildcards to prevent unexpected matching with special characters
-    const escapedSearch = trimmedSearch.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_');
-    const searchTerm = `%${escapedSearch}%`;
-    query += " AND (pr.description LIKE ? ESCAPE '\\' OR pr.beneficiary LIKE ? ESCAPE '\\')";
-    params.push(searchTerm, searchTerm);
-  }
+  ` + whereClause;
 
   // Sorting
   const validSortColumns = ['created_at', 'amount', 'status', 'description'];
@@ -107,24 +118,13 @@ router.get('/', (req, res) => {
   const limit = Math.min(parseInt(limitParam) || 50, 10000);
   const offset = ((parseInt(page) || 1) - 1) * limit;
   query += ' LIMIT ? OFFSET ?';
-  params.push(limit, offset);
+  const mainParams = [...filterParams, limit, offset];
 
-  const requests = db.prepare(query).all(...params);
+  const requests = db.prepare(query).all(...mainParams);
 
-  // Get total count
-  let countQuery = 'SELECT COUNT(*) as total FROM payment_requests pr WHERE pr.organization_id = ?';
-  const countParams = [orgId];
-
-  if (status) {
-    countQuery += ' AND pr.status = ?';
-    countParams.push(status);
-  }
-  if (created_by) {
-    countQuery += ' AND pr.created_by = ?';
-    countParams.push(created_by);
-  }
-
-  const { total } = db.prepare(countQuery).get(...countParams);
+  // Get total count using the same WHERE conditions
+  const countQuery = 'SELECT COUNT(*) as total FROM payment_requests pr' + whereClause;
+  const { total } = db.prepare(countQuery).get(...filterParams);
 
   res.json({
     payment_requests: requests,
@@ -135,6 +135,10 @@ router.get('/', (req, res) => {
       pages: Math.ceil(total / limit)
     }
   });
+  } catch (err) {
+    console.error('Error listing payment requests:', err);
+    res.status(500).json({ error: 'Error al obtener solicitudes' });
+  }
 });
 
 // GET /api/payment-requests/:id - Get single payment request

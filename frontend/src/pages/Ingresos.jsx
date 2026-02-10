@@ -24,7 +24,9 @@ export default function Ingresos() {
   const [filterFrom, setFilterFrom] = useState(searchParams.get('from') || '');
   const [filterTo, setFilterTo] = useState(searchParams.get('to') || '');
   const [filterSearch, setFilterSearch] = useState(searchParams.get('search') || '');
-  const [showFilters, setShowFilters] = useState(!!(searchParams.get('from') || searchParams.get('to')));
+  const [filterAmountMin, setFilterAmountMin] = useState(searchParams.get('amount_min') || '');
+  const [filterAmountMax, setFilterAmountMax] = useState(searchParams.get('amount_max') || '');
+  const [showFilters, setShowFilters] = useState(!!(searchParams.get('from') || searchParams.get('to') || searchParams.get('amount_min') || searchParams.get('amount_max')));
   // Sort state - initialize from URL params
   const [sortBy, setSortBy] = useState(searchParams.get('sort_by') || 'date');
   const [sortOrder, setSortOrder] = useState(searchParams.get('sort_order') || 'desc');
@@ -41,6 +43,8 @@ export default function Ingresos() {
     const from = overrides.from !== undefined ? overrides.from : filterFrom;
     const to = overrides.to !== undefined ? overrides.to : filterTo;
     const search = overrides.search !== undefined ? overrides.search : filterSearch;
+    const amtMin = overrides.amount_min !== undefined ? overrides.amount_min : filterAmountMin;
+    const amtMax = overrides.amount_max !== undefined ? overrides.amount_max : filterAmountMax;
     const sb = overrides.sort_by !== undefined ? overrides.sort_by : sortBy;
     const so = overrides.sort_order !== undefined ? overrides.sort_order : sortOrder;
     const pg = overrides.page !== undefined ? overrides.page : currentPage;
@@ -49,12 +53,14 @@ export default function Ingresos() {
     if (from) params.set('from', from);
     if (to) params.set('to', to);
     if (search && search.trim()) params.set('search', search.trim());
+    if (amtMin) params.set('amount_min', amtMin);
+    if (amtMax) params.set('amount_max', amtMax);
     if (sb && sb !== 'date') params.set('sort_by', sb);
     if (so && so !== 'desc') params.set('sort_order', so);
     if (pg && pg > 1) params.set('page', pg.toString());
 
     setSearchParams(params, { replace: true });
-  }, [filterCategory, filterFrom, filterTo, filterSearch, sortBy, sortOrder, currentPage, setSearchParams]);
+  }, [filterCategory, filterFrom, filterTo, filterSearch, filterAmountMin, filterAmountMax, sortBy, sortOrder, currentPage, setSearchParams]);
 
   const [form, setForm] = useState({
     amount: '',
@@ -85,7 +91,7 @@ export default function Ingresos() {
   const submittingRef = useRef(false);
   const editSubmittingRef = useRef(false);
 
-  const hasActiveFilters = filterCategory || filterFrom || filterTo || filterSearch;
+  const hasActiveFilters = filterCategory || filterFrom || filterTo || filterSearch || filterAmountMin || filterAmountMax;
 
   // Build query string from filters
   function buildFilterQuery(overrides = {}) {
@@ -93,6 +99,8 @@ export default function Ingresos() {
     const from = overrides.from !== undefined ? overrides.from : filterFrom;
     const to = overrides.to !== undefined ? overrides.to : filterTo;
     const search = overrides.search !== undefined ? overrides.search : filterSearch;
+    const amtMin = overrides.amount_min !== undefined ? overrides.amount_min : filterAmountMin;
+    const amtMax = overrides.amount_max !== undefined ? overrides.amount_max : filterAmountMax;
     const sb = overrides.sort_by !== undefined ? overrides.sort_by : sortBy;
     const so = overrides.sort_order !== undefined ? overrides.sort_order : sortOrder;
     const pg = overrides.page !== undefined ? overrides.page : currentPage;
@@ -106,6 +114,8 @@ export default function Ingresos() {
     if (from) params.set('from', from);
     if (to) params.set('to', to);
     if (search && search.trim()) params.set('search', search.trim());
+    if (amtMin) params.set('amount_min', amtMin);
+    if (amtMax) params.set('amount_max', amtMax);
     return params.toString();
   }
 
@@ -153,9 +163,11 @@ export default function Ingresos() {
     setFilterFrom('');
     setFilterTo('');
     setFilterSearch('');
+    setFilterAmountMin('');
+    setFilterAmountMax('');
     setCurrentPage(1);
-    loadData({ category: '', from: '', to: '', search: '', page: 1 });
-    updateUrlParams({ category: '', from: '', to: '', search: '', page: 1 });
+    loadData({ category: '', from: '', to: '', search: '', amount_min: '', amount_max: '', page: 1 });
+    updateUrlParams({ category: '', from: '', to: '', search: '', amount_min: '', amount_max: '', page: 1 });
   }
 
   function handleSort(column) {
@@ -197,6 +209,8 @@ export default function Ingresos() {
       if (filterFrom) params.set('from', filterFrom);
       if (filterTo) params.set('to', filterTo);
       if (filterSearch && filterSearch.trim()) params.set('search', filterSearch.trim());
+      if (filterAmountMin) params.set('amount_min', filterAmountMin);
+      if (filterAmountMax) params.set('amount_max', filterAmountMax);
 
       const res = await api.get(`/transactions?${params.toString()}`);
       const data = res.transactions || [];
@@ -515,28 +529,56 @@ export default function Ingresos() {
           )}
         </div>
 
-        {/* Date range - shown when advanced filters toggled */}
+        {/* Date range and amount range - shown when advanced filters toggled */}
         {showFilters && (
-          <div className="flex items-center gap-3 mt-3 pt-3 border-t border-gray-100">
-            <div className="flex items-center gap-2">
-              <label className="text-sm text-gray-500 whitespace-nowrap">Desde:</label>
-              <input
-                type="date"
-                value={filterFrom}
-                onChange={e => setFilterFrom(e.target.value)}
-                data-testid="filter-from"
-                className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-              />
+          <div className="space-y-3 mt-3 pt-3 border-t border-gray-100">
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2">
+                <label className="text-sm text-gray-500 whitespace-nowrap">Desde:</label>
+                <input
+                  type="date"
+                  value={filterFrom}
+                  onChange={e => setFilterFrom(e.target.value)}
+                  data-testid="filter-from"
+                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="text-sm text-gray-500 whitespace-nowrap">Hasta:</label>
+                <input
+                  type="date"
+                  value={filterTo}
+                  onChange={e => setFilterTo(e.target.value)}
+                  data-testid="filter-to"
+                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                />
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <label className="text-sm text-gray-500 whitespace-nowrap">Hasta:</label>
-              <input
-                type="date"
-                value={filterTo}
-                onChange={e => setFilterTo(e.target.value)}
-                data-testid="filter-to"
-                className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-              />
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2">
+                <label className="text-sm text-gray-500 whitespace-nowrap">Monto mín:</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={filterAmountMin}
+                  onChange={e => setFilterAmountMin(e.target.value)}
+                  data-testid="filter-amount-min"
+                  placeholder="0"
+                  className="w-32 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="text-sm text-gray-500 whitespace-nowrap">Monto máx:</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={filterAmountMax}
+                  onChange={e => setFilterAmountMax(e.target.value)}
+                  data-testid="filter-amount-max"
+                  placeholder="Sin límite"
+                  className="w-32 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                />
+              </div>
             </div>
           </div>
         )}
@@ -550,7 +592,7 @@ export default function Ingresos() {
           </h3>
           <p className="text-gray-500 mb-4">
             {hasActiveFilters
-              ? 'No se encontraron ingresos con los filtros aplicados'
+              ? 'No se encontraron ingresos con los filtros aplicados. Intenta ajustar o limpiar los filtros.'
               : 'Comienza registrando el primer ingreso del CPP'}
           </p>
           {hasActiveFilters ? (

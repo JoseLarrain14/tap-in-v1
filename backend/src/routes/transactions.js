@@ -44,7 +44,7 @@ router.use(authenticateToken);
 router.get('/', (req, res) => {
   const db = getDb();
   const orgId = req.user.organization_id;
-  const { type, category_id, from, to, search, sort_by, sort_order, page, limit: limitParam } = req.query;
+  const { type, category_id, from, to, search, amount_min, amount_max, sort_by, sort_order, page, limit: limitParam } = req.query;
 
   let query = `
     SELECT t.*, c.name as category_name, u.name as created_by_name, eu.name as edited_by_name
@@ -74,6 +74,16 @@ router.get('/', (req, res) => {
   if (to) {
     query += ' AND t.date <= ?';
     params.push(to);
+  }
+
+  if (amount_min && !isNaN(parseInt(amount_min))) {
+    query += ' AND t.amount >= ?';
+    params.push(parseInt(amount_min));
+  }
+
+  if (amount_max && !isNaN(parseInt(amount_max))) {
+    query += ' AND t.amount <= ?';
+    params.push(parseInt(amount_max));
   }
 
   const trimmedSearch = (search || '').trim().slice(0, 500);
@@ -121,6 +131,14 @@ router.get('/', (req, res) => {
   if (to) {
     countQuery += ' AND t.date <= ?';
     countParams.push(to);
+  }
+  if (amount_min && !isNaN(parseInt(amount_min))) {
+    countQuery += ' AND t.amount >= ?';
+    countParams.push(parseInt(amount_min));
+  }
+  if (amount_max && !isNaN(parseInt(amount_max))) {
+    countQuery += ' AND t.amount <= ?';
+    countParams.push(parseInt(amount_max));
   }
   if (trimmedSearch) {
     const escapedSearch = trimmedSearch.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_');

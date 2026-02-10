@@ -98,9 +98,10 @@ export default function Solicitudes() {
   const [categoryFilter, setCategoryFilter] = useState('');
   const [creatorFilter, setCreatorFilter] = useState('');
   const [searchFilter, setSearchFilter] = useState('');
+  const [beneficiaryFilter, setBeneficiaryFilter] = useState('');
   const [users, setUsers] = useState([]);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
-  const hasAdvancedFilters = categoryFilter || creatorFilter || searchFilter;
+  const hasAdvancedFilters = categoryFilter || creatorFilter || searchFilter || beneficiaryFilter;
   // Track recently transitioned card IDs for CSS animation
   const [recentlyTransitioned, setRecentlyTransitioned] = useState(new Set());
 
@@ -109,11 +110,13 @@ export default function Solicitudes() {
     const cat = overrides.category !== undefined ? overrides.category : categoryFilter;
     const creator = overrides.creator !== undefined ? overrides.creator : creatorFilter;
     const search = overrides.search !== undefined ? overrides.search : searchFilter;
+    const benef = overrides.beneficiary !== undefined ? overrides.beneficiary : beneficiaryFilter;
     const params = new URLSearchParams();
     if (status) params.set('status', status);
     if (cat) params.set('category_id', cat);
     if (creator) params.set('created_by', creator);
     if (search && search.trim()) params.set('search', search.trim());
+    if (benef && benef.trim()) params.set('beneficiary', benef.trim());
     params.set('sort_by', 'created_at');
     params.set('sort_order', 'desc');
     return params.toString();
@@ -168,7 +171,8 @@ export default function Solicitudes() {
     setCategoryFilter('');
     setCreatorFilter('');
     setSearchFilter('');
-    loadRequests({ category: '', creator: '', search: '' });
+    setBeneficiaryFilter('');
+    loadRequests({ category: '', creator: '', search: '', beneficiary: '' });
   }
 
   const [exporting, setExporting] = useState(false);
@@ -182,6 +186,7 @@ export default function Solicitudes() {
       if (categoryFilter) params.set('category_id', categoryFilter);
       if (creatorFilter) params.set('created_by', creatorFilter);
       if (searchFilter && searchFilter.trim()) params.set('search', searchFilter.trim());
+      if (beneficiaryFilter && beneficiaryFilter.trim()) params.set('beneficiary', beneficiaryFilter.trim());
       params.set('sort_by', 'created_at');
       params.set('sort_order', 'desc');
       params.set('limit', '10000');
@@ -587,6 +592,19 @@ export default function Solicitudes() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none truncate"
                   />
                 </div>
+                {/* Beneficiary */}
+                <div className="min-w-[160px]">
+                  <label className="block text-xs font-medium text-gray-500 mb-1">Beneficiario</label>
+                  <input
+                    type="text"
+                    value={beneficiaryFilter}
+                    onChange={(e) => setBeneficiaryFilter(e.target.value.slice(0, 500))}
+                    maxLength={500}
+                    data-testid="pipeline-filter-beneficiary"
+                    placeholder="Nombre del beneficiario..."
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none truncate"
+                  />
+                </div>
                 {/* Category */}
                 <div className="min-w-[160px]">
                   <label className="block text-xs font-medium text-gray-500 mb-1">Categoría</label>
@@ -681,7 +699,7 @@ export default function Solicitudes() {
           <h3 className="text-lg font-medium text-gray-900">No hay solicitudes</h3>
           <p className="text-gray-500 mt-1 text-sm">
             {statusFilter || hasAdvancedFilters
-              ? 'No se encontraron solicitudes con los filtros aplicados'
+              ? 'No se encontraron solicitudes con los filtros aplicados. Intenta ajustar o limpiar los filtros.'
               : 'Crea tu primera solicitud de pago para comenzar'}
           </p>
           {(statusFilter || hasAdvancedFilters) && (
