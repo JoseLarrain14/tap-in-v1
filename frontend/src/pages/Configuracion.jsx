@@ -53,7 +53,7 @@ export default function Configuracion() {
   const [inviteForm, setInviteForm] = useState({
     email: '',
     name: '',
-    role: 'delegado',
+    role: '',
   });
   const [inviteError, setInviteError] = useState('');
 
@@ -129,12 +129,17 @@ export default function Configuracion() {
       return;
     }
 
+    if (!inviteForm.role || !['delegado', 'presidente', 'secretaria'].includes(inviteForm.role)) {
+      setInviteError('Debe seleccionar un rol para el usuario');
+      return;
+    }
+
     try {
       setActionLoading(true);
       const result = await api.post('/users/invite', { ...inviteForm, email: trimmedEmail });
       setFeedback({ type: 'success', message: result.message || 'Usuario invitado exitosamente' });
       setShowInviteModal(false);
-      setInviteForm({ email: '', name: '', role: 'delegado' });
+      setInviteForm({ email: '', name: '', role: '' });
       setInviteError('');
       loadUsers();
     } catch (err) {
@@ -621,9 +626,11 @@ export default function Configuracion() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Rol *</label>
                 <select
                   value={inviteForm.role}
-                  onChange={(e) => setInviteForm({ ...inviteForm, role: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none"
+                  onChange={(e) => { setInviteForm({ ...inviteForm, role: e.target.value }); if (inviteError) setInviteError(''); }}
+                  className={`w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none ${inviteError && inviteError.toLowerCase().includes('rol') ? 'border-red-500' : 'border-gray-300'}`}
+                  data-testid="invite-role"
                 >
+                  <option value="">Seleccionar rol</option>
                   <option value="delegado">Delegado</option>
                   <option value="presidente">Presidente</option>
                   <option value="secretaria">Secretaria</option>
