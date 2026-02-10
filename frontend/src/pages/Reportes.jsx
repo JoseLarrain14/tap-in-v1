@@ -30,13 +30,14 @@ export default function Reportes() {
   async function exportIngresos() {
     try {
       setExportingIngresos(true);
+      const { from: validFrom, to: validTo } = getValidDates();
       const params = new URLSearchParams();
       params.set('type', 'ingreso');
       params.set('sort_by', 'date');
       params.set('sort_order', 'desc');
       params.set('limit', '10000');
-      if (filterFrom) params.set('from', filterFrom);
-      if (filterTo) params.set('to', filterTo);
+      if (validFrom) params.set('from', validFrom);
+      if (validTo) params.set('to', validTo);
       if (filterCategory) params.set('category_id', filterCategory);
 
       const res = await api.get(`/transactions?${params.toString()}`);
@@ -78,12 +79,13 @@ export default function Reportes() {
   async function exportSolicitudes() {
     try {
       setExportingSolicitudes(true);
+      const { from: validFrom, to: validTo } = getValidDates();
       const params = new URLSearchParams();
       params.set('sort_by', 'created_at');
       params.set('sort_order', 'desc');
       params.set('limit', '10000');
-      if (filterFrom) params.set('from', filterFrom);
-      if (filterTo) params.set('to', filterTo);
+      if (validFrom) params.set('from', validFrom);
+      if (validTo) params.set('to', validTo);
       if (filterCategory) params.set('category_id', filterCategory);
 
       const data = await api.get(`/payment-requests?${params.toString()}`);
@@ -134,22 +136,23 @@ export default function Reportes() {
   async function exportAll() {
     try {
       setExportingAll(true);
+      const { from: validFrom, to: validTo } = getValidDates();
       // Fetch both ingresos and solicitudes
       const ingresoParams = new URLSearchParams();
       ingresoParams.set('type', 'ingreso');
       ingresoParams.set('sort_by', 'date');
       ingresoParams.set('sort_order', 'desc');
       ingresoParams.set('limit', '10000');
-      if (filterFrom) ingresoParams.set('from', filterFrom);
-      if (filterTo) ingresoParams.set('to', filterTo);
+      if (validFrom) ingresoParams.set('from', validFrom);
+      if (validTo) ingresoParams.set('to', validTo);
       if (filterCategory) ingresoParams.set('category_id', filterCategory);
 
       const solParams = new URLSearchParams();
       solParams.set('sort_by', 'created_at');
       solParams.set('sort_order', 'desc');
       solParams.set('limit', '10000');
-      if (filterFrom) solParams.set('from', filterFrom);
-      if (filterTo) solParams.set('to', filterTo);
+      if (validFrom) solParams.set('from', validFrom);
+      if (validTo) solParams.set('to', validTo);
       if (filterCategory) solParams.set('category_id', filterCategory);
 
       const [ingresoRes, solRes] = await Promise.all([
@@ -220,8 +223,25 @@ export default function Reportes() {
   }
 
   const hasFilters = filterFrom || filterTo || filterCategory;
+  const isDateRangeInverted = filterFrom && filterTo && filterFrom > filterTo;
+  const [dateRangeWarning, setDateRangeWarning] = useState('');
   const ingresoCategories = categories.filter(c => c.type === 'ingreso');
   const egresoCategories = categories.filter(c => c.type === 'egreso');
+
+  // Auto-correct inverted dates before any export
+  function getValidDates() {
+    if (filterFrom && filterTo && filterFrom > filterTo) {
+      const correctedFrom = filterTo;
+      const correctedTo = filterFrom;
+      setFilterFrom(correctedFrom);
+      setFilterTo(correctedTo);
+      setDateRangeWarning('Las fechas fueron invertidas automaticamente (Desde era posterior a Hasta).');
+      setTimeout(() => setDateRangeWarning(''), 5000);
+      return { from: correctedFrom, to: correctedTo };
+    }
+    setDateRangeWarning('');
+    return { from: filterFrom, to: filterTo };
+  }
 
   return (
     <div className="space-y-6">
@@ -239,9 +259,9 @@ export default function Reportes() {
             <input
               type="date"
               value={filterFrom}
-              onChange={e => setFilterFrom(e.target.value)}
+              onChange={e => { setFilterFrom(e.target.value); setDateRangeWarning(''); }}
               data-testid="report-filter-from"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 ${isDateRangeInverted ? 'border-amber-400 bg-amber-50' : 'border-gray-300'}`}
             />
           </div>
           <div>
@@ -249,9 +269,9 @@ export default function Reportes() {
             <input
               type="date"
               value={filterTo}
-              onChange={e => setFilterTo(e.target.value)}
+              onChange={e => { setFilterTo(e.target.value); setDateRangeWarning(''); }}
               data-testid="report-filter-to"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 ${isDateRangeInverted ? 'border-amber-400 bg-amber-50' : 'border-gray-300'}`}
             />
           </div>
           <div>
@@ -269,10 +289,20 @@ export default function Reportes() {
             </select>
           </div>
         </div>
+        {isDateRangeInverted && (
+          <p className="mt-3 text-xs text-amber-600 font-medium" data-testid="date-range-warning">
+            ⚠ La fecha "Desde" es posterior a "Hasta". Se corregira automaticamente al exportar.
+          </p>
+        )}
+        {dateRangeWarning && (
+          <p className="mt-2 text-xs text-amber-600 font-medium" data-testid="date-range-corrected">
+            ✓ {dateRangeWarning}
+          </p>
+        )}
         {hasFilters && (
           <button
-            onClick={() => { setFilterFrom(''); setFilterTo(''); setFilterCategory(''); }}
-            className="mt-3 text-sm text-gray-500 hover:text-gray-700 font-medium"
+            onClick={() => { setFilterFrom(''); setFilterTo(''); setFilterCategory(''); setDateRangeWarning(''); }}
+            className="mt-3 text-sm text-gray-500 hover:text-gray-700 font-medium min-h-[44px] inline-flex items-center"
           >
             Limpiar filtros
           </button>
@@ -290,7 +320,7 @@ export default function Reportes() {
             onClick={exportIngresos}
             disabled={exportingIngresos}
             data-testid="export-ingresos-report"
-            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium disabled:opacity-50 flex items-center gap-2 mx-auto"
+            className="px-4 py-2.5 min-h-[44px] bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium disabled:opacity-50 flex items-center gap-2 mx-auto"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
@@ -310,7 +340,7 @@ export default function Reportes() {
             onClick={exportSolicitudes}
             disabled={exportingSolicitudes}
             data-testid="export-solicitudes-report"
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium disabled:opacity-50 flex items-center gap-2 mx-auto"
+            className="px-4 py-2.5 min-h-[44px] bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium disabled:opacity-50 flex items-center gap-2 mx-auto"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
@@ -330,7 +360,7 @@ export default function Reportes() {
             onClick={exportAll}
             disabled={exportingAll}
             data-testid="export-all-report"
-            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium disabled:opacity-50 flex items-center gap-2 mx-auto"
+            className="px-4 py-2.5 min-h-[44px] bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium disabled:opacity-50 flex items-center gap-2 mx-auto"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>

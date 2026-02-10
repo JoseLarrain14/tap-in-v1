@@ -485,7 +485,7 @@ export default function Solicitudes() {
             <button
               onClick={() => handleViewChange('kanban')}
               data-testid="view-kanban"
-              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+              className={`px-3 py-2.5 min-h-[44px] rounded-md text-sm font-medium transition-colors ${
                 viewMode === 'kanban'
                   ? 'bg-white text-gray-900 shadow-sm'
                   : 'text-gray-500 hover:text-gray-700'
@@ -503,7 +503,7 @@ export default function Solicitudes() {
             <button
               onClick={() => handleViewChange('table')}
               data-testid="view-table"
-              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+              className={`px-3 py-2.5 min-h-[44px] rounded-md text-sm font-medium transition-colors ${
                 viewMode === 'table'
                   ? 'bg-white text-gray-900 shadow-sm'
                   : 'text-gray-500 hover:text-gray-700'
@@ -524,7 +524,7 @@ export default function Solicitudes() {
             onClick={handleExport}
             disabled={exporting}
             data-testid="export-solicitudes-btn"
-            className="px-3 py-1.5 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 flex items-center gap-1.5"
+            className="px-3 py-2.5 min-h-[44px] border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 flex items-center gap-1.5"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
@@ -536,7 +536,7 @@ export default function Solicitudes() {
           {canCreate && (
             <button
               onClick={() => { setShowCreateModal(true); setCreateFormErrors({}); setCreateSubmitted(false); setNewRequest({ amount: '', description: '', beneficiary: '', category_id: '' }); }}
-              className="w-full sm:w-auto px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors text-center"
+              className="w-full sm:w-auto px-4 py-2.5 min-h-[44px] bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors text-center"
             >
               + Nueva Solicitud
             </button>
@@ -553,7 +553,7 @@ export default function Solicitudes() {
                 key={s}
                 onClick={() => handleStatusFilter(s)}
                 data-testid={`status-filter-${s || 'all'}`}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                className={`px-3 py-2.5 min-h-[44px] rounded-lg text-sm font-medium transition-colors ${
                   statusFilter === s
                     ? 'bg-black text-white'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -565,7 +565,7 @@ export default function Solicitudes() {
             <button
               onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
               data-testid="toggle-advanced-filters"
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ml-auto ${
+              className={`px-3 py-2.5 min-h-[44px] rounded-lg text-sm font-medium transition-colors ml-auto ${
                 showAdvancedFilters || hasAdvancedFilters
                   ? 'bg-indigo-100 text-indigo-700'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -640,7 +640,7 @@ export default function Solicitudes() {
                   <button
                     onClick={applyFilters}
                     data-testid="pipeline-filter-apply"
-                    className="px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
+                    className="px-4 py-2.5 min-h-[44px] bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
                   >
                     Buscar
                   </button>
@@ -648,7 +648,7 @@ export default function Solicitudes() {
                     <button
                       onClick={clearAdvancedFilters}
                       data-testid="pipeline-filter-clear"
-                      className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors"
+                      className="px-4 py-2.5 min-h-[44px] bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors"
                     >
                       Limpiar
                     </button>
@@ -772,7 +772,7 @@ export default function Solicitudes() {
                           <div className="flex gap-1 flex-shrink-0" onClick={e => e.stopPropagation()}>
                             <button
                               onClick={() => handleApprove(req.id)}
-                              className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors min-w-[32px] min-h-[28px]"
+                              className="text-xs px-2.5 py-2 bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
                               disabled={actionLoading}
                             >
                               ✓
@@ -783,7 +783,7 @@ export default function Solicitudes() {
                           <div className="flex-shrink-0" onClick={e => e.stopPropagation()}>
                             <button
                               onClick={() => navigate(`/solicitudes/${req.id}`)}
-                              className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors min-h-[28px]"
+                              className="text-xs px-2.5 py-2 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors min-h-[44px] flex items-center justify-center"
                               title="Requiere adjuntar comprobante"
                             >
                               Ejecutar
@@ -831,7 +831,7 @@ export default function Solicitudes() {
                   {canEditRequest(req) && (
                     <button
                       onClick={() => openEdit(req)}
-                      className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-medium"
+                      className="px-3 py-2.5 min-h-[44px] bg-gray-100 text-gray-700 rounded text-xs font-medium"
                       disabled={actionLoading}
                     >
                       Editar
@@ -840,7 +840,7 @@ export default function Solicitudes() {
                   {canApproveReject && req.status === 'pendiente' && (
                     <button
                       onClick={() => handleApprove(req.id)}
-                      className="px-2 py-1 bg-green-600 text-white rounded text-xs font-medium"
+                      className="px-3 py-2.5 min-h-[44px] bg-green-600 text-white rounded text-xs font-medium"
                       disabled={actionLoading}
                     >
                       Aprobar
@@ -849,7 +849,7 @@ export default function Solicitudes() {
                   {canExecute && req.status === 'aprobado' && (
                     <button
                       onClick={() => navigate(`/solicitudes/${req.id}`)}
-                      className="px-2 py-1 bg-blue-600 text-white rounded text-xs font-medium"
+                      className="px-3 py-2.5 min-h-[44px] bg-blue-600 text-white rounded text-xs font-medium"
                     >
                       Ejecutar
                     </button>
@@ -1036,7 +1036,7 @@ export default function Solicitudes() {
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
+                  className="px-4 py-2.5 min-h-[44px] border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
                 >
                   Cancelar
                 </button>
@@ -1044,14 +1044,14 @@ export default function Solicitudes() {
                   type="button"
                   disabled={actionLoading}
                   onClick={(e) => handleCreate(e, true)}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
+                  className="flex-1 px-4 py-2.5 min-h-[44px] border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
                 >
                   {actionLoading ? <><Spinner size={14} className="inline mr-1" />Guardando...</> : 'Guardar Borrador'}
                 </button>
                 <button
                   type="submit"
                   disabled={actionLoading}
-                  className="flex-1 px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors disabled:opacity-50"
+                  className="flex-1 px-4 py-2.5 min-h-[44px] bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors disabled:opacity-50"
                 >
                   {actionLoading ? <><Spinner size={14} className="inline mr-1" />Enviando...</> : 'Enviar'}
                 </button>
@@ -1197,14 +1197,14 @@ export default function Solicitudes() {
                 <button
                   onClick={() => setRejectConfirm(null)}
                   disabled={actionLoading}
-                  className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+                  className="flex-1 px-4 py-2.5 min-h-[44px] border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={() => handleReject(rejectConfirm.id)}
                   disabled={actionLoading}
-                  className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium disabled:opacity-50"
+                  className="flex-1 px-4 py-2.5 min-h-[44px] bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium disabled:opacity-50"
                 >
                   {actionLoading ? <><Spinner size={16} className="inline mr-1.5" />Rechazando...</> : 'Confirmar Rechazo'}
                 </button>
@@ -1286,14 +1286,14 @@ export default function Solicitudes() {
                 <button
                   type="button"
                   onClick={() => setShowEditModal(false)}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
+                  className="flex-1 px-4 py-2.5 min-h-[44px] border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={actionLoading}
-                  className="flex-1 px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors disabled:opacity-50"
+                  className="flex-1 px-4 py-2.5 min-h-[44px] bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors disabled:opacity-50"
                 >
                   {actionLoading ? <><Spinner size={14} className="inline mr-1" />Guardando...</> : 'Guardar Cambios'}
                 </button>

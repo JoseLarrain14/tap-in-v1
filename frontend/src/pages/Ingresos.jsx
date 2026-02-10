@@ -496,7 +496,7 @@ export default function Ingresos() {
               onClick={handleExport}
               disabled={exporting}
               data-testid="export-excel-btn"
-              className="flex-1 sm:flex-none px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm disabled:opacity-50 flex items-center justify-center gap-2"
+              className="flex-1 sm:flex-none px-4 py-2.5 min-h-[44px] border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm disabled:opacity-50 flex items-center justify-center gap-2"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
@@ -507,7 +507,7 @@ export default function Ingresos() {
             </button>
             <button
               onClick={() => { setShowModal(true); setFormErrors({}); setFormSubmitted(false); setError(''); setForm({ amount: '', category_id: '', description: '', date: new Date().toISOString().split('T')[0], payer_name: '', payer_rut: '' }); }}
-              className="flex-1 sm:flex-none px-4 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium text-sm text-center"
+              className="flex-1 sm:flex-none px-4 py-2.5 min-h-[44px] bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium text-sm text-center"
             >
               + Registrar Ingreso
             </button>
@@ -557,7 +557,7 @@ export default function Ingresos() {
       {!loading && !pageError && <div className="bg-white rounded-xl border border-gray-200 p-4" data-testid="filter-bar">
         <div className="flex items-center gap-3 flex-wrap">
           {/* Search */}
-          <div className="flex-1 min-w-0 sm:min-w-[200px]">
+          <div className="flex-1 min-w-[140px] sm:min-w-[200px]">
             <input
               type="text"
               placeholder="Buscar por descripción..."
@@ -566,7 +566,7 @@ export default function Ingresos() {
               onKeyDown={e => { if (e.key === 'Enter') applyFilters(); }}
               maxLength={500}
               data-testid="filter-search"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent truncate"
+              className="w-full px-3 py-2 min-h-[44px] border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent truncate"
             />
           </div>
 
@@ -575,7 +575,7 @@ export default function Ingresos() {
             value={filterCategory}
             onChange={e => { setFilterCategory(e.target.value); }}
             data-testid="filter-category"
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
+            className="px-3 py-2 min-h-[44px] border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
           >
             <option value="">Todas las categorías</option>
             {categories.map(c => (
@@ -586,7 +586,7 @@ export default function Ingresos() {
           {/* Toggle advanced filters */}
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className={`px-3 py-2 border rounded-lg text-sm font-medium transition-colors ${
+            className={`px-3 py-2 min-h-[44px] border rounded-lg text-sm font-medium transition-colors ${
               showFilters || filterFrom || filterTo
                 ? 'border-primary-300 bg-primary-50 text-primary-700'
                 : 'border-gray-300 text-gray-600 hover:bg-gray-50'
@@ -607,7 +607,7 @@ export default function Ingresos() {
           <button
             onClick={applyFilters}
             data-testid="filter-apply"
-            className="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors"
+            className="px-4 py-2 min-h-[44px] bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors"
           >
             Buscar
           </button>
@@ -728,10 +728,10 @@ export default function Ingresos() {
           {/* Mobile sort controls */}
           <div className="flex items-center gap-2 text-xs text-gray-500">
             <span>Ordenar:</span>
-            <button onClick={() => handleSort('date')} className={`px-2 py-1 rounded ${sortBy === 'date' ? 'bg-primary-100 text-primary-700 font-medium' : 'bg-gray-100 text-gray-600'}`} data-testid="sort-fecha">
+            <button onClick={() => handleSort('date')} className={`px-3 py-2 min-h-[44px] rounded-lg ${sortBy === 'date' ? 'bg-primary-100 text-primary-700 font-medium' : 'bg-gray-100 text-gray-600'}`} data-testid="sort-fecha">
               Fecha {sortBy === 'date' && (sortOrder === 'asc' ? '↑' : '↓')}
             </button>
-            <button onClick={() => handleSort('amount')} className={`px-2 py-1 rounded ${sortBy === 'amount' ? 'bg-primary-100 text-primary-700 font-medium' : 'bg-gray-100 text-gray-600'}`} data-testid="mobile-sort-monto">
+            <button onClick={() => handleSort('amount')} className={`px-3 py-2 min-h-[44px] rounded-lg ${sortBy === 'amount' ? 'bg-primary-100 text-primary-700 font-medium' : 'bg-gray-100 text-gray-600'}`} data-testid="mobile-sort-monto">
               Monto {sortBy === 'amount' && (sortOrder === 'asc' ? '↑' : '↓')}
             </button>
           </div>
@@ -749,17 +749,17 @@ export default function Ingresos() {
                   <span>{formatDate(tx.date)}</span>
                   {tx.payer_name && <span className="truncate max-w-[120px]">{tx.payer_name}</span>}
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                   <button
                     onClick={() => openEditModal(tx)}
-                    className="text-primary-600 hover:text-primary-800 font-medium"
+                    className="text-primary-600 hover:text-primary-800 font-medium px-2 py-2 min-h-[44px] flex items-center"
                     title="Editar ingreso"
                   >
                     Editar
                   </button>
                   <button
                     onClick={() => setDeleteConfirm(tx)}
-                    className="text-red-500 hover:text-red-700 font-medium"
+                    className="text-red-500 hover:text-red-700 font-medium px-2 py-2 min-h-[44px] flex items-center"
                     title="Eliminar ingreso"
                   >
                     Eliminar
@@ -835,7 +835,7 @@ export default function Ingresos() {
               onClick={() => goToPage(currentPage - 1)}
               disabled={currentPage <= 1}
               data-testid="pagination-prev"
-              className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              className="px-3 py-2.5 min-h-[44px] border border-gray-300 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               ← Anterior
             </button>
@@ -844,7 +844,7 @@ export default function Ingresos() {
                 key={page}
                 onClick={() => goToPage(page)}
                 data-testid={`pagination-page-${page}`}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                className={`px-3 py-2.5 min-h-[44px] min-w-[44px] rounded-lg text-sm font-medium transition-colors ${
                   page === currentPage
                     ? 'bg-primary-600 text-white'
                     : 'border border-gray-300 text-gray-600 hover:bg-gray-50'
@@ -857,7 +857,7 @@ export default function Ingresos() {
               onClick={() => goToPage(currentPage + 1)}
               disabled={currentPage >= totalPages}
               data-testid="pagination-next"
-              className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              className="px-3 py-2.5 min-h-[44px] border border-gray-300 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Siguiente →
             </button>

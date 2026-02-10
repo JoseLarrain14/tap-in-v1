@@ -254,7 +254,7 @@ export default function Configuracion() {
       <div className="flex gap-1 border-b border-gray-200">
         <button
           onClick={() => setActiveTab('usuarios')}
-          className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+          className={`px-4 py-2.5 min-h-[44px] text-sm font-medium border-b-2 transition-colors ${
             activeTab === 'usuarios'
               ? 'border-black text-black'
               : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -264,7 +264,7 @@ export default function Configuracion() {
         </button>
         <button
           onClick={() => setActiveTab('categorias')}
-          className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+          className={`px-4 py-2.5 min-h-[44px] text-sm font-medium border-b-2 transition-colors ${
             activeTab === 'categorias'
               ? 'border-black text-black'
               : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -304,7 +304,7 @@ export default function Configuracion() {
               {isPresidente && (
                 <button
                   onClick={() => { setInviteError(''); setShowInviteModal(true); }}
-                  className="px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
+                  className="px-4 py-2.5 min-h-[44px] bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
                 >
                   + Invitar Usuario
                 </button>
@@ -363,7 +363,7 @@ export default function Configuracion() {
                             value={u.role}
                             onChange={(e) => handleRoleChange(u.id, e.target.value)}
                             disabled={actionLoading}
-                            className="flex-1 px-2 py-1.5 border border-gray-300 rounded text-xs font-medium bg-white focus:ring-2 focus:ring-black focus:border-transparent outline-none disabled:opacity-50"
+                            className="flex-1 px-2 py-2.5 min-h-[44px] border border-gray-300 rounded text-xs font-medium bg-white focus:ring-2 focus:ring-black focus:border-transparent outline-none disabled:opacity-50"
                           >
                             <option value="delegado">Delegado</option>
                             <option value="presidente">Presidente</option>
@@ -372,7 +372,7 @@ export default function Configuracion() {
                           <button
                             onClick={() => setDeactivateUserConfirm(u)}
                             disabled={actionLoading}
-                            className="px-3 py-1.5 bg-red-100 text-red-700 rounded text-xs font-medium hover:bg-red-200 transition-colors disabled:opacity-50"
+                            className="px-3 py-2.5 min-h-[44px] bg-red-100 text-red-700 rounded text-xs font-medium hover:bg-red-200 transition-colors disabled:opacity-50"
                           >
                             Desactivar
                           </button>
@@ -381,7 +381,7 @@ export default function Configuracion() {
                         <button
                           onClick={() => handleActivate(u.id)}
                           disabled={actionLoading}
-                          className="px-3 py-1.5 bg-green-100 text-green-700 rounded text-xs font-medium hover:bg-green-200 transition-colors disabled:opacity-50"
+                          className="px-3 py-2.5 min-h-[44px] bg-green-100 text-green-700 rounded text-xs font-medium hover:bg-green-200 transition-colors disabled:opacity-50"
                         >
                           Activar
                         </button>
@@ -501,7 +501,7 @@ export default function Configuracion() {
             {isPresidente && (
               <button
                 onClick={openCreateCategory}
-                className="px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
+                className="px-4 py-2.5 min-h-[44px] bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
               >
                 + Nueva Categor&iacute;a
               </button>
@@ -548,14 +548,14 @@ export default function Configuracion() {
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => openEditCategory(cat)}
-                          className="px-2.5 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium"
+                          className="px-2.5 py-2.5 min-h-[44px] bg-blue-100 text-blue-700 rounded text-xs font-medium"
                         >
                           Editar
                         </button>
                         <button
                           onClick={() => setDeleteCategoryConfirm(cat)}
                           disabled={deletingCategory === cat.id}
-                          className="px-2.5 py-1 bg-red-100 text-red-700 rounded text-xs font-medium disabled:opacity-50"
+                          className="px-2.5 py-2.5 min-h-[44px] bg-red-100 text-red-700 rounded text-xs font-medium disabled:opacity-50"
                         >
                           {deletingCategory === cat.id ? '...' : 'Eliminar'}
                         </button>
@@ -669,14 +669,14 @@ export default function Configuracion() {
                 <button
                   type="button"
                   onClick={() => setShowCategoryModal(false)}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
+                  className="flex-1 px-4 py-2.5 min-h-[44px] border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={categorySaving}
-                  className="flex-1 px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors disabled:opacity-50"
+                  className="flex-1 px-4 py-2.5 min-h-[44px] bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors disabled:opacity-50"
                 >
                   {categorySaving ? <><Spinner size={14} className="inline mr-1" />Guardando...</> : (editingCategory ? 'Actualizar' : 'Crear')}
                 </button>
@@ -815,14 +815,14 @@ export default function Configuracion() {
                 <button
                   type="button"
                   onClick={() => setShowInviteModal(false)}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
+                  className="flex-1 px-4 py-2.5 min-h-[44px] border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={actionLoading}
-                  className="flex-1 px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors disabled:opacity-50"
+                  className="flex-1 px-4 py-2.5 min-h-[44px] bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors disabled:opacity-50"
                 >
                   {actionLoading ? <><Spinner size={14} className="inline mr-1" />Invitando...</> : 'Invitar'}
                 </button>

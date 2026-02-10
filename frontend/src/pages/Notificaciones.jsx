@@ -79,7 +79,7 @@ export default function Notificaciones() {
         {unreadCount > 0 && (
           <button
             onClick={handleMarkAllRead}
-            className="px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
+            className="px-4 py-2.5 min-h-[44px] bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
             data-testid="mark-all-read"
           >
             Marcar todo como leído
@@ -104,7 +104,7 @@ export default function Notificaciones() {
           <p className="text-red-600 dark:text-red-400 text-sm mb-3">{error}</p>
           <button
             onClick={() => { setError(null); loadNotifications(); }}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
+            className="px-4 py-2.5 min-h-[44px] bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
           >
             Reintentar
           </button>
@@ -140,7 +140,7 @@ export default function Notificaciones() {
                   {!n.is_read && (
                     <button
                       onClick={() => handleMarkRead(n.id)}
-                      className="flex-shrink-0 px-2 py-1 text-xs text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded transition-colors"
+                      className="flex-shrink-0 px-3 py-2.5 min-h-[44px] text-xs text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded transition-colors"
                       data-testid={`mark-read-${n.id}`}
                     >
                       Marcar leído
@@ -152,7 +152,7 @@ export default function Notificaciones() {
                   {n.reference_type === 'payment_request' && n.reference_id && (
                     <button
                       onClick={() => navigate(`/solicitudes/${n.reference_id}`)}
-                      className="text-xs text-indigo-600 hover:text-indigo-800 font-medium hover:underline transition-colors"
+                      className="text-xs text-indigo-600 hover:text-indigo-800 font-medium hover:underline transition-colors min-h-[44px] px-2 py-2 inline-flex items-center"
                       data-testid={`notification-link-${n.id}`}
                     >
                       Ver solicitud →
