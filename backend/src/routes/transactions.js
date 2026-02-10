@@ -215,6 +215,22 @@ router.post('/', requireActive, (req, res) => {
     return res.status(400).json({ error: 'Monto debe ser un número entero (sin decimales)', fields: { amount: 'Monto debe ser un número entero (sin decimales)' } });
   }
 
+  // Validate date format (YYYY-MM-DD) and actual calendar validity
+  if (date) {
+    const dateMatch = String(date).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!dateMatch) {
+      return res.status(400).json({ error: 'Formato de fecha inválido (debe ser AAAA-MM-DD)', fields: { date: 'Formato de fecha inválido' } });
+    }
+    const y = parseInt(dateMatch[1]), m = parseInt(dateMatch[2]), d = parseInt(dateMatch[3]);
+    if (m < 1 || m > 12 || d < 1 || d > 31) {
+      return res.status(400).json({ error: 'La fecha ingresada no es válida', fields: { date: 'La fecha ingresada no es válida' } });
+    }
+    const dateObj = new Date(y, m - 1, d);
+    if (dateObj.getFullYear() !== y || dateObj.getMonth() !== m - 1 || dateObj.getDate() !== d) {
+      return res.status(400).json({ error: 'La fecha ingresada no es válida', fields: { date: 'La fecha ingresada no es válida' } });
+    }
+  }
+
   // Validate RUT format if provided
   if (payer_rut && payer_rut.trim() && !validateRut(payer_rut.trim())) {
     return res.status(400).json({ error: 'El RUT ingresado no es válido', fields: { payer_rut: 'El RUT ingresado no es válido. Formato: 12.345.678-9' } });
