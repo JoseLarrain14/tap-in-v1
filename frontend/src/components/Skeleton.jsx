@@ -116,9 +116,9 @@ export function SkeletonList({ rows = 5, className = '' }) {
 
 export function SkeletonKanban() {
   return (
-    <div className="flex gap-4 overflow-x-auto pb-4">
+    <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 kanban-scroll">
       {Array.from({ length: 5 }).map((_, colIdx) => (
-        <div key={colIdx} className="flex-shrink-0 w-64 rounded-xl border border-gray-200 dark:border-gray-700 border-t-4 border-t-gray-300 bg-white dark:bg-gray-800">
+        <div key={colIdx} className="flex-shrink-0 w-[75vw] sm:w-48 md:w-52 lg:w-64 rounded-xl border border-gray-200 dark:border-gray-700 border-t-4 border-t-gray-300 bg-white dark:bg-gray-800 kanban-column">
           <div className="px-3 py-3 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 rounded-t-lg">
             <div className="flex items-center justify-between">
               <SkeletonLine width="w-24" height="h-4" />

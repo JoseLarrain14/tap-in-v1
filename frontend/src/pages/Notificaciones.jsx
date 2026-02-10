@@ -88,7 +88,7 @@ export default function Notificaciones() {
       </div>
 
       {loading && (
-        <div className="text-center py-12 text-gray-400">Cargando notificaciones...</div>
+        <div className="text-center py-12 text-gray-500">Cargando notificaciones...</div>
       )}
 
       {error && isNetworkError && (
@@ -148,7 +148,7 @@ export default function Notificaciones() {
                   )}
                 </div>
                 <div className="flex items-center gap-3 mt-1">
-                  <p className="text-xs text-gray-400">{formatRelativeDate(n.created_at)}</p>
+                  <p className="text-xs text-gray-500">{formatRelativeDate(n.created_at)}</p>
                   {n.reference_type === 'payment_request' && n.reference_id && (
                     <button
                       onClick={() => navigate(`/solicitudes/${n.reference_id}`)}

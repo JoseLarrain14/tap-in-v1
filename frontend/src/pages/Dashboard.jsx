@@ -10,7 +10,7 @@ import { formatCLP, formatChartCLP } from '../lib/formatters';
 function getDeltaText(current, previous) {
   if (!previous || previous === 0) {
     if (current > 0) return { text: 'Nuevo este mes', color: 'text-gray-500' };
-    return { text: 'Sin movimientos', color: 'text-gray-400' };
+    return { text: 'Sin movimientos', color: 'text-gray-500' };
   }
   const diff = current - previous;
   const pct = Math.round((diff / previous) * 100);
@@ -81,7 +81,7 @@ export default function Dashboard() {
     }
   }
 
-  const CATEGORY_COLORS = ['#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#06b6d4', '#ec4899', '#8b5cf6', '#14b8a6'];
+  const CATEGORY_COLORS = ['#4338ca', '#15803d', '#b45309', '#dc2626', '#0e7490', '#be185d', '#6d28d9', '#0f766e'];
 
   const balance = summary?.balance ?? 0;
   const monthIncome = summary?.month_income ?? 0;
@@ -147,7 +147,7 @@ export default function Dashboard() {
                 {formatCLP(balance)}
               </p>
               {summary && (
-                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   Ingresos: {formatCLP(summary.income_total)} &minus; Egresos: {formatCLP(summary.expense_total)}
                 </p>
               )}
@@ -202,7 +202,7 @@ export default function Dashboard() {
               <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400 mt-1" data-testid="pending-approval-count">
                 {pendingApproval}
               </p>
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Solicitudes esperando aprobaci&oacute;n</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Solicitudes esperando aprobaci&oacute;n</p>
             </>
           )}
         </div>
@@ -218,7 +218,7 @@ export default function Dashboard() {
               <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1" data-testid="pending-execution-count">
                 {pendingExecution}
               </p>
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Aprobadas, esperando ejecuci&oacute;n</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Aprobadas, esperando ejecuci&oacute;n</p>
             </>
           )}
         </div>
@@ -252,12 +252,12 @@ export default function Dashboard() {
               <Legend
                 wrapperStyle={{ fontSize: '13px', color: chartTickColor }}
               />
-              <Bar dataKey="income" name="Ingresos" fill="#22c55e" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="expense" name="Egresos" fill="#ef4444" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="income" name="Ingresos" fill="#15803d" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="expense" name="Egresos" fill="#dc2626" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         ) : (
-          <div className="text-center py-12 text-gray-400 dark:text-gray-500">No hay datos para mostrar</div>
+          <div className="text-center py-12 text-gray-500 dark:text-gray-400">No hay datos para mostrar</div>
         )}
       </div>
 
@@ -296,7 +296,7 @@ export default function Dashboard() {
             </PieChart>
           </ResponsiveContainer>
         ) : (
-          <div className="text-center py-12 text-gray-400 dark:text-gray-500">No hay egresos categorizados para mostrar</div>
+          <div className="text-center py-12 text-gray-500 dark:text-gray-400">No hay egresos categorizados para mostrar</div>
         )}
       </div>
 

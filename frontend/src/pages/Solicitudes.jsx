@@ -738,14 +738,15 @@ export default function Solicitudes() {
           {KANBAN_COLUMNS.map(status => (
             <div
               key={status}
-              className={`flex-shrink-0 w-[75vw] sm:w-52 md:w-56 lg:w-64 rounded-xl border border-gray-200 border-t-4 ${KANBAN_COLUMN_COLORS[status]} bg-white flex flex-col max-h-[calc(100vh-280px)] sm:max-h-[calc(100vh-240px)] kanban-column`}
+              className={`flex-shrink-0 w-[75vw] sm:w-48 md:w-52 lg:w-64 rounded-xl border border-gray-200 border-t-4 ${KANBAN_COLUMN_COLORS[status]} bg-white flex flex-col max-h-[calc(100vh-280px)] sm:max-h-[calc(100vh-240px)] kanban-column`}
               data-testid={`kanban-column-${status}`}
             >
               {/* Column header */}
               <div className={`px-3 py-3 border-b border-gray-100 ${KANBAN_COLUMN_BG[status]} rounded-t-lg`}>
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-semibold text-gray-700 truncate" data-testid={`kanban-label-${status}`}>
-                    {STATUS_LABELS[status]}
+                    <span className="lg:hidden">{STATUS_LABELS_SHORT[status]}</span>
+                    <span className="hidden lg:inline">{STATUS_LABELS[status]}</span>
                   </h3>
                   <span className="text-xs font-medium text-gray-500 bg-white px-2 py-0.5 rounded-full ml-2 flex-shrink-0">
                     {requestsByStatus[status].length}
