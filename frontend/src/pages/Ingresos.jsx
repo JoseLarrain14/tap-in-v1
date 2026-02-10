@@ -6,6 +6,7 @@ import * as XLSX from 'xlsx';
 import { SkeletonTable, SkeletonLine } from '../components/Skeleton';
 import Spinner from '../components/Spinner';
 import NetworkError from '../components/NetworkError';
+import Toast from '../components/Toast';
 import { formatCLP, formatDate, blockNonNumericKeys, handleAmountPaste } from '../lib/formatters';
 
 export default function Ingresos() {
@@ -87,6 +88,7 @@ export default function Ingresos() {
   const [formErrors, setFormErrors] = useState({});
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [editFormSubmitted, setEditFormSubmitted] = useState(false);
+  const [feedback, setFeedback] = useState(null);
   const isMountedRef = useRef(true);
   const submittingRef = useRef(false);
   const editSubmittingRef = useRef(false);
@@ -389,6 +391,7 @@ export default function Ingresos() {
         payer_name: '',
         payer_rut: ''
       });
+      setFeedback({ type: 'success', message: 'Ingreso registrado exitosamente' });
       loadData({}, { silent: true });
     } catch (err) {
       if (err.fields) setFormErrors(err.fields);
@@ -509,6 +512,17 @@ export default function Ingresos() {
           </div>
         )}
       </div>
+
+      {/* Success/Error Toast */}
+      {feedback && (
+        <Toast
+          message={feedback.message}
+          type={feedback.type}
+          duration={4000}
+          onClose={() => setFeedback(null)}
+          testId="income-toast"
+        />
+      )}
 
       {/* Loading Skeleton */}
       {loading && (

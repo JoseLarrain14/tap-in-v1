@@ -6,6 +6,7 @@ import * as XLSX from 'xlsx';
 import { SkeletonTable, SkeletonKanban, SkeletonLine } from '../components/Skeleton';
 import Spinner from '../components/Spinner';
 import NetworkError from '../components/NetworkError';
+import Toast from '../components/Toast';
 import { formatCLP, blockNonNumericKeys, handleAmountPaste } from '../lib/formatters';
 
 const STATUS_LABELS = {
@@ -399,7 +400,7 @@ export default function Solicitudes() {
         next.delete(id);
         return next;
       }), 600);
-      setFeedback({ type: 'success', message: 'Pago ejecutado exitosamente' });
+      setFeedback({ type: 'success', message: 'Pago ejecutado exitosamente. Comprobante adjuntado correctamente.' });
       setShowDetailModal(false);
       // Background sync
       loadRequests({}, { silent: true });
@@ -542,23 +543,15 @@ export default function Solicitudes() {
         </div>
       </div>
 
-      {/* Feedback */}
+      {/* Feedback Toast */}
       {feedback && (
-        <div
-          className={`px-4 py-3 rounded-lg text-sm ${
-            feedback.type === 'success'
-              ? 'bg-green-50 text-green-800 border border-green-200'
-              : 'bg-red-50 text-red-800 border border-red-200'
-          }`}
-        >
-          {feedback.message}
-          <button
-            onClick={() => setFeedback(null)}
-            className="float-right text-lg leading-none opacity-50 hover:opacity-100"
-          >
-            &times;
-          </button>
-        </div>
+        <Toast
+          message={feedback.message}
+          type={feedback.type}
+          duration={feedback.type === 'success' ? 4000 : 6000}
+          onClose={() => setFeedback(null)}
+          testId="solicitudes-toast"
+        />
       )}
 
       {/* Status Filters - only show in Table view */}
