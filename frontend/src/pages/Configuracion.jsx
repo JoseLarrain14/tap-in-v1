@@ -103,12 +103,35 @@ export default function Configuracion() {
     loadCategories();
   }, []);
 
+  function validateEmail(email) {
+    // Basic email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  }
+
   async function handleInvite(e) {
     e.preventDefault();
     setInviteError('');
+
+    // Client-side validation
+    if (!inviteForm.name.trim()) {
+      setInviteError('El nombre es requerido');
+      return;
+    }
+
+    const trimmedEmail = inviteForm.email.trim();
+    if (!trimmedEmail) {
+      setInviteError('El email es requerido');
+      return;
+    }
+    if (!validateEmail(trimmedEmail)) {
+      setInviteError('El formato del email no es válido. Ejemplo: usuario@dominio.com');
+      return;
+    }
+
     try {
       setActionLoading(true);
-      const result = await api.post('/users/invite', inviteForm);
+      const result = await api.post('/users/invite', { ...inviteForm, email: trimmedEmail });
       setFeedback({ type: 'success', message: result.message || 'Usuario invitado exitosamente' });
       setShowInviteModal(false);
       setInviteForm({ email: '', name: '', role: 'delegado' });
@@ -573,31 +596,29 @@ export default function Configuracion() {
                 {inviteError}
               </div>
             )}
-            <form onSubmit={handleInvite} className="space-y-4">
+            <form onSubmit={handleInvite} noValidate className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Nombre completo</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Nombre completo *</label>
                 <input
                   type="text"
-                  required
                   value={inviteForm.name}
-                  onChange={(e) => setInviteForm({ ...inviteForm, name: e.target.value })}
+                  onChange={(e) => { setInviteForm({ ...inviteForm, name: e.target.value }); if (inviteError) setInviteError(''); }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none"
                   placeholder="Juan P&#233;rez"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
                 <input
                   type="email"
-                  required
                   value={inviteForm.email}
-                  onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none"
+                  onChange={(e) => { setInviteForm({ ...inviteForm, email: e.target.value }); if (inviteError) setInviteError(''); }}
+                  className={`w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none ${inviteError && inviteError.toLowerCase().includes('email') ? 'border-red-500' : 'border-gray-300'}`}
                   placeholder="usuario@email.com"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Rol</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Rol *</label>
                 <select
                   value={inviteForm.role}
                   onChange={(e) => setInviteForm({ ...inviteForm, role: e.target.value })}

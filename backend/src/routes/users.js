@@ -51,6 +51,13 @@ router.post('/invite', requireRole('presidente'), (req, res) => {
     return res.status(400).json({ error: 'Email, nombre y rol son requeridos' });
   }
 
+  // Validate email format
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const trimmedEmail = email.trim();
+  if (!emailRegex.test(trimmedEmail)) {
+    return res.status(400).json({ error: 'El formato del email no es válido' });
+  }
+
   // Validate role
   const validRoles = ['delegado', 'presidente', 'secretaria'];
   if (!validRoles.includes(role)) {
@@ -58,7 +65,7 @@ router.post('/invite', requireRole('presidente'), (req, res) => {
   }
 
   // Check if email already exists
-  const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(email);
+  const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(trimmedEmail);
   if (existing) {
     return res.status(409).json({ error: 'Ya existe un usuario con ese email' });
   }
@@ -70,7 +77,7 @@ router.post('/invite', requireRole('presidente'), (req, res) => {
   const result = db.prepare(`
     INSERT INTO users (organization_id, email, password_hash, name, role)
     VALUES (?, ?, ?, ?, ?)
-  `).run(orgId, email, passwordHash, name, role);
+  `).run(orgId, trimmedEmail, passwordHash, name, role);
 
   const newUser = db.prepare(`
     SELECT id, organization_id, email, name, role, is_active, created_at, updated_at
