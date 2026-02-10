@@ -1,5 +1,95 @@
 === Tap In V1 - Development Progress ===
 
+## Session 65 - 2026-02-10
+
+### Completed Features:
+- Feature #244: Pagination handles concurrent additions ✅
+- Feature #245: Rapid navigation between pages handles pending requests ✅
+- Feature #246: Double execution attempt on same request ✅
+
+### Verification Details:
+- Feature #244: Pagination handles concurrent additions
+  - Added secondary sort by t.id / pr.id in ORDER BY clauses for transactions and payment-requests
+  - Ensures deterministic pagination even when records have identical sort column values
+  - Tested: Created record during pagination, verified no duplicates across pages
+  - Verified page 1 and page 2 have distinct IDs, navigation back to page 1 is consistent
+
+- Feature #245: Rapid navigation between pages handles pending requests
+  - Added AbortController to api.js request() function with isAborted error flag
+  - Updated all page components to create/abort controllers on navigation:
+    Dashboard, Ingresos, Solicitudes, Reportes, Configuracion, Notificaciones, SolicitudDetail
+  - useEffect cleanup functions abort in-flight requests on unmount
+  - Tested: Rapid clicks Dashboard→Ingresos→Egresos (50ms intervals) - final page renders correctly
+  - Zero console errors, no stale data displayed
+
+- Feature #246: Double execution attempt on same request
+  - Backend already had atomic UPDATE with WHERE status='aprobado' on execute endpoint
+  - Sent 2 concurrent execute requests to same approved PR #77
+  - Result: 1 success (200), 1 rejection (400 - status already changed)
+  - Only 1 transaction record created (verified via API search)
+  - Atomic protection working correctly
+
+### Changes Made:
+- backend/src/routes/transactions.js: Secondary sort by t.id for deterministic pagination
+- backend/src/routes/payment-requests.js: Secondary sort by pr.id for deterministic pagination
+- frontend/src/lib/api.js: AbortError detection, signal passthrough on all HTTP methods
+- frontend/src/pages/Dashboard.jsx: AbortController for data loading with cleanup
+- frontend/src/pages/Ingresos.jsx: AbortController per-loadData call, cancels previous
+- frontend/src/pages/Solicitudes.jsx: AbortController for loadRequests/loadCategories/loadUsers
+- frontend/src/pages/Notificaciones.jsx: AbortController with cleanup
+- frontend/src/pages/Reportes.jsx: AbortController with cleanup
+- frontend/src/pages/Configuracion.jsx: AbortController with cleanup
+- frontend/src/pages/SolicitudDetail.jsx: AbortController with cleanup, re-runs on [id]
+
+### Current Status: 244/265 features passing (92.1%)
+
+### What should be worked on next:
+- Continue with remaining Concurrency & Race Conditions features or next priority category
+
+---
+
+## Session 64 - 2026-02-10
+
+### Completed Features:
+- Feature #241: Concurrent approval and rejection handled ✅
+- Feature #242: Concurrent income creation does not corrupt data ✅
+- Feature #243: Viewing deleted record shows not found ✅
+
+### Verification Details:
+- Feature #241: Concurrent approval and rejection
+  - Added atomic UPDATE with WHERE status='pendiente' on approve/reject/execute endpoints
+  - Returns 409 Conflict when another concurrent request already changed the status
+  - Stress tested: 10 simultaneous approve+reject requests → only 1 succeeds
+  - payment_events table has exactly 1 transition from pendiente
+  - Verified via API tests and Playwright browser automation
+
+- Feature #242: Concurrent income creation
+  - Sent 5 concurrent POST /api/transactions with different amounts ($10K-$50K)
+  - All 5 created successfully with unique IDs (no data corruption)
+  - All 5 found in transaction list
+  - Balance increased by exactly $150,000 (correct sum)
+  - SQLite's ACID guarantees + Node.js event loop serialization prevent corruption
+  - Verified via API tests and Playwright browser automation
+
+- Feature #243: Viewing deleted record shows not found
+  - Income list: Clicking delete on already-deleted record shows toast "Este registro ya fue eliminado por otro usuario"
+  - Income list: List auto-refreshes after 404 (deleted record disappears)
+  - Income edit: 404 shows "Este registro ya no existe. Fue eliminado por otro usuario." in modal
+  - Payment request detail: /solicitudes/99999 shows "Solicitud de pago no encontrada" with "Volver al Pipeline" back button
+  - Zero console errors, no crashes
+  - Verified via Playwright browser automation with screenshots
+
+### Changes Made:
+- backend/src/routes/payment-requests.js: Atomic UPDATE with WHERE status check on approve/reject/execute
+- frontend/src/pages/Ingresos.jsx: Graceful 404 handling for delete and edit operations with toast feedback
+
+### Current Status: 241/265 features passing (90.9%)
+
+### What should be worked on next:
+- Remaining concurrency and edge case features
+- Final UI polish features
+- Any remaining features in the backlog
+
 ## Session 63 - 2026-02-10
 
 ### Completed Features:
