@@ -271,6 +271,36 @@ export default function Ingresos() {
     }
   }
 
+  function validateRut(rut) {
+    // Remove dots and hyphens, trim whitespace
+    const cleaned = rut.replace(/\./g, '').replace(/-/g, '').trim();
+    if (cleaned.length < 2) return false;
+
+    // Body is all chars except last, verifier is last char
+    const body = cleaned.slice(0, -1);
+    const verifier = cleaned.slice(-1).toUpperCase();
+
+    // Body must be all digits, between 1 and 8 digits
+    if (!/^\d{1,8}$/.test(body)) return false;
+    // Verifier must be digit or K
+    if (!/^[\dK]$/.test(verifier)) return false;
+
+    // Calculate check digit using modulo 11 algorithm
+    let sum = 0;
+    let multiplier = 2;
+    for (let i = body.length - 1; i >= 0; i--) {
+      sum += parseInt(body[i]) * multiplier;
+      multiplier = multiplier === 7 ? 2 : multiplier + 1;
+    }
+    const remainder = 11 - (sum % 11);
+    let expected;
+    if (remainder === 11) expected = '0';
+    else if (remainder === 10) expected = 'K';
+    else expected = String(remainder);
+
+    return verifier === expected;
+  }
+
   function validateIncomeForm(f) {
     const errors = {};
     const rawAmount = String(f.amount).trim();
@@ -291,6 +321,12 @@ export default function Ingresos() {
     }
     if (!f.date) {
       errors.date = 'La fecha es requerida';
+    }
+    // RUT validation - optional, but if entered must be valid Chilean format
+    if (f.payer_rut && f.payer_rut.trim()) {
+      if (!validateRut(f.payer_rut.trim())) {
+        errors.payer_rut = 'El RUT ingresado no es válido. Formato: 12.345.678-9';
+      }
     }
     return errors;
   }
@@ -384,6 +420,14 @@ export default function Ingresos() {
     if (!editForm.amount || isNaN(amt) || amt <= 0) {
       setEditError('El monto debe ser un número positivo');
       return;
+    }
+
+    // Validate RUT if provided
+    if (editForm.payer_rut && editForm.payer_rut.trim()) {
+      if (!validateRut(editForm.payer_rut.trim())) {
+        setEditError('El RUT ingresado no es válido. Formato: 12.345.678-9');
+        return;
+      }
     }
 
     editSubmittingRef.current = true;
@@ -970,10 +1014,14 @@ export default function Ingresos() {
                 <input
                   type="text"
                   value={form.payer_rut}
-                  onChange={e => setForm({ ...form, payer_rut: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  onChange={e => { setForm({ ...form, payer_rut: e.target.value }); if (formErrors.payer_rut) setFormErrors(prev => ({ ...prev, payer_rut: '' })); }}
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 ${formErrors.payer_rut ? 'border-red-500' : 'border-gray-300'}`}
                   placeholder="12.345.678-9"
+                  data-testid="income-rut"
                 />
+                {formErrors.payer_rut && (
+                  <p className="mt-1 text-sm text-red-600" data-testid="income-rut-error">{formErrors.payer_rut}</p>
+                )}
               </div>
 
               <div className="flex gap-3 pt-2">

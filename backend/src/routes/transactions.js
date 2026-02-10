@@ -6,6 +6,29 @@ const router = express.Router();
 const { getDb } = require('../database');
 const { authenticateToken, requireActive } = require('../middleware/auth');
 
+// Chilean RUT validation helper
+function validateRut(rut) {
+  if (!rut) return true; // Optional field
+  const cleaned = rut.replace(/\./g, '').replace(/-/g, '').trim();
+  if (cleaned.length < 2) return false;
+  const body = cleaned.slice(0, -1);
+  const verifier = cleaned.slice(-1).toUpperCase();
+  if (!/^\d{1,8}$/.test(body)) return false;
+  if (!/^[\dK]$/.test(verifier)) return false;
+  let sum = 0;
+  let multiplier = 2;
+  for (let i = body.length - 1; i >= 0; i--) {
+    sum += parseInt(body[i]) * multiplier;
+    multiplier = multiplier === 7 ? 2 : multiplier + 1;
+  }
+  const remainder = 11 - (sum % 11);
+  let expected;
+  if (remainder === 11) expected = '0';
+  else if (remainder === 10) expected = 'K';
+  else expected = String(remainder);
+  return verifier === expected;
+}
+
 // Configure multer for file uploads
 const uploadsDir = path.join(__dirname, '..', '..', 'uploads');
 if (!fs.existsSync(uploadsDir)) {
@@ -192,6 +215,11 @@ router.post('/', requireActive, (req, res) => {
     return res.status(400).json({ error: 'Monto debe ser un número entero (sin decimales)', fields: { amount: 'Monto debe ser un número entero (sin decimales)' } });
   }
 
+  // Validate RUT format if provided
+  if (payer_rut && payer_rut.trim() && !validateRut(payer_rut.trim())) {
+    return res.status(400).json({ error: 'El RUT ingresado no es válido', fields: { payer_rut: 'El RUT ingresado no es válido. Formato: 12.345.678-9' } });
+  }
+
   // Validate category belongs to organization
   if (category_id) {
     const category = db.prepare(
@@ -261,6 +289,11 @@ router.put('/:id', requireActive, (req, res) => {
     }
 
     const { amount, category_id, description, date, payer_name, payer_rut, beneficiary } = req.body;
+
+    // Validate RUT format if provided
+    if (payer_rut && payer_rut.trim() && !validateRut(payer_rut.trim())) {
+      return res.status(400).json({ error: 'El RUT ingresado no es válido. Formato: 12.345.678-9' });
+    }
 
     // Track changes for audit
     const changes = {};
