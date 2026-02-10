@@ -1,5 +1,40 @@
 === Tap In V1 - Development Progress ===
 
+## Session 59 - 2026-02-10
+
+### Completed Features:
+- Feature #229: Images and icons have alt text ✅
+- Feature #230: Keyboard accessible modals ✅
+- Feature #231: Language attribute set to es ✅
+
+### Changes Made:
+- frontend/src/lib/useModalAccessibility.js: NEW - Custom hook for modal keyboard accessibility
+  - Focus saving/restoration on open/close
+  - Escape key to close modal
+  - Tab/Shift+Tab focus trapping within modal
+  - Auto-focus first focusable element on open
+- frontend/src/components/Modal.jsx: NEW - Reusable accessible modal component (for future use)
+- frontend/src/components/Toast.jsx: Added aria-hidden="true" to 4 decorative SVG icons
+- frontend/src/components/NetworkError.jsx: Added aria-hidden="true" to 2 decorative SVGs
+- frontend/src/components/Layout.jsx: Added aria-hidden="true" to 8 decorative SVGs (theme toggles, sidebar chevrons, logout icons)
+- frontend/src/pages/NotFound.jsx: Added aria-hidden="true" to home icon SVG
+- frontend/src/pages/Ingresos.jsx: Added useModalAccessibility to 3 modals + aria-hidden on 2 SVGs
+- frontend/src/pages/Solicitudes.jsx: Added useModalAccessibility to 4 modals + aria-hidden on 3 SVGs
+- frontend/src/pages/SolicitudDetail.jsx: Added useModalAccessibility to 1 modal + aria-hidden on 4 SVGs
+- frontend/src/pages/Configuracion.jsx: Added useModalAccessibility to 4 modals
+- frontend/src/pages/Reportes.jsx: Added aria-hidden="true" to 3 export SVGs
+- All 12 modals now have: role="dialog", aria-modal="true", aria-labelledby, tabIndex={-1}, focus trapping, Escape close
+
+### Verification Details:
+- All decorative SVGs have aria-hidden="true" (27 SVGs across 8 files) ✅
+- No <img> tags in codebase (only SVG icons) ✅
+- Modal opens with dialog role visible in accessibility tree ✅
+- Focus moves into modal on open (Cerrar button receives focus) ✅
+- Escape key closes modal ✅
+- HTML lang="es" confirmed in index.html and via document.documentElement.lang ✅
+
+### Current Status: 229/265 features passing (86.4%)
+
 ## Session 58 - 2026-02-10
 
 ### Completed Features:
