@@ -1,5 +1,34 @@
 === Tap In V1 - Development Progress ===
 
+## Session 55 - 2026-02-10
+
+### Completed Features:
+- Feature #202: Amount field allows only numeric input ✅
+- Feature #264: Category type cannot be changed after creation ✅
+
+### Verification Details:
+- Feature #202: Amount field numeric-only validation
+  - Added blockNonNumericKeys() and handleAmountPaste() utilities to formatters.js
+  - Applied to all 7 amount inputs across Ingresos.jsx, Solicitudes.jsx, SolicitudDetail.jsx
+  - Blocks: letters (a-z, e, E), special chars (+, -, .), all non-digit keys
+  - Allows: digits 0-9, control keys (Backspace, Delete, Tab, Arrow, Home, End), Ctrl+A/C/V/X
+  - Paste handler strips non-numeric characters from pasted text
+  - Verified via Playwright: typed "abc", "e", "+", "-", "." - all blocked; "50000" accepted
+  - Tested on both Ingresos create modal and Solicitudes create modal
+
+- Feature #264: Category type cannot be changed after creation
+  - Backend: PUT /api/categories/:id rejects type change with 400 "No se puede cambiar el tipo"
+  - Backend: Allows same type or no type in request body (no false positive)
+  - Backend: UPDATE query only updates name (not type)
+  - Frontend: Type dropdown disabled (grayed out) in edit modal
+  - Frontend: Help text "El tipo no se puede cambiar después de la creación" shown
+  - Frontend: Only sends { name } (not type) when updating
+  - Frontend: Create modal still allows free type selection (dropdown enabled)
+  - API tested: PUT with type change → 400 error; PUT with same type → 200 OK
+  - Verified via Playwright with screenshots
+
+### Current Status: ~200/265 features passing (~75.5%)
+
 ## Session 54 - 2026-02-10
 
 ### Completed Features:
