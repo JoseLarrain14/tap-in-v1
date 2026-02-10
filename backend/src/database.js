@@ -164,11 +164,20 @@ function initializeSchema() {
       name TEXT NOT NULL,
       type TEXT NOT NULL CHECK(type IN ('ingreso', 'egreso')),
       is_default BOOLEAN DEFAULT 0,
+      version INTEGER DEFAULT 1,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (organization_id) REFERENCES organizations(id)
     )
   `);
+
+  // Add version column if it doesn't exist (migration for existing databases)
+  try {
+    db.run('ALTER TABLE categories ADD COLUMN version INTEGER DEFAULT 1');
+    console.log('[Database] Added version column to categories table');
+  } catch (e) {
+    // Column already exists, ignore
+  }
 
   db.run(`
     CREATE TABLE IF NOT EXISTS transactions (
@@ -301,8 +310,23 @@ function initializeSchema() {
     )
   `);
 
+  // Performance indexes for common query patterns
+  // Dashboard & transaction queries
+  db.run(`CREATE INDEX IF NOT EXISTS idx_transactions_org_type_deleted ON transactions(organization_id, type, deleted_at)`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_transactions_org_type_date ON transactions(organization_id, type, deleted_at, date)`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_transactions_org_deleted_date ON transactions(organization_id, deleted_at, date)`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_transactions_category ON transactions(category_id, deleted_at, type)`);
+  // Payment request queries
+  db.run(`CREATE INDEX IF NOT EXISTS idx_payment_requests_org_status ON payment_requests(organization_id, status)`);
+  // Notification queries
+  db.run(`CREATE INDEX IF NOT EXISTS idx_notifications_user_read ON notifications(user_id, is_read)`);
+  // Audit log queries
+  db.run(`CREATE INDEX IF NOT EXISTS idx_audit_transaction ON transaction_audit_log(transaction_id)`);
+  // Attachment queries
+  db.run(`CREATE INDEX IF NOT EXISTS idx_attachments_entity ON attachments(entity_type, entity_id)`);
+
   saveDatabase();
-  console.log('[Database] Schema initialized successfully');
+  console.log('[Database] Schema initialized successfully (with indexes)');
 }
 
 function seedDefaultData() {
