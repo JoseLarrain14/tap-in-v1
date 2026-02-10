@@ -123,12 +123,90 @@ async function uploadRequest(endpoint, formData) {
   return data;
 }
 
+/**
+ * Upload with XHR progress tracking.
+ * @param {string} endpoint - API endpoint
+ * @param {FormData} formData - FormData to upload
+ * @param {function} onProgress - Callback with { loaded, total, percent }
+ * @returns {Promise<object>} Parsed JSON response
+ */
+function uploadWithProgress(endpoint, formData, onProgress) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    const token = getToken();
+
+    xhr.open('POST', `${API_BASE}${endpoint}`);
+
+    if (token) {
+      xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+    }
+
+    // Track upload progress
+    xhr.upload.addEventListener('progress', (e) => {
+      if (e.lengthComputable && onProgress) {
+        const percent = Math.round((e.loaded / e.total) * 100);
+        onProgress({ loaded: e.loaded, total: e.total, percent });
+      }
+    });
+
+    xhr.addEventListener('load', () => {
+      let data;
+      try {
+        data = JSON.parse(xhr.responseText);
+      } catch (parseError) {
+        if (xhr.status >= 502 && xhr.status <= 504) {
+          const err = new Error('No se pudo conectar con el servidor. Verifique su conexión e intente nuevamente.');
+          err.isNetworkError = true;
+          err.status = xhr.status;
+          return reject(err);
+        }
+        const err = new Error('El servidor respondió de forma inesperada. Intente nuevamente.');
+        err.status = xhr.status;
+        return reject(err);
+      }
+
+      if (xhr.status === 401 && !endpoint.startsWith('/auth/login')) {
+        removeToken();
+        window.location.href = '/login';
+        return reject(new Error('No autenticado'));
+      }
+
+      if (xhr.status >= 400) {
+        const err = new Error(data.error || 'Error en la solicitud');
+        err.status = xhr.status;
+        if (data.fields) err.fields = data.fields;
+        return reject(err);
+      }
+
+      // Signal 100% completion
+      if (onProgress) {
+        onProgress({ loaded: 1, total: 1, percent: 100 });
+      }
+
+      resolve(data);
+    });
+
+    xhr.addEventListener('error', () => {
+      const err = new Error('No se pudo conectar con el servidor. Verifique su conexión e intente nuevamente.');
+      err.isNetworkError = true;
+      reject(err);
+    });
+
+    xhr.addEventListener('abort', () => {
+      reject(new Error('Upload cancelado'));
+    });
+
+    xhr.send(formData);
+  });
+}
+
 export const api = {
   get: (endpoint) => request(endpoint),
   post: (endpoint, body) => request(endpoint, { method: 'POST', body: JSON.stringify(body) }),
   put: (endpoint, body) => request(endpoint, { method: 'PUT', body: JSON.stringify(body) }),
   delete: (endpoint) => request(endpoint, { method: 'DELETE' }),
   upload: (endpoint, formData) => uploadRequest(endpoint, formData),
+  uploadWithProgress: (endpoint, formData, onProgress) => uploadWithProgress(endpoint, formData, onProgress),
 };
 
 export { getToken, setToken, removeToken };

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../lib/AuthContext';
+import { useToast } from '../lib/ToastContext';
 import { api } from '../lib/api';
 import { SkeletonTable } from '../components/Skeleton';
 import Spinner from '../components/Spinner';
@@ -29,13 +30,14 @@ const TYPE_COLORS = {
 
 export default function Configuracion() {
   const { user } = useAuth();
+  const { addToast } = useToast();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isNetworkError, setIsNetworkError] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
-  const [feedback, setFeedback] = useState(null);
+  const showFeedback = (type, message) => addToast({ type, message, testId: 'config-toast' });
   const [activeTab, setActiveTab] = useState('usuarios');
 
   // Categories state
@@ -48,6 +50,8 @@ export default function Configuracion() {
   const [categorySaving, setCategorySaving] = useState(false);
   const [deletingCategory, setDeletingCategory] = useState(null);
   const [categoryDeleteError, setCategoryDeleteError] = useState('');
+  const [deleteCategoryConfirm, setDeleteCategoryConfirm] = useState(null);
+  const [deactivateUserConfirm, setDeactivateUserConfirm] = useState(null);
 
   // Invite form
   const [inviteForm, setInviteForm] = useState({
@@ -137,7 +141,7 @@ export default function Configuracion() {
     try {
       setActionLoading(true);
       const result = await api.post('/users/invite', { ...inviteForm, email: trimmedEmail });
-      setFeedback({ type: 'success', message: result.message || 'Usuario invitado exitosamente' });
+      showFeedback('success', result.message || 'Usuario invitado exitosamente');
       setShowInviteModal(false);
       setInviteForm({ email: '', name: '', role: '' });
       setInviteError('');
@@ -153,10 +157,10 @@ export default function Configuracion() {
     try {
       setActionLoading(true);
       const result = await api.put(`/users/${userId}/deactivate`);
-      setFeedback({ type: 'success', message: result.message || 'Usuario desactivado' });
+      showFeedback('success', result.message || 'Usuario desactivado');
       loadUsers();
     } catch (err) {
-      setFeedback({ type: 'error', message: err.message });
+      showFeedback('error', err.message);
     } finally {
       setActionLoading(false);
     }
@@ -166,10 +170,10 @@ export default function Configuracion() {
     try {
       setActionLoading(true);
       const result = await api.put(`/users/${userId}/activate`);
-      setFeedback({ type: 'success', message: result.message || 'Usuario activado' });
+      showFeedback('success', result.message || 'Usuario activado');
       loadUsers();
     } catch (err) {
-      setFeedback({ type: 'error', message: err.message });
+      showFeedback('error', err.message);
     } finally {
       setActionLoading(false);
     }
@@ -179,10 +183,10 @@ export default function Configuracion() {
     try {
       setActionLoading(true);
       const result = await api.put(`/users/${userId}/role`, { role: newRole });
-      setFeedback({ type: 'success', message: `Rol actualizado a ${ROLE_LABELS[newRole]} exitosamente` });
+      showFeedback('success', `Rol actualizado a ${ROLE_LABELS[newRole]} exitosamente`);
       loadUsers();
     } catch (err) {
-      setFeedback({ type: 'error', message: err.message });
+      showFeedback('error', err.message);
     } finally {
       setActionLoading(false);
     }
@@ -210,10 +214,10 @@ export default function Configuracion() {
       if (editingCategory) {
         // Only send name - type cannot be changed after creation
         await api.put(`/categories/${editingCategory.id}`, { name: categoryForm.name });
-        setFeedback({ type: 'success', message: 'Categor\u00eda actualizada exitosamente' });
+        showFeedback('success', 'Categoría actualizada exitosamente');
       } else {
         await api.post('/categories', categoryForm);
-        setFeedback({ type: 'success', message: 'Categor\u00eda creada exitosamente' });
+        showFeedback('success', 'Categoría creada exitosamente');
       }
       setShowCategoryModal(false);
       loadCategories({ silent: true });
@@ -229,7 +233,7 @@ export default function Configuracion() {
     setDeletingCategory(cat.id);
     try {
       await api.delete(`/categories/${cat.id}`);
-      setFeedback({ type: 'success', message: `Categor\u00eda "${cat.name}" eliminada exitosamente` });
+      showFeedback('success', `Categoría "${cat.name}" eliminada exitosamente`);
       setDeletingCategory(null);
       loadCategories({ silent: true });
     } catch (err) {
@@ -270,24 +274,7 @@ export default function Configuracion() {
         </button>
       </div>
 
-      {/* Feedback */}
-      {feedback && (
-        <div
-          className={`px-4 py-3 rounded-lg text-sm ${
-            feedback.type === 'success'
-              ? 'bg-green-50 text-green-800 border border-green-200'
-              : 'bg-red-50 text-red-800 border border-red-200'
-          }`}
-        >
-          {feedback.message}
-          <button
-            onClick={() => setFeedback(null)}
-            className="float-right text-lg leading-none opacity-50 hover:opacity-100"
-          >
-            &times;
-          </button>
-        </div>
-      )}
+      {/* Feedback now handled by global ToastContainer */}
 
       {/* Users Tab */}
       {activeTab === 'usuarios' && (
@@ -405,7 +392,7 @@ export default function Configuracion() {
                                     <option value="secretaria">Secretaria</option>
                                   </select>
                                   <button
-                                    onClick={() => handleDeactivate(u.id)}
+                                    onClick={() => setDeactivateUserConfirm(u)}
                                     disabled={actionLoading}
                                     className="px-2.5 py-1 bg-red-100 text-red-700 rounded text-xs font-medium hover:bg-red-200 transition-colors disabled:opacity-50"
                                   >
@@ -518,7 +505,7 @@ export default function Configuracion() {
                               Editar
                             </button>
                             <button
-                              onClick={() => handleDeleteCategory(cat)}
+                              onClick={() => setDeleteCategoryConfirm(cat)}
                               disabled={deletingCategory === cat.id}
                               className="px-2.5 py-1 bg-red-100 text-red-700 rounded text-xs font-medium hover:bg-red-200 transition-colors disabled:opacity-50"
                             >
@@ -592,6 +579,77 @@ export default function Configuracion() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Category Confirmation Modal */}
+      {deleteCategoryConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+            <div className="text-center">
+              <div className="text-4xl mb-3">⚠️</div>
+              <h2 className="text-lg font-semibold text-gray-900 mb-2">Confirmar eliminación</h2>
+              <p className="text-gray-600 text-sm mb-1">
+                ¿Estás seguro de eliminar esta categoría?
+              </p>
+              <p className="text-gray-800 font-medium text-sm mb-4">
+                {deleteCategoryConfirm.name} ({TYPE_LABELS[deleteCategoryConfirm.type]})
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setDeleteCategoryConfirm(null)}
+                  disabled={deletingCategory === deleteCategoryConfirm.id}
+                  className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={() => { handleDeleteCategory(deleteCategoryConfirm); setDeleteCategoryConfirm(null); }}
+                  disabled={deletingCategory === deleteCategoryConfirm.id}
+                  className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium disabled:opacity-50"
+                >
+                  {deletingCategory === deleteCategoryConfirm.id ? <><Spinner size={16} className="inline mr-1.5" />Eliminando...</> : 'Eliminar'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Deactivate User Confirmation Modal */}
+      {deactivateUserConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+            <div className="text-center">
+              <div className="text-4xl mb-3">⚠️</div>
+              <h2 className="text-lg font-semibold text-gray-900 mb-2">Confirmar desactivación</h2>
+              <p className="text-gray-600 text-sm mb-1">
+                ¿Estás seguro de desactivar este usuario?
+              </p>
+              <p className="text-gray-800 font-medium text-sm mb-1">
+                {deactivateUserConfirm.name}
+              </p>
+              <p className="text-gray-500 text-xs mb-4">
+                {deactivateUserConfirm.email} — {ROLE_LABELS[deactivateUserConfirm.role]}
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setDeactivateUserConfirm(null)}
+                  disabled={actionLoading}
+                  className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={() => { handleDeactivate(deactivateUserConfirm.id); setDeactivateUserConfirm(null); }}
+                  disabled={actionLoading}
+                  className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium disabled:opacity-50"
+                >
+                  {actionLoading ? <><Spinner size={16} className="inline mr-1.5" />Desactivando...</> : 'Desactivar'}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
