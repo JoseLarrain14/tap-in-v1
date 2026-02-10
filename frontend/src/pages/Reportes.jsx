@@ -53,8 +53,8 @@ export default function Reportes() {
 
       const rows = data.map(tx => ({
         'Fecha': formatDate(tx.date),
-        'Descripcion': tx.description || '',
-        'Categoria': tx.category_name || 'Sin categoria',
+        'Descripción': tx.description || '',
+        'Categoría': tx.category_name || 'Sin categoría',
         'Pagador': tx.payer_name || '',
         'RUT Pagador': tx.payer_rut || '',
         'Monto (CLP)': tx.amount,
@@ -109,14 +109,14 @@ export default function Reportes() {
 
       const rows = reqs.map(req => ({
         'ID': req.id,
-        'Descripcion': req.description || '',
+        'Descripción': req.description || '',
         'Beneficiario': req.beneficiary || '',
-        'Categoria': req.category_name || 'Sin categoria',
+        'Categoría': req.category_name || 'Sin categoría',
         'Monto (CLP)': req.amount,
         'Monto Formateado': formatCLP(req.amount),
         'Estado': STATUS_LABELS[req.status] || req.status,
         'Creado por': req.created_by_name || '',
-        'Fecha creacion': formatDateTime(req.created_at),
+        'Fecha Creación': formatDateTime(req.created_at),
       }));
 
       const ws = XLSX.utils.json_to_sheet(rows);
@@ -184,8 +184,8 @@ export default function Reportes() {
       if (ingresos.length > 0) {
         const ingRows = ingresos.map(tx => ({
           'Fecha': formatDate(tx.date),
-          'Descripcion': tx.description || '',
-          'Categoria': tx.category_name || 'Sin categoria',
+          'Descripción': tx.description || '',
+          'Categoría': tx.category_name || 'Sin categoría',
           'Pagador': tx.payer_name || '',
           'RUT Pagador': tx.payer_rut || '',
           'Monto (CLP)': tx.amount,
@@ -199,14 +199,14 @@ export default function Reportes() {
       if (solicitudes.length > 0) {
         const solRows = solicitudes.map(req => ({
           'ID': req.id,
-          'Descripcion': req.description || '',
+          'Descripción': req.description || '',
           'Beneficiario': req.beneficiary || '',
-          'Categoria': req.category_name || 'Sin categoria',
+          'Categoría': req.category_name || 'Sin categoría',
           'Monto (CLP)': req.amount,
           'Monto Formateado': formatCLP(req.amount),
           'Estado': STATUS_LABELS[req.status] || req.status,
           'Creado por': req.created_by_name || '',
-          'Fecha creacion': formatDateTime(req.created_at),
+          'Fecha Creación': formatDateTime(req.created_at),
         }));
         const ws = XLSX.utils.json_to_sheet(solRows);
         XLSX.utils.book_append_sheet(wb, ws, 'Solicitudes');

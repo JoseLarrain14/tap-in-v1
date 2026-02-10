@@ -263,8 +263,8 @@ export default function Ingresos() {
       // Build Excel data
       const rows = data.map(tx => ({
         'Fecha': formatDate(tx.date),
-        'Descripcion': tx.description || '',
-        'Categoria': tx.category_name || 'Sin categoria',
+        'Descripción': tx.description || '',
+        'Categoría': tx.category_name || 'Sin categoría',
         'Pagador': tx.payer_name || '',
         'RUT Pagador': tx.payer_rut || '',
         'Monto (CLP)': tx.amount,

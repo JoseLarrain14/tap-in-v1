@@ -222,13 +222,13 @@ export default function Solicitudes() {
 
       const rows = reqs.map(req => ({
         'ID': req.id,
-        'Descripcion': req.description || '',
+        'Descripción': req.description || '',
         'Beneficiario': req.beneficiary || '',
-        'Categoria': req.category_name || 'Sin categoria',
+        'Categoría': req.category_name || 'Sin categoría',
         'Monto (CLP)': req.amount,
         'Estado': STATUS_LABELS[req.status] || req.status,
         'Creado por': req.created_by_name || '',
-        'Fecha creacion': formatDateTime(req.created_at),
+        'Fecha Creación': formatDateTime(req.created_at),
       }));
 
       const ws = XLSX.utils.json_to_sheet(rows);
