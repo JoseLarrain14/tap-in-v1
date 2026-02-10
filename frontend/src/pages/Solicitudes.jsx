@@ -774,6 +774,8 @@ export default function Solicitudes() {
                               onClick={() => handleApprove(req.id)}
                               className="text-xs px-2.5 py-2 bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
                               disabled={actionLoading}
+                              aria-label="Aprobar solicitud"
+                              title="Aprobar solicitud"
                             >
                               ✓
                             </button>
