@@ -245,19 +245,36 @@ export default function Solicitudes() {
     }
   }
 
+  const DESCRIPTION_MAX_LENGTH = 500;
+  const BENEFICIARY_MAX_LENGTH = 200;
+
   function validatePaymentForm(f) {
     const errors = {};
-    if (!f.amount || parseInt(f.amount) <= 0) {
+    const rawAmount = String(f.amount).trim();
+    if (!rawAmount) {
       errors.amount = 'El monto es requerido';
+    } else {
+      const num = Number(rawAmount);
+      if (isNaN(num) || !/^-?\d*\.?\d+$/.test(rawAmount)) {
+        errors.amount = 'El monto debe ser un número válido';
+      } else if (num <= 0) {
+        errors.amount = 'El monto debe ser mayor a cero';
+      } else if (!Number.isInteger(num)) {
+        errors.amount = 'El monto debe ser un número entero (sin decimales)';
+      }
     }
     if (!f.category_id) {
       errors.category_id = 'La categoría es requerida';
     }
     if (!f.description || !f.description.trim()) {
       errors.description = 'La descripción es requerida';
+    } else if (f.description.length > DESCRIPTION_MAX_LENGTH) {
+      errors.description = `La descripción no puede exceder ${DESCRIPTION_MAX_LENGTH} caracteres`;
     }
     if (!f.beneficiary || !f.beneficiary.trim()) {
       errors.beneficiary = 'El beneficiario es requerido';
+    } else if (f.beneficiary.length > BENEFICIARY_MAX_LENGTH) {
+      errors.beneficiary = `El beneficiario no puede exceder ${BENEFICIARY_MAX_LENGTH} caracteres`;
     }
     return errors;
   }
@@ -897,6 +914,7 @@ export default function Solicitudes() {
                 <input
                   type="number"
                   min="1"
+                  step="1"
                   value={newRequest.amount}
                   onChange={(e) => { setNewRequest({ ...newRequest, amount: e.target.value }); if (createFormErrors.amount) setCreateFormErrors(prev => ({ ...prev, amount: '' })); }}
                   className={`w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none ${createFormErrors.amount ? 'border-red-500' : 'border-gray-300'}`}
@@ -926,24 +944,31 @@ export default function Solicitudes() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Descripción *</label>
-                <input
-                  type="text"
+                <textarea
                   value={newRequest.description}
-                  onChange={(e) => { setNewRequest({ ...newRequest, description: e.target.value }); if (createFormErrors.description) setCreateFormErrors(prev => ({ ...prev, description: '' })); }}
-                  className={`w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none ${createFormErrors.description ? 'border-red-500' : 'border-gray-300'}`}
+                  onChange={(e) => { setNewRequest({ ...newRequest, description: e.target.value.slice(0, DESCRIPTION_MAX_LENGTH) }); if (createFormErrors.description) setCreateFormErrors(prev => ({ ...prev, description: '' })); }}
+                  maxLength={DESCRIPTION_MAX_LENGTH}
+                  rows={2}
+                  className={`w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none resize-none ${createFormErrors.description ? 'border-red-500' : 'border-gray-300'}`}
                   placeholder="Compra de materiales..."
                   data-testid="pr-description"
                 />
-                {createFormErrors.description && (
-                  <p className="mt-1 text-sm text-red-600" data-testid="pr-description-error">{createFormErrors.description}</p>
-                )}
+                <div className="flex justify-between items-center mt-1">
+                  {createFormErrors.description ? (
+                    <p className="text-sm text-red-600" data-testid="pr-description-error">{createFormErrors.description}</p>
+                  ) : <span />}
+                  <span className={`text-xs ${newRequest.description.length >= DESCRIPTION_MAX_LENGTH ? 'text-red-500 font-medium' : 'text-gray-400'}`} data-testid="pr-description-counter">
+                    {newRequest.description.length}/{DESCRIPTION_MAX_LENGTH}
+                  </span>
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Beneficiario *</label>
                 <input
                   type="text"
                   value={newRequest.beneficiary}
-                  onChange={(e) => { setNewRequest({ ...newRequest, beneficiary: e.target.value }); if (createFormErrors.beneficiary) setCreateFormErrors(prev => ({ ...prev, beneficiary: '' })); }}
+                  onChange={(e) => { setNewRequest({ ...newRequest, beneficiary: e.target.value.slice(0, BENEFICIARY_MAX_LENGTH) }); if (createFormErrors.beneficiary) setCreateFormErrors(prev => ({ ...prev, beneficiary: '' })); }}
+                  maxLength={BENEFICIARY_MAX_LENGTH}
                   className={`w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none ${createFormErrors.beneficiary ? 'border-red-500' : 'border-gray-300'}`}
                   placeholder="Proveedor XYZ"
                   data-testid="pr-beneficiary"
@@ -1152,13 +1177,19 @@ export default function Solicitudes() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
-                <input
-                  type="text"
+                <textarea
                   required
                   value={editRequest.description}
-                  onChange={(e) => setEditRequest({ ...editRequest, description: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none"
+                  onChange={(e) => setEditRequest({ ...editRequest, description: e.target.value.slice(0, DESCRIPTION_MAX_LENGTH) })}
+                  maxLength={DESCRIPTION_MAX_LENGTH}
+                  rows={2}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none resize-none"
                 />
+                <div className="flex justify-end mt-1">
+                  <span className={`text-xs ${editRequest.description.length >= DESCRIPTION_MAX_LENGTH ? 'text-red-500 font-medium' : 'text-gray-400'}`}>
+                    {editRequest.description.length}/{DESCRIPTION_MAX_LENGTH}
+                  </span>
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Beneficiario</label>
@@ -1166,7 +1197,8 @@ export default function Solicitudes() {
                   type="text"
                   required
                   value={editRequest.beneficiary}
-                  onChange={(e) => setEditRequest({ ...editRequest, beneficiary: e.target.value })}
+                  onChange={(e) => setEditRequest({ ...editRequest, beneficiary: e.target.value.slice(0, BENEFICIARY_MAX_LENGTH) })}
+                  maxLength={BENEFICIARY_MAX_LENGTH}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none"
                 />
               </div>

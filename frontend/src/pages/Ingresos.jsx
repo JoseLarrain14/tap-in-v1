@@ -92,6 +92,10 @@ export default function Ingresos() {
   const editSubmittingRef = useRef(false);
 
   const hasActiveFilters = filterCategory || filterFrom || filterTo || filterSearch || filterAmountMin || filterAmountMax;
+  const [dateRangeWarning, setDateRangeWarning] = useState('');
+
+  // Check if date range is inverted (from > to)
+  const isDateRangeInverted = filterFrom && filterTo && filterFrom > filterTo;
 
   // Build query string from filters
   function buildFilterQuery(overrides = {}) {
@@ -153,6 +157,20 @@ export default function Ingresos() {
 
   // Apply filters (reload data with current filter state, reset to page 1)
   function applyFilters() {
+    // Auto-correct inverted date range
+    if (filterFrom && filterTo && filterFrom > filterTo) {
+      const correctedFrom = filterTo;
+      const correctedTo = filterFrom;
+      setFilterFrom(correctedFrom);
+      setFilterTo(correctedTo);
+      setDateRangeWarning('Las fechas fueron invertidas automaticamente (Desde era posterior a Hasta).');
+      setTimeout(() => setDateRangeWarning(''), 5000);
+      setCurrentPage(1);
+      loadData({ from: correctedFrom, to: correctedTo, page: 1 });
+      updateUrlParams({ from: correctedFrom, to: correctedTo, page: 1 });
+      return;
+    }
+    setDateRangeWarning('');
     setCurrentPage(1);
     loadData({ page: 1 });
     updateUrlParams({ page: 1 });
@@ -255,12 +273,18 @@ export default function Ingresos() {
 
   function validateIncomeForm(f) {
     const errors = {};
-    if (!f.amount && f.amount !== 0) {
+    const rawAmount = String(f.amount).trim();
+    if (!rawAmount) {
       errors.amount = 'El monto es requerido';
-    } else if (parseFloat(f.amount) <= 0) {
-      errors.amount = 'El monto debe ser un número positivo';
-    } else if (isNaN(parseFloat(f.amount))) {
-      errors.amount = 'El monto debe ser un número válido';
+    } else {
+      const num = Number(rawAmount);
+      if (isNaN(num) || !/^-?\d*\.?\d+$/.test(rawAmount)) {
+        errors.amount = 'El monto debe ser un número válido';
+      } else if (num <= 0) {
+        errors.amount = 'El monto debe ser mayor a cero';
+      } else if (!Number.isInteger(num)) {
+        errors.amount = 'El monto debe ser un número entero (sin decimales)';
+      }
     }
     if (!f.category_id) {
       errors.category_id = 'La categoría es requerida';
@@ -538,9 +562,9 @@ export default function Ingresos() {
                 <input
                   type="date"
                   value={filterFrom}
-                  onChange={e => setFilterFrom(e.target.value)}
+                  onChange={e => { setFilterFrom(e.target.value); setDateRangeWarning(''); }}
                   data-testid="filter-from"
-                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className={`px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 ${isDateRangeInverted ? 'border-amber-400 bg-amber-50' : 'border-gray-300'}`}
                 />
               </div>
               <div className="flex items-center gap-2">
@@ -548,12 +572,22 @@ export default function Ingresos() {
                 <input
                   type="date"
                   value={filterTo}
-                  onChange={e => setFilterTo(e.target.value)}
+                  onChange={e => { setFilterTo(e.target.value); setDateRangeWarning(''); }}
                   data-testid="filter-to"
-                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className={`px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 ${isDateRangeInverted ? 'border-amber-400 bg-amber-50' : 'border-gray-300'}`}
                 />
               </div>
             </div>
+            {isDateRangeInverted && (
+              <p className="text-xs text-amber-600 font-medium" data-testid="date-range-warning">
+                ⚠ La fecha "Desde" es posterior a "Hasta". Se corregira automaticamente al buscar.
+              </p>
+            )}
+            {dateRangeWarning && (
+              <p className="text-xs text-amber-600 font-medium" data-testid="date-range-corrected">
+                ✓ {dateRangeWarning}
+              </p>
+            )}
             <div className="flex items-center gap-3 flex-wrap">
               <div className="flex items-center gap-2">
                 <label className="text-sm text-gray-500 whitespace-nowrap">Monto mín:</label>
@@ -865,6 +899,7 @@ export default function Ingresos() {
                 <input
                   type="number"
                   min="1"
+                  step="1"
                   value={form.amount}
                   onChange={e => { setForm({ ...form, amount: e.target.value }); if (formErrors.amount) setFormErrors(prev => ({ ...prev, amount: '' })); }}
                   className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 ${formErrors.amount ? 'border-red-500' : 'border-gray-300'}`}

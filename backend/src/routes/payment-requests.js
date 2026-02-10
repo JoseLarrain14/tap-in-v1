@@ -199,7 +199,9 @@ router.post('/', requireActive, requireRole('delegado', 'presidente'), (req, res
   const prFieldErrors = {};
   if (amount === undefined || amount === null || amount === '') prFieldErrors.amount = 'El monto es requerido';
   if (!description) prFieldErrors.description = 'La descripción es requerida';
+  else if (typeof description === 'string' && description.length > 500) prFieldErrors.description = 'La descripción no puede exceder 500 caracteres';
   if (!beneficiary) prFieldErrors.beneficiary = 'El beneficiario es requerido';
+  else if (typeof beneficiary === 'string' && beneficiary.length > 200) prFieldErrors.beneficiary = 'El beneficiario no puede exceder 200 caracteres';
 
   if (Object.keys(prFieldErrors).length > 0) {
     return res.status(400).json({
@@ -208,8 +210,11 @@ router.post('/', requireActive, requireRole('delegado', 'presidente'), (req, res
     });
   }
 
-  if (typeof amount !== 'number' || amount <= 0) {
+  if (typeof amount !== 'number' || isNaN(amount) || amount <= 0) {
     return res.status(400).json({ error: 'Monto debe ser un número positivo', fields: { amount: 'Monto debe ser un número positivo' } });
+  }
+  if (!Number.isInteger(amount)) {
+    return res.status(400).json({ error: 'Monto debe ser un número entero (sin decimales)', fields: { amount: 'Monto debe ser un número entero (sin decimales)' } });
   }
 
   // Validate category belongs to organization
@@ -294,7 +299,9 @@ router.put('/:id', (req, res) => {
   const fieldErrors = {};
   if (amount === undefined || amount === null || amount === '') fieldErrors.amount = 'El monto es requerido';
   if (!description) fieldErrors.description = 'La descripción es requerida';
+  else if (typeof description === 'string' && description.length > 500) fieldErrors.description = 'La descripción no puede exceder 500 caracteres';
   if (!beneficiary) fieldErrors.beneficiary = 'El beneficiario es requerido';
+  else if (typeof beneficiary === 'string' && beneficiary.length > 200) fieldErrors.beneficiary = 'El beneficiario no puede exceder 200 caracteres';
 
   if (Object.keys(fieldErrors).length > 0) {
     return res.status(400).json({
@@ -303,8 +310,11 @@ router.put('/:id', (req, res) => {
     });
   }
 
-  if (typeof amount !== 'number' || amount <= 0) {
+  if (typeof amount !== 'number' || isNaN(amount) || amount <= 0) {
     return res.status(400).json({ error: 'Monto debe ser un número positivo', fields: { amount: 'Monto debe ser un número positivo' } });
+  }
+  if (!Number.isInteger(amount)) {
+    return res.status(400).json({ error: 'Monto debe ser un número entero (sin decimales)', fields: { amount: 'Monto debe ser un número entero (sin decimales)' } });
   }
 
   // Validate category belongs to organization

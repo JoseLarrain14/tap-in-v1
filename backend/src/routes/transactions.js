@@ -185,8 +185,11 @@ router.post('/', requireActive, (req, res) => {
     return res.status(400).json({ error: 'Tipo debe ser ingreso o egreso', fields: { type: 'Tipo debe ser ingreso o egreso' } });
   }
 
-  if (typeof amount !== 'number' || amount <= 0) {
+  if (typeof amount !== 'number' || isNaN(amount) || amount <= 0) {
     return res.status(400).json({ error: 'Monto debe ser un número positivo', fields: { amount: 'Monto debe ser un número positivo' } });
+  }
+  if (!Number.isInteger(amount)) {
+    return res.status(400).json({ error: 'Monto debe ser un número entero (sin decimales)', fields: { amount: 'Monto debe ser un número entero (sin decimales)' } });
   }
 
   // Validate category belongs to organization
