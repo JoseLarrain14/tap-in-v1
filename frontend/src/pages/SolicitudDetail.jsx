@@ -4,7 +4,7 @@ import { useAuth } from '../lib/AuthContext';
 import { api } from '../lib/api';
 import Spinner from '../components/Spinner';
 import NetworkError from '../components/NetworkError';
-import { formatCLP, formatDateTime } from '../lib/formatters';
+import { formatCLP, formatDateTime, blockNonNumericKeys, handleAmountPaste } from '../lib/formatters';
 
 const STATUS_LABELS = {
   borrador: 'Borrador',
@@ -357,19 +357,27 @@ export default function SolicitudDetail() {
                 data-testid="edit-amount"
                 value={editData.amount}
                 onChange={(e) => setEditData({ ...editData, amount: e.target.value })}
+                onKeyDown={blockNonNumericKeys}
+                onPaste={e => handleAmountPaste(e, v => setEditData(d => ({ ...d, amount: v })))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Descripcion</label>
-              <input
-                type="text"
+              <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+              <textarea
                 required
                 data-testid="edit-description"
                 value={editData.description}
-                onChange={(e) => setEditData({ ...editData, description: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none"
+                onChange={(e) => setEditData({ ...editData, description: e.target.value.slice(0, 500) })}
+                maxLength={500}
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none resize-none"
               />
+              <div className="flex justify-end mt-1">
+                <span className={`text-xs ${(editData.description?.length || 0) >= 500 ? 'text-red-500 font-medium' : 'text-gray-400'}`}>
+                  {editData.description?.length || 0}/500
+                </span>
+              </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Beneficiario</label>
