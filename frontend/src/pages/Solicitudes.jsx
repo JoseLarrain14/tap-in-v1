@@ -6,7 +6,7 @@ import * as XLSX from 'xlsx';
 import { SkeletonTable, SkeletonKanban, SkeletonLine } from '../components/Skeleton';
 import Spinner from '../components/Spinner';
 import NetworkError from '../components/NetworkError';
-import { formatCLP } from '../lib/formatters';
+import { formatCLP, blockNonNumericKeys, handleAmountPaste } from '../lib/formatters';
 
 const STATUS_LABELS = {
   borrador: 'Borrador',
@@ -917,6 +917,8 @@ export default function Solicitudes() {
                   step="1"
                   value={newRequest.amount}
                   onChange={(e) => { setNewRequest({ ...newRequest, amount: e.target.value }); if (createFormErrors.amount) setCreateFormErrors(prev => ({ ...prev, amount: '' })); }}
+                  onKeyDown={blockNonNumericKeys}
+                  onPaste={e => handleAmountPaste(e, v => { setNewRequest(r => ({ ...r, amount: v })); if (createFormErrors.amount) setCreateFormErrors(prev => ({ ...prev, amount: '' })); })}
                   className={`w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none ${createFormErrors.amount ? 'border-red-500' : 'border-gray-300'}`}
                   placeholder="50000"
                   data-testid="pr-amount"
@@ -1172,6 +1174,8 @@ export default function Solicitudes() {
                   min="1"
                   value={editRequest.amount}
                   onChange={(e) => setEditRequest({ ...editRequest, amount: e.target.value })}
+                  onKeyDown={blockNonNumericKeys}
+                  onPaste={e => handleAmountPaste(e, v => setEditRequest(r => ({ ...r, amount: v })))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none"
                 />
               </div>

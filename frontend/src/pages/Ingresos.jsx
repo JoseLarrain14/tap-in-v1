@@ -6,7 +6,7 @@ import * as XLSX from 'xlsx';
 import { SkeletonTable, SkeletonLine } from '../components/Skeleton';
 import Spinner from '../components/Spinner';
 import NetworkError from '../components/NetworkError';
-import { formatCLP, formatDate } from '../lib/formatters';
+import { formatCLP, formatDate, blockNonNumericKeys, handleAmountPaste } from '../lib/formatters';
 
 export default function Ingresos() {
   const { user } = useAuth();
@@ -321,6 +321,28 @@ export default function Ingresos() {
     }
     if (!f.date) {
       errors.date = 'La fecha es requerida';
+    } else {
+      // Validate date format and real calendar date
+      const dateStr = String(f.date).trim();
+      const dateMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (!dateMatch) {
+        errors.date = 'La fecha debe tener formato válido (AAAA-MM-DD)';
+      } else {
+        const year = parseInt(dateMatch[1]);
+        const month = parseInt(dateMatch[2]);
+        const day = parseInt(dateMatch[3]);
+        if (month < 1 || month > 12) {
+          errors.date = 'El mes debe estar entre 1 y 12';
+        } else if (day < 1 || day > 31) {
+          errors.date = 'El día debe estar entre 1 y 31';
+        } else {
+          // Check the date is actually valid (e.g., Feb 30 would fail)
+          const dateObj = new Date(year, month - 1, day);
+          if (dateObj.getFullYear() !== year || dateObj.getMonth() !== month - 1 || dateObj.getDate() !== day) {
+            errors.date = 'La fecha ingresada no es válida';
+          }
+        }
+      }
     }
     // RUT validation - optional, but if entered must be valid Chilean format
     if (f.payer_rut && f.payer_rut.trim()) {
@@ -640,6 +662,8 @@ export default function Ingresos() {
                   min="0"
                   value={filterAmountMin}
                   onChange={e => setFilterAmountMin(e.target.value)}
+                  onKeyDown={blockNonNumericKeys}
+                  onPaste={e => handleAmountPaste(e, setFilterAmountMin)}
                   data-testid="filter-amount-min"
                   placeholder="0"
                   className="w-32 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
@@ -652,6 +676,8 @@ export default function Ingresos() {
                   min="0"
                   value={filterAmountMax}
                   onChange={e => setFilterAmountMax(e.target.value)}
+                  onKeyDown={blockNonNumericKeys}
+                  onPaste={e => handleAmountPaste(e, setFilterAmountMax)}
                   data-testid="filter-amount-max"
                   placeholder="Sin límite"
                   className="w-32 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
@@ -840,6 +866,8 @@ export default function Ingresos() {
                   min="1"
                   value={editForm.amount}
                   onChange={e => setEditForm({ ...editForm, amount: e.target.value })}
+                  onKeyDown={blockNonNumericKeys}
+                  onPaste={e => handleAmountPaste(e, v => setEditForm(f => ({ ...f, amount: v })))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                   placeholder="50000"
                 />
@@ -946,6 +974,8 @@ export default function Ingresos() {
                   step="1"
                   value={form.amount}
                   onChange={e => { setForm({ ...form, amount: e.target.value }); if (formErrors.amount) setFormErrors(prev => ({ ...prev, amount: '' })); }}
+                  onKeyDown={blockNonNumericKeys}
+                  onPaste={e => handleAmountPaste(e, v => { setForm(f => ({ ...f, amount: v })); if (formErrors.amount) setFormErrors(prev => ({ ...prev, amount: '' })); })}
                   className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 ${formErrors.amount ? 'border-red-500' : 'border-gray-300'}`}
                   placeholder="50000"
                   data-testid="income-amount"

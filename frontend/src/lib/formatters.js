@@ -70,6 +70,43 @@ export function formatDateTime(dateStr) {
 }
 
 /**
+ * Block non-numeric keys on amount inputs.
+ * Allows: digits 0-9, Backspace, Delete, Tab, Enter, Arrow keys, Home, End, Ctrl/Cmd+A/C/V/X
+ * Blocks: letters (e, E, etc.), special chars (+, -, .), and others
+ * Use as onKeyDown handler on <input type="number">
+ */
+export function blockNonNumericKeys(e) {
+  // Allow control keys
+  const allowed = [
+    'Backspace', 'Delete', 'Tab', 'Enter', 'Escape',
+    'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
+    'Home', 'End',
+  ];
+  if (allowed.includes(e.key)) return;
+  // Allow Ctrl/Cmd + A/C/V/X
+  if ((e.ctrlKey || e.metaKey) && ['a', 'c', 'v', 'x'].includes(e.key.toLowerCase())) return;
+  // Allow only digits
+  if (/^\d$/.test(e.key)) return;
+  // Block everything else (letters like e/E, +, -, ., etc.)
+  e.preventDefault();
+}
+
+/**
+ * onPaste handler for amount inputs - strips non-numeric characters.
+ * Use together with blockNonNumericKeys for full protection.
+ * @param {ClipboardEvent} e
+ * @param {function} setter - State setter function that receives the cleaned numeric string
+ */
+export function handleAmountPaste(e, setter) {
+  e.preventDefault();
+  const pasted = (e.clipboardData || window.clipboardData).getData('text');
+  const cleaned = pasted.replace(/\D/g, '');
+  if (cleaned && setter) {
+    setter(cleaned);
+  }
+}
+
+/**
  * Relative time formatting (Hace X min, Hace X h, etc.)
  * Falls back to locale date for older dates
  */
