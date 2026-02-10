@@ -58,20 +58,26 @@ export default function SolicitudDetail() {
   const [editData, setEditData] = useState({ amount: '', description: '', beneficiary: '', category_id: '' });
   const [categories, setCategories] = useState([]);
   const actionRef = useRef(false);
+  const isMountedRef = useRef(true);
 
   // Modal accessibility hook for reject confirmation
   const { modalRef: rejectModalRef, handleKeyDown: rejectKeyDown } = useModalAccessibility(rejectConfirm, () => setRejectConfirm(false));
 
   useEffect(() => {
+    isMountedRef.current = true;
     const controller = new AbortController();
     loadDetail(controller.signal);
     loadCategories(controller.signal);
-    return () => controller.abort();
+    return () => {
+      isMountedRef.current = false;
+      controller.abort();
+    };
   }, [id]);
 
   async function loadCategories(signal) {
     try {
       const data = await api.get('/categories', signal ? { signal } : {});
+      if (!isMountedRef.current) return;
       const cats = (data.categories || data || []).filter(c => c.type === 'egreso');
       setCategories(cats);
     } catch (err) {
@@ -85,15 +91,17 @@ export default function SolicitudDetail() {
       setLoading(true);
       setError(null);
       const data = await api.get(`/payment-requests/${id}`, signal ? { signal } : {});
+      if (!isMountedRef.current) return;
       setRequest(data.payment_request || data);
       setEvents(data.events || []);
       setAttachments(data.attachments || []);
     } catch (err) {
       if (err.isAborted) return;
+      if (!isMountedRef.current) return;
       setError(err.message || 'Error al cargar la solicitud');
       setIsNetworkError(!!err.isNetworkError);
     } finally {
-      setLoading(false);
+      if (isMountedRef.current) setLoading(false);
     }
   }
 
