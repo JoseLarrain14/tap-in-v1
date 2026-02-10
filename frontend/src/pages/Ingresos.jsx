@@ -48,7 +48,7 @@ export default function Ingresos() {
     if (cat) params.set('category', cat);
     if (from) params.set('from', from);
     if (to) params.set('to', to);
-    if (search) params.set('search', search);
+    if (search && search.trim()) params.set('search', search.trim());
     if (sb && sb !== 'date') params.set('sort_by', sb);
     if (so && so !== 'desc') params.set('sort_order', so);
     if (pg && pg > 1) params.set('page', pg.toString());
@@ -105,7 +105,7 @@ export default function Ingresos() {
     if (cat) params.set('category_id', cat);
     if (from) params.set('from', from);
     if (to) params.set('to', to);
-    if (search) params.set('search', search);
+    if (search && search.trim()) params.set('search', search.trim());
     return params.toString();
   }
 
@@ -196,7 +196,7 @@ export default function Ingresos() {
       if (filterCategory) params.set('category_id', filterCategory);
       if (filterFrom) params.set('from', filterFrom);
       if (filterTo) params.set('to', filterTo);
-      if (filterSearch) params.set('search', filterSearch);
+      if (filterSearch && filterSearch.trim()) params.set('search', filterSearch.trim());
 
       const res = await api.get(`/transactions?${params.toString()}`);
       const data = res.transactions || [];
@@ -453,10 +453,11 @@ export default function Ingresos() {
               type="text"
               placeholder="Buscar por descripción..."
               value={filterSearch}
-              onChange={e => setFilterSearch(e.target.value)}
+              onChange={e => setFilterSearch(e.target.value.slice(0, 500))}
               onKeyDown={e => { if (e.key === 'Enter') applyFilters(); }}
+              maxLength={500}
               data-testid="filter-search"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent truncate"
             />
           </div>
 

@@ -76,7 +76,7 @@ router.get('/', (req, res) => {
     params.push(to);
   }
 
-  const trimmedSearch = (search || '').trim();
+  const trimmedSearch = (search || '').trim().slice(0, 500);
   if (trimmedSearch) {
     // Escape LIKE wildcards to prevent unexpected matching with special characters
     const escapedSearch = trimmedSearch.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_');

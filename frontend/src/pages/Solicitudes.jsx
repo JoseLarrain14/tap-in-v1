@@ -113,7 +113,7 @@ export default function Solicitudes() {
     if (status) params.set('status', status);
     if (cat) params.set('category_id', cat);
     if (creator) params.set('created_by', creator);
-    if (search) params.set('search', search);
+    if (search && search.trim()) params.set('search', search.trim());
     params.set('sort_by', 'created_at');
     params.set('sort_order', 'desc');
     return params.toString();
@@ -181,7 +181,7 @@ export default function Solicitudes() {
       if (statusFilter) params.set('status', statusFilter);
       if (categoryFilter) params.set('category_id', categoryFilter);
       if (creatorFilter) params.set('created_by', creatorFilter);
-      if (searchFilter) params.set('search', searchFilter);
+      if (searchFilter && searchFilter.trim()) params.set('search', searchFilter.trim());
       params.set('sort_by', 'created_at');
       params.set('sort_order', 'desc');
       params.set('limit', '10000');
@@ -580,10 +580,11 @@ export default function Solicitudes() {
                   <input
                     type="text"
                     value={searchFilter}
-                    onChange={(e) => setSearchFilter(e.target.value)}
+                    onChange={(e) => setSearchFilter(e.target.value.slice(0, 500))}
+                    maxLength={500}
                     data-testid="pipeline-filter-search"
                     placeholder="Descripción o beneficiario..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none truncate"
                   />
                 </div>
                 {/* Category */}

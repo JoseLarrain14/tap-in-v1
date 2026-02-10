@@ -88,9 +88,12 @@ router.get('/', (req, res) => {
     params.push(to);
   }
 
-  if (search) {
-    query += ' AND (pr.description LIKE ? OR pr.beneficiary LIKE ?)';
-    const searchTerm = `%${search}%`;
+  const trimmedSearch = (search || '').trim().slice(0, 500);
+  if (trimmedSearch) {
+    // Escape LIKE wildcards to prevent unexpected matching with special characters
+    const escapedSearch = trimmedSearch.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_');
+    const searchTerm = `%${escapedSearch}%`;
+    query += " AND (pr.description LIKE ? ESCAPE '\\' OR pr.beneficiary LIKE ? ESCAPE '\\')";
     params.push(searchTerm, searchTerm);
   }
 
