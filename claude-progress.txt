@@ -1,5 +1,35 @@
 === Tap In V1 - Development Progress ===
 
+## Session 63 - 2026-02-10
+
+### Completed Features:
+- Feature #239: Notification timestamps show relative time ✅
+- Feature #240: Created_at and updated_at auto-set correctly ✅
+
+### Changes Made:
+**Feature #239 - Relative Time Formatting:**
+- Updated formatRelativeDate() in frontend/src/lib/formatters.js
+- Changed from abbreviated format (Hace X min, Hace X h, Hace X d)
+  to full Spanish words (Hace X minutos, Hace X horas, Hace X días)
+- Added proper singular/plural forms (1 minuto vs 5 minutos, 1 hora vs 5 horas, 1 día vs 3 días)
+- Full range: Hace un momento → Hace X minutos → Hace X horas → Hace X días → absolute date (dd-mm-yyyy for >7 days)
+- Verified all ranges via browser automation and direct function testing
+
+**Feature #240 - Auto-set Timestamps:**
+- Already implemented - verified existing functionality
+- All tables with updated_at (organizations, users, categories, transactions, payment_requests)
+  have DEFAULT CURRENT_TIMESTAMP on both created_at and updated_at
+- All UPDATE queries in routes set updated_at = CURRENT_TIMESTAMP
+- Verified end-to-end: created_at persists, updated_at changes on update
+- Tested on transactions, payment_requests, and categories
+
+### Current Status: ~238/265 features passing (~89.8%)
+
+### What should be worked on next:
+- Any remaining temporal/timezone features
+- Final UI/UX polish features
+- Remaining accessibility features
+
 ## Session 62 - 2026-02-10
 
 ### Completed Features:
