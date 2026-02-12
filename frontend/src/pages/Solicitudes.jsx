@@ -7,8 +7,10 @@ import * as XLSX from 'xlsx';
 import { SkeletonTable, SkeletonKanban, SkeletonLine } from '../components/Skeleton';
 import Spinner from '../components/Spinner';
 import NetworkError from '../components/NetworkError';
+import { IconAlertTriangle, IconClipboard } from '../components/Icons';
 import { formatCLP, formatDateTime, blockNonNumericKeys, handleAmountPaste } from '../lib/formatters';
 import { useModalAccessibility } from '../lib/useModalAccessibility';
+import { DndContext, useDroppable, useDraggable, PointerSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core';
 
 const STATUS_LABELS = {
   borrador: 'Borrador',
@@ -54,6 +56,54 @@ const KANBAN_COLUMNS = ['borrador', 'pendiente', 'aprobado', 'rechazado', 'ejecu
 
 const VIEW_KEY = 'solicitudes_view';
 
+// DnD helper components for Kanban drag-and-drop
+function KanbanDropColumn({ status, children, className, ...rest }) {
+  const { setNodeRef, isOver } = useDroppable({ id: status });
+  return (
+    <div
+      ref={setNodeRef}
+      className={`${className}${isOver ? ' ring-2 ring-indigo-400 ring-inset' : ''}`}
+      {...rest}
+    >
+      {children}
+    </div>
+  );
+}
+
+function KanbanDragCard({ cardId, request, children, onClick, className, ...rest }) {
+  const { attributes, listeners, setNodeRef, isDragging, transform } = useDraggable({
+    id: `card-${cardId}`,
+    data: { request },
+  });
+  const style = transform
+    ? {
+        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+        zIndex: 40,
+      }
+    : undefined;
+  return (
+    <div
+      ref={setNodeRef}
+      {...listeners}
+      {...attributes}
+      onClick={onClick}
+      className={className}
+      style={{
+        ...style,
+        opacity: 1,
+        cursor: isDragging ? 'grabbing' : 'grab',
+        touchAction: 'none',
+        position: isDragging ? 'relative' : undefined,
+        transition: isDragging ? 'none' : undefined,
+        willChange: isDragging ? 'transform' : undefined,
+      }}
+      {...rest}
+    >
+      {children}
+    </div>
+  );
+}
+
 export default function Solicitudes() {
   const { user } = useAuth();
   const { addToast } = useToast();
@@ -69,6 +119,9 @@ export default function Solicitudes() {
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [rejectComment, setRejectComment] = useState('');
   const [rejectConfirm, setRejectConfirm] = useState(null);
+  const [executeFile, setExecuteFile] = useState(null);
+  const [executeUploading, setExecuteUploading] = useState(false);
+  const [executeUploadPercent, setExecuteUploadPercent] = useState(0);
   const [actionLoading, setActionLoading] = useState(false);
   const actionRef = useRef(false);
   const isMountedRef = useRef(true);
@@ -111,11 +164,26 @@ export default function Solicitudes() {
   // Track recently transitioned card IDs for CSS animation
   const [recentlyTransitioned, setRecentlyTransitioned] = useState(new Set());
 
+  // DnD state
+  const [activeDragRequest, setActiveDragRequest] = useState(null);
+
+  // DnD sensors - distance threshold differentiates click from drag
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 3 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } })
+  );
+
   // Modal accessibility hooks
   const { modalRef: createModalRef, handleKeyDown: createKeyDown } = useModalAccessibility(showCreateModal, () => setShowCreateModal(false));
   const { modalRef: editModalRef, handleKeyDown: editKeyDown } = useModalAccessibility(showEditModal, () => setShowEditModal(false));
   const { modalRef: rejectModalRef, handleKeyDown: rejectKeyDown } = useModalAccessibility(!!rejectConfirm, () => setRejectConfirm(null));
-  const { modalRef: detailModalRef, handleKeyDown: detailKeyDown } = useModalAccessibility(showDetailModal, () => setShowDetailModal(false));
+  function closeDetailModal() {
+    setShowDetailModal(false);
+    setExecuteFile(null);
+    setExecuteUploading(false);
+    setExecuteUploadPercent(0);
+  }
+  const { modalRef: detailModalRef, handleKeyDown: detailKeyDown } = useModalAccessibility(showDetailModal, closeDetailModal);
 
   function buildFilterQuery(overrides = {}) {
     const status = overrides.status !== undefined ? overrides.status : statusFilter;
@@ -376,7 +444,7 @@ export default function Solicitudes() {
         return next;
       }), 600);
       showFeedback('success', 'Solicitud aprobada exitosamente');
-      setShowDetailModal(false);
+      closeDetailModal();
       // Background sync to get any server-side changes
       loadRequests({}, { silent: true });
     } catch (err) {
@@ -417,7 +485,7 @@ export default function Solicitudes() {
       showFeedback('success', 'Solicitud rechazada');
       setRejectComment('');
       setRejectConfirm(null);
-      setShowDetailModal(false);
+      closeDetailModal();
       // Background sync
       loadRequests({}, { silent: true });
     } catch (err) {
@@ -429,12 +497,23 @@ export default function Solicitudes() {
   }
 
   async function handleExecute(id) {
+    if (!executeFile) {
+      showFeedback('error', 'Debe adjuntar un comprobante de pago para ejecutar la solicitud');
+      return;
+    }
     // Prevent double-click: ref guard blocks re-entry before React re-renders
     if (actionRef.current) return;
     actionRef.current = true;
     try {
       setActionLoading(true);
-      await api.post(`/payment-requests/${id}/execute`, {});
+      setExecuteUploading(true);
+      setExecuteUploadPercent(0);
+      const formData = new FormData();
+      formData.append('comprobante', executeFile);
+      formData.append('comment', 'Pago ejecutado');
+      await api.uploadWithProgress(`/payment-requests/${id}/execute`, formData, (progress) => {
+        setExecuteUploadPercent(progress.percent);
+      });
       // Optimistic UI update - move card immediately
       setRequests(prev => prev.map(r =>
         r.id === id ? { ...r, status: 'ejecutado', executed_by_name: user?.name } : r
@@ -447,7 +526,7 @@ export default function Solicitudes() {
         return next;
       }), 600);
       showFeedback('success', 'Pago ejecutado exitosamente. Comprobante adjuntado correctamente.');
-      setShowDetailModal(false);
+      closeDetailModal();
       // Background sync
       loadRequests({}, { silent: true });
     } catch (err) {
@@ -455,7 +534,96 @@ export default function Solicitudes() {
     } finally {
       actionRef.current = false;
       setActionLoading(false);
+      setExecuteUploading(false);
+      setExecuteUploadPercent(0);
     }
+  }
+
+  async function handleSubmitDraft(id) {
+    if (actionRef.current) return;
+    actionRef.current = true;
+    try {
+      setActionLoading(true);
+      await api.post(`/payment-requests/${id}/submit`, {});
+      // Optimistic UI update
+      setRequests(prev => prev.map(r =>
+        r.id === id ? { ...r, status: 'pendiente' } : r
+      ));
+      setRecentlyTransitioned(prev => new Set([...prev, id]));
+      setTimeout(() => setRecentlyTransitioned(prev => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      }), 600);
+      showFeedback('success', 'Solicitud enviada para aprobación');
+      loadRequests({}, { silent: true });
+    } catch (err) {
+      showFeedback('error', err.message);
+    } finally {
+      actionRef.current = false;
+      setActionLoading(false);
+    }
+  }
+
+  function handleDragEnd(event) {
+    const draggedReq = activeDragRequest;
+    setActiveDragRequest(null);
+    const { over } = event;
+    if (!over || !draggedReq) return;
+
+    const fromStatus = draggedReq.status;
+    const toStatus = over.id;
+    if (fromStatus === toStatus) return;
+
+    // borrador → pendiente (submit, only creator)
+    if (fromStatus === 'borrador' && toStatus === 'pendiente') {
+      if (draggedReq.created_by !== user?.id) {
+        showFeedback('error', 'Solo el creador puede enviar esta solicitud');
+        return;
+      }
+      handleSubmitDraft(draggedReq.id);
+      return;
+    }
+
+    // pendiente → aprobado (approve, only presidente)
+    if (fromStatus === 'pendiente' && toStatus === 'aprobado') {
+      if (user?.role !== 'presidente') {
+        showFeedback('error', 'Solo el Presidente puede aprobar solicitudes');
+        return;
+      }
+      handleApprove(draggedReq.id);
+      return;
+    }
+
+    // pendiente → rechazado (reject, only presidente, needs comment)
+    if (fromStatus === 'pendiente' && toStatus === 'rechazado') {
+      if (user?.role !== 'presidente') {
+        showFeedback('error', 'Solo el Presidente puede rechazar solicitudes');
+        return;
+      }
+      // Open detail modal so user can enter required reject comment
+      setSelectedRequest(draggedReq);
+      setRejectComment('');
+      setShowDetailModal(true);
+      return;
+    }
+
+    // aprobado → ejecutado (open modal to attach comprobante)
+    if (fromStatus === 'aprobado' && toStatus === 'ejecutado') {
+      if (user?.role !== 'secretaria') {
+        showFeedback('error', 'Solo la Secretaria puede ejecutar solicitudes aprobadas');
+        return;
+      }
+      setSelectedRequest(draggedReq);
+      setExecuteFile(null);
+      setExecuteUploading(false);
+      setExecuteUploadPercent(0);
+      setShowDetailModal(true);
+      return;
+    }
+
+    // Any other transition is not allowed
+    showFeedback('error', 'Esta transición de estado no está permitida');
   }
 
   async function handleEdit(e) {
@@ -591,7 +759,7 @@ export default function Solicitudes() {
 
       {/* Status Filters - only show in Table view */}
       {viewMode === 'table' && (
-        <div className="space-y-3">
+        <div className="space-y-3 filters-enter">
           <div className="flex gap-2 flex-wrap">
             {['', 'pendiente', 'aprobado', 'rechazado', 'ejecutado', 'borrador'].map((s) => (
               <button
@@ -729,7 +897,9 @@ export default function Solicitudes() {
       )}
       {error && !isNetworkError && (
         <div role="alert" className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6 text-center">
-          <div className="text-3xl mb-2">⚠️</div>
+          <div className="inline-flex items-center justify-center w-11 h-11 rounded-full bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 mb-2">
+            <IconAlertTriangle size={20} />
+          </div>
           <h3 className="text-lg font-semibold text-red-800 dark:text-red-300 mb-1">Error al cargar datos</h3>
           <p className="text-red-600 dark:text-red-400 text-sm mb-3">{error}</p>
           <button
@@ -744,7 +914,9 @@ export default function Solicitudes() {
       {/* Empty State */}
       {!loading && !error && requests.length === 0 && (
         <div className="text-center py-16 bg-white rounded-xl border border-gray-200">
-          <div className="text-4xl mb-3">📋</div>
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-gray-100 text-gray-500 mb-3">
+            <IconClipboard size={26} />
+          </div>
           <h3 className="text-lg font-medium text-gray-900">No hay solicitudes</h3>
           <p className="text-gray-500 mt-1 text-sm">
             {statusFilter || hasAdvancedFilters
@@ -772,12 +944,19 @@ export default function Solicitudes() {
 
       {/* KANBAN VIEW */}
       {!loading && requests.length > 0 && viewMode === 'kanban' && (
-        <div ref={kanbanWrapperRef} className="kanban-scroll-wrapper">
+        <div key="view-kanban" ref={kanbanWrapperRef} className="kanban-scroll-wrapper view-enter">
+        <DndContext
+          sensors={sensors}
+          onDragStart={(event) => setActiveDragRequest(event.active.data.current?.request || null)}
+          onDragEnd={handleDragEnd}
+          onDragCancel={() => setActiveDragRequest(null)}
+        >
         <div ref={kanbanScrollRef} className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 kanban-scroll" data-testid="kanban-view">
           {KANBAN_COLUMNS.map(status => (
-            <div
+            <KanbanDropColumn
               key={status}
-              className={`flex-shrink-0 w-[75vw] sm:w-48 md:w-52 lg:w-64 rounded-xl border border-gray-200 border-t-4 ${KANBAN_COLUMN_COLORS[status]} bg-white flex flex-col max-h-[calc(100vh-280px)] sm:max-h-[calc(100vh-240px)] kanban-column`}
+              status={status}
+              className={`flex-shrink-0 w-[75vw] sm:w-48 md:w-52 lg:w-64 rounded-xl border border-gray-200 border-t-4 ${KANBAN_COLUMN_COLORS[status]} bg-white flex flex-col max-h-[calc(100vh-280px)] sm:max-h-[calc(100vh-240px)] kanban-column transition-shadow duration-200`}
               data-testid={`kanban-column-${status}`}
             >
               {/* Column header */}
@@ -793,17 +972,19 @@ export default function Solicitudes() {
                 </div>
               </div>
               {/* Column body */}
-              <div className="flex-1 overflow-y-auto p-2 space-y-2">
+              <div className={`flex-1 p-2 space-y-2 ${activeDragRequest ? 'overflow-visible' : 'overflow-y-auto'}`}>
                 {requestsByStatus[status].length === 0 ? (
                   <div className="text-center py-6 text-xs text-gray-500">
                     Sin solicitudes
                   </div>
                 ) : (
                   requestsByStatus[status].map(req => (
-                    <div
+                    <KanbanDragCard
                       key={req.id}
-                      onClick={() => openDetail(req)}
-                      className={`bg-white border border-gray-100 rounded-lg p-3 hover:border-gray-300 hover:shadow-sm transition-all duration-300 cursor-pointer min-h-[44px] ${
+                      cardId={req.id}
+                      request={req}
+                      onClick={() => { setSelectedRequest(req); setShowDetailModal(true); }}
+                      className={`bg-white border border-gray-100 rounded-lg p-3 hover:border-gray-300 hover:shadow-sm transition-colors duration-150 cursor-grab min-h-[44px] ${
                         recentlyTransitioned.has(req.id) ? 'animate-card-enter' : ''
                       }`}
                       data-testid={`kanban-card-${req.id}`}
@@ -835,28 +1016,29 @@ export default function Solicitudes() {
                         {canExecute && req.status === 'aprobado' && (
                           <div className="flex-shrink-0" onClick={e => e.stopPropagation()}>
                             <button
-                              onClick={() => navigate(`/solicitudes/${req.id}`)}
+                              onClick={() => { setSelectedRequest(req); setExecuteFile(null); setExecuteUploading(false); setExecuteUploadPercent(0); setShowDetailModal(true); }}
                               className="text-xs px-2.5 py-2 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors min-h-[44px] flex items-center justify-center"
-                              title="Requiere adjuntar comprobante"
+                              title="Ejecutar con comprobante"
                             >
                               Ejecutar
                             </button>
                           </div>
                         )}
                       </div>
-                    </div>
+                    </KanbanDragCard>
                   ))
                 )}
               </div>
-            </div>
+            </KanbanDropColumn>
           ))}
         </div>
+        </DndContext>
         </div>
       )}
 
       {/* TABLE VIEW - Mobile card layout */}
       {!loading && requests.length > 0 && viewMode === 'table' && (
-        <div className="md:hidden space-y-3" data-testid="mobile-table-cards">
+        <div key="view-table-mobile" className="md:hidden space-y-3 view-enter" data-testid="mobile-table-cards">
           {requests.map((req) => (
             <div
               key={req.id}
@@ -902,7 +1084,7 @@ export default function Solicitudes() {
                   )}
                   {canExecute && req.status === 'aprobado' && (
                     <button
-                      onClick={() => navigate(`/solicitudes/${req.id}`)}
+                      onClick={() => { setSelectedRequest(req); setExecuteFile(null); setExecuteUploading(false); setExecuteUploadPercent(0); setShowDetailModal(true); }}
                       className="px-3 py-2.5 min-h-[44px] bg-blue-600 text-white rounded text-xs font-medium"
                     >
                       Ejecutar
@@ -917,7 +1099,7 @@ export default function Solicitudes() {
 
       {/* TABLE VIEW - Desktop table layout */}
       {!loading && requests.length > 0 && viewMode === 'table' && (
-        <div className="hidden md:block bg-white rounded-xl border border-gray-200 overflow-x-auto" data-testid="table-view">
+        <div key="view-table-desktop" className="hidden md:block bg-white rounded-xl border border-gray-200 overflow-x-auto view-enter" data-testid="table-view">
           <table className="w-full min-w-[700px]">
             <thead>
               <tr className="border-b border-gray-100">
@@ -981,13 +1163,13 @@ export default function Solicitudes() {
                         </button>
                       </div>
                     )}
-                    {/* Execute button - ONLY for secretaria, ONLY on approved - links to detail page for comprobante */}
+                    {/* Execute button - ONLY for secretaria, ONLY on approved - opens modal for comprobante */}
                     {canExecute && req.status === 'aprobado' && (
                       <div onClick={(e) => e.stopPropagation()}>
                         <button
-                          onClick={() => navigate(`/solicitudes/${req.id}`)}
+                          onClick={() => { setSelectedRequest(req); setExecuteFile(null); setExecuteUploading(false); setExecuteUploadPercent(0); setShowDetailModal(true); }}
                           className="px-2.5 py-1 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700 transition-colors"
-                          title="Requiere adjuntar comprobante"
+                          title="Ejecutar con comprobante"
                         >
                           Ejecutar
                         </button>
@@ -1129,14 +1311,14 @@ export default function Solicitudes() {
 
       {/* Detail Modal */}
       {showDetailModal && selectedRequest && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onKeyDown={detailKeyDown} onClick={(e) => { if (e.target === e.currentTarget) setShowDetailModal(false); }}>
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onKeyDown={detailKeyDown} onClick={(e) => { if (e.target === e.currentTarget) closeDetailModal(); }}>
           <div ref={detailModalRef} role="dialog" aria-modal="true" aria-labelledby="detail-solicitud-title" tabIndex={-1} className="bg-white rounded-xl shadow-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto outline-none">
             <div className="flex items-start justify-between mb-4">
               <h2 id="detail-solicitud-title" className="text-lg font-semibold text-gray-900">
                 Solicitud #{selectedRequest.id}
               </h2>
               <button
-                onClick={() => setShowDetailModal(false)}
+                onClick={() => closeDetailModal()}
                 className="text-gray-400 hover:text-gray-600 text-xl leading-none p-1 min-w-[44px] min-h-[44px] flex items-center justify-center"
                 aria-label="Cerrar"
               >
@@ -1209,13 +1391,58 @@ export default function Solicitudes() {
             )}
 
             {canExecute && selectedRequest.status === 'aprobado' && (
-              <div className="border-t border-gray-100 pt-4">
-                <p className="text-xs text-gray-500 mb-2 text-center">Se requiere adjuntar comprobante para ejecutar</p>
+              <div className="space-y-3 border-t border-gray-100 pt-4">
+                <div>
+                  <label htmlFor="modal-execute-file" className="block text-sm font-medium text-gray-700 mb-1">
+                    Comprobante de pago (obligatorio)
+                  </label>
+                  <input
+                    id="modal-execute-file"
+                    type="file"
+                    accept=".jpg,.jpeg,.png,.gif,.pdf,.webp"
+                    onChange={(e) => {
+                      const file = e.target.files[0] || null;
+                      if (file && file.size > 10 * 1024 * 1024) {
+                        showFeedback('error', 'El archivo excede el tamaño máximo permitido (10MB)');
+                        e.target.value = '';
+                        setExecuteFile(null);
+                        return;
+                      }
+                      setExecuteFile(file);
+                    }}
+                    className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 file:cursor-pointer"
+                  />
+                  {executeFile && (
+                    <p className="mt-1 text-xs text-gray-500">
+                      Archivo seleccionado: {executeFile.name} ({(executeFile.size / 1024).toFixed(1)} KB)
+                    </p>
+                  )}
+                  {!executeFile && (
+                    <p className="mt-1 text-xs text-red-500">
+                      * El comprobante es obligatorio para ejecutar el pago
+                    </p>
+                  )}
+                </div>
+                {executeUploading && (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm text-blue-600">
+                      <Spinner size={14} className="inline" />
+                      <span>Subiendo comprobante... {executeUploadPercent}%</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                      <div
+                        className="bg-blue-600 h-2 rounded-full transition-all duration-300 ease-out"
+                        style={{ width: `${executeUploadPercent}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
                 <button
-                  onClick={() => { setShowDetailModal(false); navigate(`/solicitudes/${selectedRequest.id}`); }}
-                  className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                  onClick={() => handleExecute(selectedRequest.id)}
+                  disabled={actionLoading || !executeFile}
+                  className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
                 >
-                  Ir a Ejecutar con Comprobante
+                  {actionLoading ? <><Spinner size={14} className="inline mr-1" />Ejecutando...</> : 'Ejecutar Solicitud'}
                 </button>
               </div>
             )}
@@ -1237,6 +1464,22 @@ export default function Solicitudes() {
                 </p>
               </div>
             )}
+
+            {/* Ver página completa */}
+            <div className="border-t border-gray-100 pt-4 mt-2">
+              <button
+                onClick={() => { closeDetailModal(); navigate(`/solicitudes/${selectedRequest.id}`); }}
+                className="w-full px-4 py-2 text-gray-600 border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+                data-testid="detail-modal-fullpage"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                  <polyline points="15 3 21 3 21 9"/>
+                  <line x1="10" y1="14" x2="21" y2="3"/>
+                </svg>
+                Ver pagina completa
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -1246,7 +1489,9 @@ export default function Solicitudes() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4" onKeyDown={rejectKeyDown} onClick={(e) => { if (e.target === e.currentTarget) setRejectConfirm(null); }}>
           <div ref={rejectModalRef} role="dialog" aria-modal="true" aria-labelledby="reject-confirm-title" tabIndex={-1} className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto outline-none" onClick={(e) => e.stopPropagation()}>
             <div className="text-center">
-              <div className="text-4xl mb-3" aria-hidden="true">⚠️</div>
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-red-100 text-red-600 mb-3" aria-hidden="true">
+                <IconAlertTriangle size={22} />
+              </div>
               <h2 id="reject-confirm-title" className="text-lg font-semibold text-gray-900 mb-2">Confirmar rechazo</h2>
               <p className="text-gray-600 text-sm mb-1">
                 ¿Estás seguro de rechazar esta solicitud?

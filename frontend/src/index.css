@@ -89,6 +89,52 @@ select:focus-visible {
   box-shadow: none !important;
 }
 
+/* View switch fade-in animation */
+@keyframes view-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.view-enter {
+  animation: view-fade-in 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Filter bar slide-down animation */
+@keyframes filters-slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    max-height: 200px;
+  }
+}
+
+@keyframes filters-slide-up {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+.filters-enter {
+  animation: filters-slide-down 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  overflow: hidden;
+}
+
 /* Kanban card transition animation */
 @keyframes card-enter {
   0% {
@@ -130,6 +176,29 @@ select:focus-visible {
 .kanban-scroll::-webkit-scrollbar-thumb {
   background-color: rgba(156, 163, 175, 0.4);
   border-radius: 3px;
+}
+
+/* Kanban scroll container with fade edge indicator */
+.kanban-scroll-wrapper {
+  position: relative;
+}
+
+.kanban-scroll-wrapper::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 32px;
+  background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.9));
+  pointer-events: none;
+  z-index: 1;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.kanban-scroll-wrapper.scrolled-end::after {
+  opacity: 0;
 }
 
 /* Snap scrolling on mobile for better column navigation */
