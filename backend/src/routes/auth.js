@@ -6,7 +6,9 @@ const { generateToken, authenticateToken } = require('../middleware/auth');
 
 // POST /api/auth/login
 router.post('/login', (req, res) => {
-  const { email, password } = req.body;
+  const rawEmail = req.body.email;
+  const password = req.body.password;
+  const email = typeof rawEmail === 'string' ? rawEmail.trim().toLowerCase() : '';
 
   if (!email || !password) {
     return res.status(400).json({ error: 'Email y contraseña son requeridos' });
@@ -14,7 +16,7 @@ router.post('/login', (req, res) => {
 
   const db = getDb();
   const user = db.prepare(
-    'SELECT id, organization_id, email, password_hash, name, role, is_active FROM users WHERE email = ?'
+    'SELECT id, organization_id, email, password_hash, name, role, is_active FROM users WHERE LOWER(TRIM(email)) = ?'
   ).get(email);
 
   if (!user) {

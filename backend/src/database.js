@@ -332,42 +332,42 @@ function initializeSchema() {
 function seedDefaultData() {
   if (!db) throw new Error('Database not initialized');
 
-  // Check if we already have an organization
-  const result = db.exec('SELECT COUNT(*) as count FROM organizations');
-  const orgCount = result[0].values[0][0];
-
-  if (orgCount > 0) {
-    console.log('[Database] Default data already exists, skipping seed');
+  const userCountResult = db.exec('SELECT COUNT(*) as count FROM users');
+  const userCount = userCountResult[0].values[0][0];
+  if (userCount > 0) {
+    console.log('[Database] Users already exist, skipping seed');
     return;
   }
 
-  // Create default organization
-  db.run("INSERT INTO organizations (name, school_name) VALUES ('CPP Demo', 'Colegio Demo Santiago')");
-  const orgIdResult = db.exec('SELECT last_insert_rowid() as id');
-  const orgId = orgIdResult[0].values[0][0];
-
-  // Create default categories for income
-  const incomeCategories = ['Cuota Mensual', 'Evento', 'Taller', 'Donación', 'Otro'];
-  for (const cat of incomeCategories) {
-    db.run('INSERT INTO categories (organization_id, name, type, is_default) VALUES (?, ?, ?, ?)', [orgId, cat, 'ingreso', 1]);
+  // Need to create default org, categories, and users
+  let orgId;
+  const orgResult = db.exec('SELECT COUNT(*) as count FROM organizations');
+  const orgCount = orgResult[0].values[0][0];
+  if (orgCount > 0) {
+    const firstOrg = db.exec('SELECT id FROM organizations LIMIT 1');
+    orgId = firstOrg[0].values[0][0];
+    console.log('[Database] Organization exists but no users; creating default users for org', orgId);
+  } else {
+    db.run("INSERT INTO organizations (name, school_name) VALUES ('CPP Demo', 'Colegio Demo Santiago')");
+    const orgIdResult = db.exec('SELECT last_insert_rowid() as id');
+    orgId = orgIdResult[0].values[0][0];
+    const incomeCategories = ['Cuota Mensual', 'Evento', 'Taller', 'Donación', 'Otro'];
+    for (const cat of incomeCategories) {
+      db.run('INSERT INTO categories (organization_id, name, type, is_default) VALUES (?, ?, ?, ?)', [orgId, cat, 'ingreso', 1]);
+    }
+    const expenseCategories = ['Materiales', 'Servicios', 'Eventos', 'Infraestructura', 'Otro'];
+    for (const cat of expenseCategories) {
+      db.run('INSERT INTO categories (organization_id, name, type, is_default) VALUES (?, ?, ?, ?)', [orgId, cat, 'egreso', 1]);
+    }
   }
 
-  // Create default categories for expenses
-  const expenseCategories = ['Materiales', 'Servicios', 'Eventos', 'Infraestructura', 'Otro'];
-  for (const cat of expenseCategories) {
-    db.run('INSERT INTO categories (organization_id, name, type, is_default) VALUES (?, ?, ?, ?)', [orgId, cat, 'egreso', 1]);
-  }
-
-  // Create default users with bcryptjs hashed passwords
   const bcrypt = require('bcryptjs');
   const passwordHash = bcrypt.hashSync('password123', 10);
-
   const users = [
     { email: 'presidente@tapin.cl', name: 'María González', role: 'presidente' },
     { email: 'secretaria@tapin.cl', name: 'Ana Martínez', role: 'secretaria' },
     { email: 'delegado@tapin.cl', name: 'Carlos López', role: 'delegado' },
   ];
-
   for (const user of users) {
     db.run(
       'INSERT INTO users (organization_id, email, password_hash, name, role) VALUES (?, ?, ?, ?, ?)',
