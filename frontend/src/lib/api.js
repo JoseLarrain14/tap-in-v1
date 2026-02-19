@@ -1,4 +1,5 @@
-const API_BASE = '/api';
+// En producción (Netlify) usar VITE_API_URL; en local el proxy usa /api
+const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
 function getToken() {
   return localStorage.getItem('token');
